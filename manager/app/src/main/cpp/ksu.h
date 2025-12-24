@@ -236,6 +236,17 @@ struct ksu_superkey_status_cmd {
 #define KSU_INSTALL_MAGIC2 0xCAFEBABE
 #define KSU_SUPERKEY_MAGIC2 0xCAFE5555
 
+// Magic for SuperKey authentication via prctl (SECCOMP-safe)
+// prctl is not blocked by Android SECCOMP policy, unlike reboot
+#define KSU_PRCTL_SUPERKEY_AUTH 0xDEAD5555
+
+// SuperKey auth structure for prctl hook
+struct ksu_superkey_prctl_cmd {
+  char superkey[65]; // Input: SuperKey string (null-terminated)
+  int result;        // Output: 0 = success, negative = error
+  int fd;            // Output: fd on success
+};
+
 // SuperKey auth structure for reboot hook
 struct ksu_superkey_reboot_cmd {
   char superkey[65]; // Input: SuperKey string (null-terminated)

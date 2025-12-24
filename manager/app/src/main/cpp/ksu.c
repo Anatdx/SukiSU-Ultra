@@ -343,41 +343,71 @@ exit:
 #endif
 }
 
-// SuperKey authentication using reboot syscall
-// This method doesn't require prior fd installation
+// SuperKey authentication using prctl syscall (SECCOMP-safe)
+// prctl is not blocked by Android's SECCOMP policy, unlike reboot syscall
 bool authenticate_superkey(const char *superkey) {
   if (!superkey) {
     LogDebug("authenticate_superkey: superkey is null");
     return false;
   }
 
-  struct ksu_superkey_reboot_cmd cmd = {};
-  strncpy(cmd.superkey, superkey, sizeof(cmd.superkey) - 1);
-  cmd.superkey[sizeof(cmd.superkey) - 1] = '\0';
-  cmd.result = -1; // Initialize with error
-  cmd.fd = -1;
+  // Method 1: Use prctl (SECCOMP-safe, recommended)
+  struct ksu_superkey_prctl_cmd prctl_cmd = {};
+  strncpy(prctl_cmd.superkey, superkey, sizeof(prctl_cmd.superkey) - 1);
+  prctl_cmd.superkey[sizeof(prctl_cmd.superkey) - 1] = '\0';
+  prctl_cmd.result = -1; // Initialize with error
+  prctl_cmd.fd = -1;
 
-  // Use reboot syscall with SuperKey magic
-  // reboot(KSU_INSTALL_MAGIC1, KSU_SUPERKEY_MAGIC2, 0, &cmd)
-  long ret =
-      syscall(__NR_reboot, KSU_INSTALL_MAGIC1, KSU_SUPERKEY_MAGIC2, 0, &cmd);
+  LogDebug("authenticate_superkey: trying prctl method...");
+
+  // Use prctl syscall with SuperKey magic
+  // prctl(KSU_PRCTL_SUPERKEY_AUTH, &cmd_struct, 0, 0, 0)
+  long ret = prctl(KSU_PRCTL_SUPERKEY_AUTH, &prctl_cmd, 0, 0, 0);
 
   // Give task_work a chance to execute
   usleep(10000); // 10ms
 
-  LogDebug("authenticate_superkey: syscall ret=%ld, cmd.result=%d, cmd.fd=%d",
-           ret, cmd.result, cmd.fd);
+  LogDebug("authenticate_superkey: prctl ret=%ld, cmd.result=%d, cmd.fd=%d",
+           ret, prctl_cmd.result, prctl_cmd.fd);
 
-  if (cmd.result == 0 && cmd.fd >= 0) {
-    // Authentication successful, store the fd and reset cached info
-    fd = cmd.fd;
+  if (prctl_cmd.result == 0 && prctl_cmd.fd >= 0) {
+    // Authentication successful via prctl
+    fd = prctl_cmd.fd;
     reset_cached_info(); // Clear cached version/flags so next is_manager()
                          // check is fresh
-    LogDebug("authenticate_superkey: success, fd=%d", fd);
+    LogDebug("authenticate_superkey: prctl success, fd=%d", fd);
     return true;
   }
 
-  // Fallback: try ioctl if we already have an fd
+  // Method 2: Fallback to reboot syscall (may be blocked by SECCOMP)
+  LogDebug("authenticate_superkey: prctl failed, trying reboot method...");
+  struct ksu_superkey_reboot_cmd reboot_cmd = {};
+  strncpy(reboot_cmd.superkey, superkey, sizeof(reboot_cmd.superkey) - 1);
+  reboot_cmd.superkey[sizeof(reboot_cmd.superkey) - 1] = '\0';
+  reboot_cmd.result = -1; // Initialize with error
+  reboot_cmd.fd = -1;
+
+  // Use reboot syscall with SuperKey magic
+  // reboot(KSU_INSTALL_MAGIC1, KSU_SUPERKEY_MAGIC2, 0, &cmd)
+  ret = syscall(__NR_reboot, KSU_INSTALL_MAGIC1, KSU_SUPERKEY_MAGIC2, 0,
+                &reboot_cmd);
+
+  // Give task_work a chance to execute
+  usleep(10000); // 10ms
+
+  LogDebug("authenticate_superkey: reboot ret=%ld, cmd.result=%d, cmd.fd=%d",
+           ret, reboot_cmd.result, reboot_cmd.fd);
+
+  if (reboot_cmd.result == 0 && reboot_cmd.fd >= 0) {
+    // Authentication successful via reboot
+    fd = reboot_cmd.fd;
+    reset_cached_info(); // Clear cached version/flags so next is_manager()
+                         // check is fresh
+    LogDebug("authenticate_superkey: reboot success, fd=%d", fd);
+    return true;
+  }
+
+  // Method 3: Fallback - try ioctl if we already have an fd
   if (fd >= 0) {
     struct ksu_superkey_auth_cmd ioctl_cmd = {};
     strncpy(ioctl_cmd.superkey, superkey, sizeof(ioctl_cmd.superkey) - 1);
@@ -394,7 +424,7 @@ bool authenticate_superkey(const char *superkey) {
     }
   }
 
-  LogDebug("authenticate_superkey: failed");
+  LogDebug("authenticate_superkey: all methods failed");
   return false;
 }
 
