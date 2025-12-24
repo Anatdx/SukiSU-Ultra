@@ -223,6 +223,9 @@ struct ksu_superkey_auth_cmd {
 // SuperKey authentication function
 bool authenticate_superkey(const char *superkey);
 
+// Check if KSU driver is present (without authentication)
+bool ksu_driver_present(void);
+
 bool get_allow_list(struct ksu_get_allow_list_cmd *);
 
 // Legacy Compatible

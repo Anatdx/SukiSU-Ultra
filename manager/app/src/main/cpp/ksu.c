@@ -352,3 +352,13 @@ bool authenticate_superkey(const char *superkey) {
     LogDebug("authenticate_superkey: ioctl failed");
     return false;
 }
+
+// Check if KSU driver is present (without authentication)
+// This checks if the driver fd can be found
+bool ksu_driver_present(void) {
+    if (fd >= 0) {
+        return true;
+    }
+    fd = scan_driver_fd();
+    return fd >= 0;
+}

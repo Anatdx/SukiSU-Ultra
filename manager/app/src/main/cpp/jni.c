@@ -380,3 +380,8 @@ NativeBridge(authenticateSuperKey, jboolean, jstring superKey) {
 	LogDebug("authenticateSuperKey: result=%d", result);
 	return result;
 }
+
+// Check if KSU driver is present
+NativeBridge(isKsuDriverPresent, jboolean) {
+	return ksu_driver_present();
+}

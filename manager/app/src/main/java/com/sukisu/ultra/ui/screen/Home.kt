@@ -189,10 +189,11 @@ fun HomeScreen(navigator: DestinationsNavigator) {
 
                 // 状态卡片
                 if (viewModel.isCoreDataLoaded) {
-                    // 如果检测到 KSU 驱动但未认证为管理器，显示 SuperKey 认证卡片
-                    val hasKsuDriver = Natives.version > 0
+                    // 检测 KSU 驱动是否存在（不需要鉴权）
+                    val hasKsuDriver = Natives.isKsuDriverPresent()
                     val isNotManager = !viewModel.systemStatus.isManager
                     
+                    // 如果检测到 KSU 驱动但未认证为管理器，显示 SuperKey 认证卡片
                     if (hasKsuDriver && isNotManager && !superKeyAuthSuccess) {
                         SuperKeyAuthCard(
                             onAuthClick = {

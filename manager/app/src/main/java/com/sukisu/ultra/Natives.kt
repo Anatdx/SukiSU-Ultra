@@ -141,6 +141,12 @@ object Natives {
      */
     external fun authenticateSuperKey(superKey: String): Boolean
     
+    /**
+     * Check if KSU driver is present (without authentication)
+     * @return true if driver fd can be found, false otherwise
+     */
+    external fun isKsuDriverPresent(): Boolean
+    
     private const val NON_ROOT_DEFAULT_PROFILE_KEY = "$"
     private const val NOBODY_UID = 9999
 
