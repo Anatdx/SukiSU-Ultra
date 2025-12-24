@@ -382,6 +382,6 @@ NativeBridge(authenticateSuperKey, jboolean, jstring superKey) {
 }
 
 // Check if KSU driver is present
-NativeBridge(isKsuDriverPresent, jboolean) {
+NativeBridgeNP(isKsuDriverPresent, jboolean) {
 	return ksu_driver_present();
 }
