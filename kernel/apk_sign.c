@@ -16,19 +16,18 @@
 
 #include "apk_sign.h"
 #include "klog.h" // IWYU pragma: keep
-#include "manager_sign.h"
 
 struct sdesc {
     struct shash_desc shash;
     char ctx[];
 };
 
-static apk_sign_key_t apk_sign_keys[] = {
-    { EXPECTED_SIZE_FIRST, EXPECTED_HASH_FIRST }, // First Manager
-    { EXPECTED_SIZE_SECOND, EXPECTED_HASH_SECOND }, // Second Manager
-#ifdef EXPECTED_SIZE
-    { EXPECTED_SIZE, EXPECTED_HASH }, // Custom
-#endif
+// 允许的管理器证书哈希列表（SHA256）
+// 只需要在这里添加/删除哈希，不需要改构建脚本
+static const char *allowed_cert_hashes[] = {
+    "03b53b8bd866c029f2bb34798376977c43874dd589ddaf594080bcef0267a45b", // Official Debug Key
+    "e76c912ef2def3470f7293b73f983cfc795d7d61c46f85a7013d1fb745deaf89", // Anatdx EC P-521 Key
+    NULL // 结束标记
 };
 
 static struct sdesc *init_sdesc(struct crypto_shash *alg)
@@ -81,7 +80,6 @@ static int ksu_sha256(const unsigned char *data, unsigned int datalen,
 static bool check_block(struct file *fp, u32 *size4, loff_t *pos, u32 *offset)
 {
     int i;
-    apk_sign_key_t sign_key;
 
     kernel_read(fp, size4, 0x4, pos); // signer-sequence length
     kernel_read(fp, size4, 0x4, pos); // signer length
@@ -98,36 +96,37 @@ static bool check_block(struct file *fp, u32 *size4, loff_t *pos, u32 *offset)
     kernel_read(fp, size4, 0x4, pos); // certificate length
     *offset += 0x4 * 2;
 
-    for (i = 0; i < ARRAY_SIZE(apk_sign_keys); i++) {
-        sign_key = apk_sign_keys[i];
-
-        if (*size4 != sign_key.size)
-            continue;
-        *offset += *size4;
-
 #define CERT_MAX_LENGTH 1024
-        char cert[CERT_MAX_LENGTH];
-        if (*size4 > CERT_MAX_LENGTH) {
-            pr_info("cert length overlimit\n");
-            return false;
-        }
-        kernel_read(fp, cert, *size4, pos);
-        unsigned char digest[SHA256_DIGEST_SIZE];
-        if (ksu_sha256(cert, *size4, digest) < 0) {
-            pr_info("sha256 error\n");
-            return false;
-        }
+    char cert[CERT_MAX_LENGTH];
+    if (*size4 > CERT_MAX_LENGTH) {
+        pr_info("cert length overlimit: %u\n", *size4);
+        return false;
+    }
+    
+    *offset += *size4;
+    kernel_read(fp, cert, *size4, pos);
+    
+    unsigned char digest[SHA256_DIGEST_SIZE];
+    if (ksu_sha256(cert, *size4, digest) < 0) {
+        pr_info("sha256 calculation error\n");
+        return false;
+    }
 
-        char hash_str[SHA256_DIGEST_SIZE * 2 + 1];
-        hash_str[SHA256_DIGEST_SIZE * 2] = '\0';
-
-        bin2hex(hash_str, digest, SHA256_DIGEST_SIZE);
-        pr_info("sha256: %s, expected: %s\n", hash_str,
-            sign_key.sha256);
-        if (strcmp(sign_key.sha256, hash_str) == 0) {
+    char hash_str[SHA256_DIGEST_SIZE * 2 + 1];
+    hash_str[SHA256_DIGEST_SIZE * 2] = '\0';
+    bin2hex(hash_str, digest, SHA256_DIGEST_SIZE);
+    
+    pr_info("APK cert SHA256: %s (size: %u)\n", hash_str, *size4);
+    
+    // 遍历允许的哈希列表
+    for (i = 0; allowed_cert_hashes[i] != NULL; i++) {
+        if (strcmp(allowed_cert_hashes[i], hash_str) == 0) {
+            pr_info("Certificate matched: %s\n", allowed_cert_hashes[i]);
             return true;
         }
     }
+    
+    pr_err("Certificate NOT in whitelist!\n");
     return false;
 }
 

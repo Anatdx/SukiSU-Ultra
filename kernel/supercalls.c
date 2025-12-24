@@ -667,6 +667,40 @@ static int do_enable_kpm(void __user *arg)
     return 0;
 }
 
+// 107. SUPERKEY_AUTH - Authenticate with superkey (APatch-style)
+#ifdef CONFIG_KSU_SUPERKEY
+#include "superkey.h"
+
+static int do_superkey_auth(void __user *arg)
+{
+    struct ksu_superkey_auth_cmd cmd;
+
+    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+        pr_err("superkey_auth: copy_from_user failed\n");
+        return -EFAULT;
+    }
+
+    cmd.superkey[sizeof(cmd.superkey) - 1] = '\0'; // Ensure null-terminated
+    
+    if (verify_superkey(cmd.superkey)) {
+        // 认证成功，设置当前进程为管理器
+        ksu_set_manager_appid(current_uid().val % PER_USER_RANGE);
+        cmd.result = 0;
+        pr_info("superkey_auth: success for uid %d\n", current_uid().val);
+    } else {
+        cmd.result = -EINVAL;
+        pr_warn("superkey_auth: failed for uid %d\n", current_uid().val);
+    }
+
+    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+        pr_err("superkey_auth: copy_to_user failed\n");
+        return -EFAULT;
+    }
+
+    return 0;
+}
+#endif
+
 #ifdef CONFIG_KSU_MANUAL_SU
 static bool system_uid_check(void)
 {
@@ -798,6 +832,12 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
       .name = "GET_ENABLE_KPM",
       .handler = do_enable_kpm,
       .perm_check = manager_or_root },
+#ifdef CONFIG_KSU_SUPERKEY
+    { .cmd = KSU_IOCTL_SUPERKEY_AUTH,
+      .name = "SUPERKEY_AUTH",
+      .handler = do_superkey_auth,
+      .perm_check = always_allow },
+#endif
 #ifdef CONFIG_KSU_MANUAL_SU
     { .cmd = KSU_IOCTL_MANUAL_SU,
       .name = "MANUAL_SU",

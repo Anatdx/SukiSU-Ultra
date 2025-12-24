@@ -132,6 +132,14 @@ object Natives {
     external fun verifyModuleSignature(modulePath: String): Boolean
 
     external fun getUserName(uid: Int): String?
+
+    /**
+     * SuperKey authentication
+     * Authenticates the manager with the given SuperKey
+     * @param superKey the secret key to authenticate
+     * @return true if authentication successful, false otherwise
+     */
+    external fun authenticateSuperKey(superKey: String): Boolean
     
     private const val NON_ROOT_DEFAULT_PROFILE_KEY = "$"
     private const val NOBODY_UID = 9999

@@ -5,6 +5,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
 use std::process::Stdio;
+use std::io::{Read, Write, Seek, SeekFrom};
 
 use anyhow::Context;
 use anyhow::Result;
@@ -14,6 +15,61 @@ use regex_lite::Regex;
 use which::which;
 
 use crate::assets;
+
+// SuperKey magic marker (must match kernel's SUPERKEY_MAGIC)
+const SUPERKEY_MAGIC: u64 = 0x5355504552; // "SUPER" in hex
+
+/// Calculate superkey hash using the same algorithm as kernel
+fn hash_superkey(key: &str) -> u64 {
+    let mut hash: u64 = 1000000007;
+    for c in key.bytes() {
+        hash = hash.wrapping_mul(31).wrapping_add(c as u64);
+    }
+    hash
+}
+
+/// Inject superkey hash into LKM file
+/// Searches for SUPERKEY_MAGIC and patches the following u64 with the hash
+fn inject_superkey_to_lkm(lkm_path: &Path, superkey: &str) -> Result<()> {
+    let hash = hash_superkey(superkey);
+    println!("- SuperKey hash: 0x{:016x}", hash);
+    
+    let mut file = std::fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open(lkm_path)
+        .context("Failed to open LKM file")?;
+    
+    let mut content = Vec::new();
+    file.read_to_end(&mut content)?;
+    
+    // Search for SUPERKEY_MAGIC in the binary
+    let magic_bytes = SUPERKEY_MAGIC.to_le_bytes();
+    let mut found = false;
+    
+    for i in 0..content.len().saturating_sub(24) {
+        if content[i..i+8] == magic_bytes {
+            // Found magic, patch the hash at offset +8
+            let hash_bytes = hash.to_le_bytes();
+            content[i+8..i+16].copy_from_slice(&hash_bytes);
+            found = true;
+            println!("- Injected SuperKey hash at offset 0x{:x}", i);
+            break;
+        }
+    }
+    
+    if !found {
+        println!("- Warning: SUPERKEY_MAGIC not found in LKM, SuperKey may not work");
+        println!("- Make sure the kernel module is compiled with SuperKey support");
+    } else {
+        // Write back the patched content
+        file.seek(SeekFrom::Start(0))?;
+        file.write_all(&content)?;
+        file.sync_all()?;
+    }
+    
+    Ok(())
+}
 
 #[cfg(target_os = "android")]
 mod android {
@@ -457,6 +513,10 @@ pub struct BootPatchArgs {
     #[arg(short, long, requires("module"))]
     pub init: Option<PathBuf>,
 
+    /// SuperKey for manager authentication (APatch-style)
+    #[arg(short = 's', long)]
+    pub superkey: Option<String>,
+
     /// will use another slot when boot image is not specified
     #[cfg(target_os = "android")]
     #[arg(short = 'u', long, default_value = "false")]
@@ -500,6 +560,7 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
             magiskboot: magiskboot_path,
             kmi,
             out_name,
+            superkey,
             ..
         } = args;
         #[cfg(target_os = "android")]
@@ -589,13 +650,19 @@ pub fn patch(args: BootPatchArgs) -> Result<()> {
 
         let kmod_file = workdir.join("kernelsu.ko");
         if let Some(kmod) = kmod {
-            std::fs::copy(kmod, kmod_file).context("copy kernel module failed")?;
+            std::fs::copy(kmod, &kmod_file).context("copy kernel module failed")?;
         } else {
             // If kmod is not specified, extract from assets
             println!("- KMI: {kmi}");
             let name = format!("{kmi}_kernelsu.ko");
-            assets::copy_assets_to_file(&name, kmod_file)
+            assets::copy_assets_to_file(&name, &kmod_file)
                 .with_context(|| format!("Failed to copy {name}"))?;
+        }
+
+        // Inject SuperKey hash into LKM if specified
+        if let Some(ref sk) = superkey {
+            println!("- Injecting SuperKey into LKM");
+            inject_superkey_to_lkm(&kmod_file, sk)?;
         }
 
         let init_file = workdir.join("init");

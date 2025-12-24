@@ -709,4 +709,19 @@
     <string name="group_contains_apps">包含 %1$d 个应用</string>
     <string name="settings_disable_sulog"> 禁用超级用户日志 </string>
     <string name="settings_disable_sulog_summary">禁用 KernelSU 超级用户访问记录</string>
+
+    <!-- SuperKey 认证 -->
+    <string name="superkey_auth_title">超级密钥认证</string>
+    <string name="superkey_auth_subtitle">输入您的超级密钥以认证为管理器</string>
+    <string name="superkey_input_hint">超级密钥</string>
+    <string name="superkey_input_placeholder">请输入超级密钥</string>
+    <string name="superkey_authenticate">认证</string>
+    <string name="superkey_auth_success">认证成功</string>
+    <string name="superkey_auth_failed">认证失败</string>
+    <string name="superkey_required">需要超级密钥认证</string>
+    <string name="superkey_not_configured">内核未配置超级密钥</string>
+    <string name="show_password">显示密码</string>
+    <string name="hide_password">隐藏密码</string>
+    <string name="superkey_optional_title">超级密钥（可选）</string>
+    <string name="superkey_optional_desc">设置超级密钥用于 APatch 风格的认证。留空则使用签名认证。</string>
 </resources>

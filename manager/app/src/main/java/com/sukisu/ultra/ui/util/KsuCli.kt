@@ -274,6 +274,7 @@ fun installBoot(
     lkm: LkmSelection,
     ota: Boolean,
     partition: String?,
+    superKey: String? = null,
     onFinish: (Boolean, Int) -> Unit,
     onStdout: (String) -> Unit,
     onStderr: (String) -> Unit,
@@ -303,6 +304,11 @@ fun installBoot(
 
     if (ota) {
         cmd += " -u"
+    }
+
+    // Add superkey if specified
+    if (!superKey.isNullOrBlank()) {
+        cmd += " --superkey \"$superKey\""
     }
 
     var lkmFile: File? = null

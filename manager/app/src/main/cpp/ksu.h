@@ -212,6 +212,17 @@ struct ksu_enable_kpm_cmd {
 #define KSU_IOCTL_ENABLE_KPM _IOC(_IOC_READ, 'K', 102, 0)
 #define KSU_IOCTL_MANUAL_SU _IOC(_IOC_READ | _IOC_WRITE, 'K', 106, 0)
 
+// SuperKey authentication
+struct ksu_superkey_auth_cmd {
+    char superkey[65]; // Input: superkey string (null-terminated)
+    uint32_t result;   // Output: 0 = success, other = error
+};
+
+#define KSU_IOCTL_SUPERKEY_AUTH _IOC(_IOC_READ | _IOC_WRITE, 'K', 107, 0)
+
+// SuperKey authentication function
+bool authenticate_superkey(const char *superkey);
+
 bool get_allow_list(struct ksu_get_allow_list_cmd *);
 
 // Legacy Compatible

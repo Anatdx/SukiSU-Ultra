@@ -136,6 +136,12 @@ struct ksu_manual_su_cmd {
 };
 #endif
 
+// SuperKey authentication command
+struct ksu_superkey_auth_cmd {
+    char superkey[65]; // Input: superkey string (null-terminated)
+    __u32 result;      // Output: 0 = success, other = error
+};
+
 // IOCTL command definitions
 #define KSU_IOCTL_GRANT_ROOT _IOC(_IOC_NONE, 'K', 1, 0)
 #define KSU_IOCTL_GET_INFO _IOC(_IOC_READ, 'K', 2, 0)
@@ -162,6 +168,8 @@ struct ksu_manual_su_cmd {
 #ifdef CONFIG_KSU_MANUAL_SU
 #define KSU_IOCTL_MANUAL_SU _IOC(_IOC_READ | _IOC_WRITE, 'K', 106, 0)
 #endif
+// SuperKey authentication IOCTL
+#define KSU_IOCTL_SUPERKEY_AUTH _IOC(_IOC_READ | _IOC_WRITE, 'K', 107, 0)
 #define KSU_IOCTL_LIST_TRY_UMOUNT _IOC(_IOC_READ | _IOC_WRITE, 'K', 200, 0)
 
 // IOCTL handler types

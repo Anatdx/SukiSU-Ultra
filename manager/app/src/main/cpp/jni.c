@@ -365,3 +365,18 @@ NativeBridge(verifyModuleSignature, jboolean, jstring modulePath) {
 	return false;
 #endif
 }
+
+// SuperKey authentication
+NativeBridge(authenticateSuperKey, jboolean, jstring superKey) {
+	if (!superKey) {
+		LogDebug("authenticateSuperKey: superKey is null");
+		return false;
+	}
+
+	const char* cSuperKey = GetEnvironment()->GetStringUTFChars(env, superKey, nullptr);
+	bool result = authenticate_superkey(cSuperKey);
+	GetEnvironment()->ReleaseStringUTFChars(env, superKey, cSuperKey);
+
+	LogDebug("authenticateSuperKey: result=%d", result);
+	return result;
+}

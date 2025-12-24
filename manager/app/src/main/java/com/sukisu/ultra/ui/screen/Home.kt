@@ -56,6 +56,9 @@ import com.sukisu.ultra.ui.util.getSuSFSStatus
 import com.sukisu.ultra.ui.util.module.LatestVersionInfo
 import com.sukisu.ultra.ui.util.reboot
 import com.sukisu.ultra.ui.viewmodel.HomeViewModel
+import com.sukisu.ultra.ui.component.SuperKeyDialog
+import com.sukisu.ultra.ui.component.rememberSuperKeyDialog
+import com.sukisu.ultra.ui.component.SuperKeyAuthResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -133,8 +136,71 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     .padding(top = 12.dp, start = 16.dp, end = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // SuperKey 对话框
+                val superKeyDialog = rememberSuperKeyDialog()
+                var superKeyAuthSuccess by remember { mutableStateOf(false) }
+                val snackbarHostState = remember { SnackbarHostState() }
+                
+                // 保存 SuperKey 的 SharedPreferences
+                val superKeyPrefs = context.getSharedPreferences("superkey", Context.MODE_PRIVATE)
+                
+                SuperKeyDialog(
+                    state = superKeyDialog,
+                    onAuthenticate = { superKey ->
+                        val success = Natives.authenticateSuperKey(superKey)
+                        if (success) {
+                            // 保存 SuperKey 到本地
+                            superKeyPrefs.edit().putString("saved_superkey", superKey).apply()
+                        }
+                        success
+                    },
+                    onResult = { result ->
+                        when (result) {
+                            is SuperKeyAuthResult.Success -> {
+                                superKeyAuthSuccess = true
+                                // 刷新状态
+                                coroutineScope.launch {
+                                    viewModel.loadCoreData()
+                                }
+                            }
+                            is SuperKeyAuthResult.Error -> {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(result.message)
+                                }
+                            }
+                            SuperKeyAuthResult.Canceled -> {}
+                        }
+                    }
+                )
+                
+                // 自动尝试用保存的 SuperKey 认证
+                LaunchedEffect(viewModel.isCoreDataLoaded) {
+                    if (viewModel.isCoreDataLoaded && !viewModel.systemStatus.isManager) {
+                        val savedKey = superKeyPrefs.getString("saved_superkey", null)
+                        if (!savedKey.isNullOrBlank()) {
+                            val success = Natives.authenticateSuperKey(savedKey)
+                            if (success) {
+                                superKeyAuthSuccess = true
+                                viewModel.loadCoreData()
+                            }
+                        }
+                    }
+                }
+
                 // 状态卡片
                 if (viewModel.isCoreDataLoaded) {
+                    // 如果检测到 KSU 驱动但未认证为管理器，显示 SuperKey 认证卡片
+                    val hasKsuDriver = Natives.version > 0
+                    val isNotManager = !viewModel.systemStatus.isManager
+                    
+                    if (hasKsuDriver && isNotManager && !superKeyAuthSuccess) {
+                        SuperKeyAuthCard(
+                            onAuthClick = {
+                                superKeyDialog.show()
+                            }
+                        )
+                    }
+                    
                     StatusCard(
                         systemStatus = viewModel.systemStatus,
                         onClickInstall = {
@@ -888,6 +954,52 @@ private fun IncompatibleKernelCard() {
         message = msg,
         color = MaterialTheme.colorScheme.error
     )
+}
+
+/**
+ * SuperKey authentication card
+ * Shown when KSU driver is detected but manager is not authenticated
+ */
+@Composable
+private fun SuperKeyAuthCard(
+    onAuthClick: () -> Unit
+) {
+    ElevatedCard(
+        colors = getCardColors(MaterialTheme.colorScheme.tertiaryContainer),
+        elevation = getCardElevation(),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onAuthClick() }
+                .padding(24.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Key,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier
+                    .size(28.dp)
+                    .padding(horizontal = 4.dp),
+            )
+
+            Column(Modifier.padding(start = 20.dp)) {
+                Text(
+                    text = stringResource(R.string.superkey_required),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.tertiary
+                )
+
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.superkey_auth_subtitle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+        }
+    }
 }
 
 @Preview

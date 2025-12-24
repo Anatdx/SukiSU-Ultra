@@ -717,5 +717,20 @@ Important Note:\n
     <string name="group_contains_apps">Contains %d apps</string>
     <string name="settings_disable_sulog">Disable superuser logging</string>
     <string name="settings_disable_sulog_summary">Disable KernelSU superuser access logging</string>
+
+    <!-- SuperKey authentication -->
+    <string name="superkey_auth_title">SuperKey Authentication</string>
+    <string name="superkey_auth_subtitle">Enter your SuperKey to authenticate as manager</string>
+    <string name="superkey_input_hint">SuperKey</string>
+    <string name="superkey_input_placeholder">Enter your SuperKey</string>
+    <string name="superkey_authenticate">Authenticate</string>
+    <string name="superkey_auth_success">Authentication successful</string>
+    <string name="superkey_auth_failed">Authentication failed</string>
+    <string name="superkey_required">SuperKey authentication required</string>
+    <string name="superkey_not_configured">SuperKey not configured in kernel</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="superkey_optional_title">SuperKey (Optional)</string>
+    <string name="superkey_optional_desc">Set a SuperKey for APatch-style authentication. Leave empty to use signature-based auth.</string>
 </resources>
 

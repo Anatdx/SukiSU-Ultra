@@ -15,10 +15,20 @@ kernelsu-objs += seccomp_cache.o
 kernelsu-objs += file_wrapper.o
 kernelsu-objs += util.o
 kernelsu-objs += sulog.o
+# SuperKey authentication (APatch-style, always compiled for runtime patching)
+kernelsu-objs += superkey.o
 
 ifeq ($(CONFIG_KSU_MANUAL_SU), y)
 ccflags-y += -DCONFIG_KSU_MANUAL_SU
 kernelsu-objs += manual_su.o
+endif
+
+# Legacy: compile-time SuperKey hash (deprecated, use runtime patching instead)
+ifeq ($(CONFIG_KSU_SUPERKEY), y)
+ccflags-y += -DCONFIG_KSU_SUPERKEY
+ifdef KSU_SUPERKEY_HASH
+ccflags-y += -DSUPERKEY_HASH=$(KSU_SUPERKEY_HASH)
+endif
 endif
 
 kernelsu-objs += selinux/selinux.o

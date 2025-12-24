@@ -331,3 +331,24 @@ bool verify_module_signature(const char* input) {
 	return false;
 #endif
 }
+
+// SuperKey authentication
+bool authenticate_superkey(const char *superkey) {
+    if (!superkey) {
+        LogDebug("authenticate_superkey: superkey is null");
+        return false;
+    }
+
+    struct ksu_superkey_auth_cmd cmd = {};
+    strncpy(cmd.superkey, superkey, sizeof(cmd.superkey) - 1);
+    cmd.superkey[sizeof(cmd.superkey) - 1] = '\0';
+    cmd.result = 0xFFFFFFFF; // Initialize with error
+
+    if (ksuctl(KSU_IOCTL_SUPERKEY_AUTH, &cmd) == 0) {
+        LogDebug("authenticate_superkey: ioctl success, result=%u", cmd.result);
+        return cmd.result == 0;
+    }
+
+    LogDebug("authenticate_superkey: ioctl failed");
+    return false;
+}

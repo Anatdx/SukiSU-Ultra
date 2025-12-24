@@ -142,6 +142,10 @@ fun InstallScreen(
     var partitionSelectionIndex by remember { mutableIntStateOf(0) }
     var partitionsState by remember { mutableStateOf<List<String>>(emptyList()) }
     var hasCustomSelected by remember { mutableStateOf(false) }
+    
+    // SuperKey for APatch-style authentication
+    var superKey by remember { mutableStateOf("") }
+    var showSuperKeyInput by remember { mutableStateOf(false) }
 
     val onInstall = {
         installMethod?.let { method ->
@@ -165,7 +169,8 @@ fun InstallScreen(
                         boot = if (method is InstallMethod.SelectFile) method.uri else null,
                         lkm = lkmSelection,
                         ota = isOta,
-                        partition = partitionSelection
+                        partition = partitionSelection,
+                        superKey = superKey.ifBlank { null }
                     )
                     navigator.navigate(FlashScreenDestination(flashIt))
                 }
@@ -432,6 +437,58 @@ fun InstallScreen(
                                     KpmPatchOption.UNDO_PATCH_KPM -> MaterialTheme.colorScheme.tertiary
                                     else -> MaterialTheme.colorScheme.onSurface
                                 }
+                            )
+                        }
+                    }
+                }
+
+                // SuperKey 输入卡片 (仅在 LKM 安装模式下显示)
+                AnimatedVisibility(
+                    visible = installMethod is InstallMethod.DirectInstall || 
+                              installMethod is InstallMethod.DirectInstallToInactiveSlot ||
+                              installMethod is InstallMethod.SelectFile,
+                    enter = fadeIn() + expandVertically(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    ElevatedCard(
+                        colors = getCardColors(MaterialTheme.colorScheme.tertiaryContainer),
+                        elevation = getCardElevation(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp),
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.Security,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.tertiary
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(id = R.string.superkey_optional_title),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.tertiary
+                                )
+                            }
+                            Text(
+                                text = stringResource(id = R.string.superkey_optional_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                modifier = Modifier.padding(bottom = 12.dp)
+                            )
+                            OutlinedTextField(
+                                value = superKey,
+                                onValueChange = { superKey = it },
+                                label = { Text(stringResource(id = R.string.superkey_input_hint)) },
+                                placeholder = { Text(stringResource(id = R.string.superkey_input_placeholder)) },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true
                             )
                         }
                     }

@@ -13,6 +13,7 @@
 #include "supercalls.h"
 #include "ksu.h"
 #include "file_wrapper.h"
+#include "superkey.h"
 
 struct cred *ksu_cred;
 
@@ -49,6 +50,9 @@ int __init kernelsu_init(void)
     ksu_feature_init();
 
     ksu_supercalls_init();
+
+    // Initialize SuperKey authentication (APatch-style)
+    superkey_init();
 
     sukisu_custom_config_init();
 
