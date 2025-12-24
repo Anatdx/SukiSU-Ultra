@@ -389,3 +389,29 @@ bool ksu_driver_present(void) {
     fd = scan_driver_fd();
     return fd >= 0;
 }
+
+// Check if SuperKey is configured in kernel
+bool is_superkey_configured(void) {
+    // First try new ioctl
+    struct ksu_superkey_status_cmd cmd = {};
+    if (ksuctl(KSU_IOCTL_SUPERKEY_STATUS, &cmd) == 0) {
+        LogDebug("is_superkey_configured: ioctl success, is_configured=%d", cmd.is_configured);
+        return cmd.is_configured != 0;
+    }
+    
+    // If ioctl failed, kernel probably doesn't have SuperKey support
+    LogDebug("is_superkey_configured: ioctl failed, assuming not configured");
+    return false;
+}
+
+// Check if already authenticated via SuperKey
+bool is_superkey_authenticated(void) {
+    struct ksu_superkey_status_cmd cmd = {};
+    if (ksuctl(KSU_IOCTL_SUPERKEY_STATUS, &cmd) == 0) {
+        LogDebug("is_superkey_authenticated: ioctl success, is_authenticated=%d", cmd.is_authenticated);
+        return cmd.is_authenticated != 0;
+    }
+    
+    LogDebug("is_superkey_authenticated: ioctl failed");
+    return false;
+}

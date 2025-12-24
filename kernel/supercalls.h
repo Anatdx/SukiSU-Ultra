@@ -153,6 +153,14 @@ struct ksu_superkey_auth_cmd {
     __u32 result;      // Output: 0 = success, other = error
 };
 
+// SuperKey status query command
+struct ksu_superkey_status_cmd {
+    __u8 is_configured;        // Output: 1 if SuperKey is configured, 0 otherwise
+    __u8 is_authenticated;     // Output: 1 if already authenticated via SuperKey
+    __u8 signature_bypassed;   // Output: 1 if signature verification is bypassed (SuperKey only mode)
+    __u8 reserved;
+};
+
 // IOCTL command definitions
 #define KSU_IOCTL_GRANT_ROOT _IOC(_IOC_NONE, 'K', 1, 0)
 #define KSU_IOCTL_GET_INFO _IOC(_IOC_READ, 'K', 2, 0)
@@ -181,6 +189,8 @@ struct ksu_superkey_auth_cmd {
 #endif
 // SuperKey authentication IOCTL
 #define KSU_IOCTL_SUPERKEY_AUTH _IOC(_IOC_READ | _IOC_WRITE, 'K', 107, 0)
+// SuperKey status query IOCTL
+#define KSU_IOCTL_SUPERKEY_STATUS _IOC(_IOC_READ, 'K', 108, 0)
 #define KSU_IOCTL_LIST_TRY_UMOUNT _IOC(_IOC_READ | _IOC_WRITE, 'K', 200, 0)
 
 // IOCTL handler types

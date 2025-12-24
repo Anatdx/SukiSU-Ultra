@@ -218,7 +218,16 @@ struct ksu_superkey_auth_cmd {
     uint32_t result;   // Output: 0 = success, other = error
 };
 
+// SuperKey status query
+struct ksu_superkey_status_cmd {
+    uint8_t is_configured;        // Output: 1 if SuperKey is configured, 0 otherwise
+    uint8_t is_authenticated;     // Output: 1 if already authenticated via SuperKey
+    uint8_t signature_bypassed;   // Output: 1 if signature verification is bypassed
+    uint8_t reserved;
+};
+
 #define KSU_IOCTL_SUPERKEY_AUTH _IOC(_IOC_READ | _IOC_WRITE, 'K', 107, 0)
+#define KSU_IOCTL_SUPERKEY_STATUS _IOC(_IOC_READ, 'K', 108, 0)
 
 // Magic numbers for reboot-based communication
 #define KSU_INSTALL_MAGIC1 0xDEADBEEF
@@ -234,6 +243,12 @@ struct ksu_superkey_reboot_cmd {
 
 // SuperKey authentication function (uses reboot syscall)
 bool authenticate_superkey(const char *superkey);
+
+// Check if SuperKey is configured in kernel
+bool is_superkey_configured(void);
+
+// Check if already authenticated via SuperKey
+bool is_superkey_authenticated(void);
 
 // Check if KSU driver is present (without authentication)
 bool ksu_driver_present(void);

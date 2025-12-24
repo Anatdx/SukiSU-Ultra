@@ -385,3 +385,13 @@ NativeBridge(authenticateSuperKey, jboolean, jstring superKey) {
 NativeBridgeNP(isKsuDriverPresent, jboolean) {
 	return ksu_driver_present();
 }
+
+// Check if SuperKey is configured in kernel
+NativeBridgeNP(isSuperKeyConfigured, jboolean) {
+	return is_superkey_configured();
+}
+
+// Check if already authenticated via SuperKey
+NativeBridgeNP(isSuperKeyAuthenticated, jboolean) {
+	return is_superkey_authenticated();
+}

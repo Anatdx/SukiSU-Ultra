@@ -703,6 +703,28 @@ static int do_superkey_auth(void __user *arg)
 
     return 0;
 }
+
+static int do_superkey_status(void __user *arg)
+{
+    struct ksu_superkey_status_cmd cmd = {0};
+    
+    // 检查 SuperKey 是否已配置
+    cmd.is_configured = superkey_is_set() ? 1 : 0;
+    
+    // 检查当前进程是否通过 SuperKey 认证
+    cmd.is_authenticated = superkey_is_manager() ? 1 : 0;
+    
+    // 目前不支持仅 SuperKey 模式（签名验证和 SuperKey 可以共存）
+    cmd.signature_bypassed = 0;
+    cmd.reserved = 0;
+    
+    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+        pr_err("superkey_status: copy_to_user failed\n");
+        return -EFAULT;
+    }
+    
+    return 0;
+}
 #endif
 
 #ifdef CONFIG_KSU_MANUAL_SU
@@ -840,6 +862,10 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
     { .cmd = KSU_IOCTL_SUPERKEY_AUTH,
       .name = "SUPERKEY_AUTH",
       .handler = do_superkey_auth,
+      .perm_check = always_allow },
+    { .cmd = KSU_IOCTL_SUPERKEY_STATUS,
+      .name = "SUPERKEY_STATUS",
+      .handler = do_superkey_status,
       .perm_check = always_allow },
 #endif
 #ifdef CONFIG_KSU_MANUAL_SU

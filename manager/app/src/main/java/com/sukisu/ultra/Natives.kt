@@ -147,6 +147,18 @@ object Natives {
      */
     external fun isKsuDriverPresent(): Boolean
     
+    /**
+     * Check if SuperKey is configured in kernel
+     * @return true if SuperKey is configured, false otherwise
+     */
+    external fun isSuperKeyConfigured(): Boolean
+    
+    /**
+     * Check if already authenticated via SuperKey
+     * @return true if authenticated via SuperKey, false otherwise
+     */
+    external fun isSuperKeyAuthenticated(): Boolean
+    
     private const val NON_ROOT_DEFAULT_PROFILE_KEY = "$"
     private const val NOBODY_UID = 9999
 

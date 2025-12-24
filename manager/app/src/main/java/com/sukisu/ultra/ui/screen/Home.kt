@@ -141,6 +141,9 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 var superKeyAuthSuccess by remember { mutableStateOf(false) }
                 val snackbarHostState = remember { SnackbarHostState() }
                 
+                // 检查内核是否配置了 SuperKey
+                val isSuperKeyConfigured = remember { Natives.isSuperKeyConfigured() }
+                
                 // 保存 SuperKey 的 SharedPreferences
                 val superKeyPrefs = context.getSharedPreferences("superkey", Context.MODE_PRIVATE)
                 
@@ -203,7 +206,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     
                     StatusCard(
                         systemStatus = viewModel.systemStatus,
-                        isSuperKeyMode = superKeyAuthSuccess,
+                        isSuperKeyMode = isSuperKeyConfigured || superKeyAuthSuccess,
                         onClickInstall = {
                             navigator.navigate(InstallScreenDestination(preselectedKernelUri = null))
                         }
