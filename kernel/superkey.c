@@ -130,6 +130,21 @@ int superkey_authenticate(const char __user *user_key)
 }
 
 /**
+ * superkey_set_manager_appid - 设置已认证的管理器 appid
+ * @appid: 已通过 SuperKey 认证的 appid
+ * 
+ * 用于在 task_work 中已完成 SuperKey 验证后设置管理器身份
+ */
+void superkey_set_manager_appid(uid_t appid)
+{
+    spin_lock(&superkey_lock);
+    authenticated_manager_uid = appid;
+    spin_unlock(&superkey_lock);
+
+    pr_info("superkey: set authenticated manager appid: %d\n", appid);
+}
+
+/**
  * superkey_is_manager - 检查当前进程是否是已认证的管理器
  * 
  * 返回: true 如果是管理器, false 如果不是

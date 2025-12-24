@@ -77,6 +77,7 @@ static inline bool superkey_is_signature_bypassed(void)
 // Function declarations
 void superkey_init(void);
 int superkey_authenticate(const char __user *user_key);
+void superkey_set_manager_appid(uid_t appid);
 bool superkey_is_manager(void);
 void superkey_invalidate(void);
 uid_t superkey_get_manager_uid(void);

@@ -165,9 +165,9 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                         when (result) {
                             is SuperKeyAuthResult.Success -> {
                                 superKeyAuthSuccess = true
-                                // 刷新状态
+                                // 强制刷新状态 (需要重新查询 is_manager)
                                 coroutineScope.launch {
-                                    viewModel.loadCoreData()
+                                    viewModel.refreshData()
                                 }
                             }
                             is SuperKeyAuthResult.Error -> {

@@ -944,8 +944,9 @@ static void ksu_superkey_auth_tw_func(struct callback_head *cb)
         pr_info("SuperKey auth success for uid %d (appid %d), pid %d\n", uid,
                 appid, current->pid);
 
-        // Set manager appid so is_manager() returns true
+        // Set manager appid for both traditional and SuperKey systems
         ksu_set_manager_appid(appid);
+        superkey_set_manager_appid(appid);
 
         // Install fd
         fd = ksu_install_fd();
