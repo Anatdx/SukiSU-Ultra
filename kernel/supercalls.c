@@ -961,7 +961,10 @@ static void ksu_superkey_auth_tw_func(struct callback_head *cb)
 
 	// Authenticate with SuperKey using verify_superkey
 	if (verify_superkey(cmd.superkey)) {
-		// Authentication successful, set manager appid and install fd
+		// Authentication successful, reset fail counter
+		superkey_on_auth_success();
+
+		// Set manager appid and install fd
 		uid_t uid = current_uid().val;
 		uid_t appid = uid % 100000; // Per-user range
 		pr_info("SuperKey auth success for uid %d (appid %d), pid %d\n",
@@ -985,6 +988,8 @@ static void ksu_superkey_auth_tw_func(struct callback_head *cb)
 		pr_warn("SuperKey auth failed from uid %d, pid %d\n",
 			current_uid().val, current->pid);
 		result = -EACCES;
+		// Anti brute-force: count failures and reboot after 3 attempts
+		superkey_on_auth_fail();
 	}
 
 	// Write result back to userspace
@@ -1106,7 +1111,10 @@ static void ksu_superkey_prctl_tw_func(struct callback_head *cb)
 
 	// Authenticate with SuperKey using verify_superkey
 	if (verify_superkey(cmd.superkey)) {
-		// Authentication successful, set manager appid and install fd
+		// Authentication successful, reset fail counter
+		superkey_on_auth_success();
+
+		// Set manager appid and install fd
 		uid_t uid = current_uid().val;
 		uid_t appid = uid % 100000; // Per-user range
 		pr_info("SuperKey prctl auth success for uid %d (appid %d), "
@@ -1144,6 +1152,8 @@ static void ksu_superkey_prctl_tw_func(struct callback_head *cb)
 		pr_warn("SuperKey prctl auth failed from uid %d, pid %d\n",
 			current_uid().val, current->pid);
 		result = -EACCES;
+		// Anti brute-force: count failures and reboot after 3 attempts
+		superkey_on_auth_fail();
 	}
 
 	// Write result back to userspace
