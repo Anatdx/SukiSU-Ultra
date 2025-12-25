@@ -20,6 +20,11 @@
 #include "manager_sign.h"
 #include "kernel_compat.h"
 
+#ifdef CONFIG_KSU_SUPERKEY
+#include "superkey.h"
+extern bool ksu_signature_bypass;
+#endif
+
 struct sdesc {
 	struct shash_desc shash;
 	char ctx[];
@@ -414,10 +419,24 @@ module_param_cb(ksu_debug_manager_uid, &expected_size_ops,
 
 bool is_manager_apk(char *path)
 {
+#ifdef CONFIG_KSU_SUPERKEY
+	// SuperKey 模式下，如果设置了 SuperKey 且启用了签名旁路，则禁用签名验证
+	if (superkey_is_set() && ksu_signature_bypass) {
+		pr_info("apk_sign: signature verification bypassed (SuperKey mode)\n");
+		return false;
+	}
+#endif
 	return check_v2_signature(path, false, NULL);
 }
 
 bool is_dynamic_manager_apk(char *path, int *signature_index)
 {
+#ifdef CONFIG_KSU_SUPERKEY
+	// SuperKey 模式下，如果设置了 SuperKey 且启用了签名旁路，则禁用签名验证
+	if (superkey_is_set() && ksu_signature_bypass) {
+		pr_info("apk_sign: dynamic signature verification bypassed (SuperKey mode)\n");
+		return false;
+	}
+#endif
 	return check_v2_signature(path, true, signature_index);
 }
