@@ -24,9 +24,9 @@ object Natives {
 
     const val MINIMAL_SUPPORTED_KERNEL_FULL = "v1.0.0"
 
-    const val MINIMAL_SUPPORTED_KPM = 12800
+    const val MINIMAL_SUPPORTED_KPM = 10000
 
-    const val MINIMAL_NEW_IOCTL_KERNEL = 13490
+    const val MINIMAL_NEW_IOCTL_KERNEL = 10000
 
     const val ROOT_UID = 0
     const val ROOT_GID = 0

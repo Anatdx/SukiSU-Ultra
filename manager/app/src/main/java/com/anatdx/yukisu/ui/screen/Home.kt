@@ -255,11 +255,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     // 只有在没有其他警告信息时才显示不兼容内核警告
                     val shouldShowWarnings = viewModel.systemStatus.requireNewKernel ||
                             (viewModel.systemStatus.ksuVersion != null && !viewModel.systemStatus.isRootAvailable)
-
-                    if (Natives.version <= Natives.MINIMAL_NEW_IOCTL_KERNEL && !shouldShowWarnings && viewModel.systemStatus.ksuVersion != null) {
-                        IncompatibleKernelCard()
-                        Spacer(Modifier.height(12.dp))
-                    }
                 }
 
                 // 更新检查
