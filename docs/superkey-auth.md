@@ -1,8 +1,8 @@
-# SukiSU SuperKey 认证系统使用指南
+# YukiSU SuperKey 认证系统使用指南
 
 ## 概述
 
-SuperKey 认证系统是 SukiSU 的 APatch 风格认证方式，允许用户通过设置超级密码来认证管理器，替代复杂的 APK 签名验证。
+SuperKey 认证系统是 YukiSU 的 APatch 风格认证方式，允许用户通过设置超级密码来认证管理器，替代复杂的 APK 签名验证。
 
 ## 工作原理
 
@@ -78,7 +78,7 @@ ksud 会搜索 SUPERKEY_MAGIC 并修改紧随其后的 hash 值。
 ### 内核侧
 
 ```
-SukiSU-Ultra/kernel/
+YukiSU/kernel/
 ├── superkey.h          # SuperKey 定义和 hash 函数
 ├── superkey.c          # SuperKey 认证实现
 ├── supercalls.h        # IOCTL 定义
@@ -88,14 +88,14 @@ SukiSU-Ultra/kernel/
 ### ksud 侧
 
 ```
-SukiSU-Ultra/userspace/ksud/src/
+YukiSU/userspace/ksud/src/
 └── boot_patch.rs       # 包含 --superkey 参数和注入逻辑
 ```
 
 ### 管理器侧
 
 ```
-SukiSU-Ultra/manager/app/src/main/
+YukiSU/manager/app/src/main/
 ├── cpp/
 │   ├── ksu.h           # IOCTL 定义
 │   ├── ksu.c           # authenticate_superkey()

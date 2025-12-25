@@ -231,11 +231,11 @@
     <string name="kpm_control">Выполнить</string>
     <string name="home_kpm_version">Статус KPM</string>
     <string name="close_notice">Закрыть</string>
-    <string name="kernel_module_notice">Следующие модульные функции ядра были разработаны KernelPatch и изменены для включения в него функций модуля ядра SukiSU Ultra</string>
-    <string name="home_ContributionCard_kernelsu">Будущее SukiSU Ultra</string>
+    <string name="kernel_module_notice">Следующие модульные функции ядра были разработаны KernelPatch и изменены для включения в него функций модуля ядра YukiSU</string>
+    <string name="home_ContributionCard_kernelsu">Будущее YukiSU</string>
     <string name="kpm_control_success">Успешно</string>
     <string name="kpm_control_failed">Провален</string>
-    <string name="home_click_to_ContributionCard_kernelsu">В будущем SukiSU Ultra будет относительно независимым ответвлением KSU, но мы по-прежнему ценим официальный KernelSU и MKSU и т.д. за их вклад!</string>
+    <string name="home_click_to_ContributionCard_kernelsu">В будущем YukiSU будет относительно независимым ответвлением KSU, но мы по-прежнему ценим официальный KernelSU и MKSU и т.д. за их вклад!</string>
     <string name="not_supported">Не поддерживается</string>
     <string name="supported">Поддерживается</string>
     <string name="kernel_patched">Ядро не изменено</string>
@@ -491,7 +491,7 @@
     <string name="susfs_hide_mounts_setting_all">Скрыть для всех процессов</string>
     <string name="susfs_hide_mounts_setting_non_ksu">Скрыть только для процессов, не связанных с KSU</string>
     <string name="kernel_simple_kernel">Скрыть доп. информацию о ядре</string>
-    <string name="kernel_simple_kernel_summary">Включить или отключить чистый режим, отображаемой версии ядра SukiSU</string>
+    <string name="kernel_simple_kernel_summary">Включить или отключить чистый режим, отображаемой версии ядра YukiSU</string>
     <string name="susfs_android_data_path_set">Путь к данным Android был установлен на: %s</string>
     <string name="susfs_sdcard_path_set">Путь к SD-карте был установлен на: %s</string>
     <string name="susfs_path_setup_warning">Установка пути может быть не вполне успешной, но SUS пути будут добавлены</string>
@@ -557,7 +557,7 @@
     <string name="unknown_signature">Неизвестно</string>
     <string name="multi_manager_list">Активный менеджер</string>
     <string name="no_active_manager">Нет активного менеджера</string>
-    <string name="default_signature">SukiSU</string>
+    <string name="default_signature">YukiSU</string>
     <string name="home_zygisk_implement">Реализация Zygisk</string>
     <string name="home_meta_module_implement">Реализация Мета-модуля</string>
     <!-- 循环路径相关 -->
@@ -678,7 +678,7 @@
     <string name="log_viewer_load_more">Загрузить больше логов</string>
     <string name="log_viewer_all_logs_loaded">Все логи отображаются</string>
     <!-- MiUI Uninstall Desc -->
-    <string name="miui_uninstall_title">Подтвердите удаление SukiSU Manager?</string>
+    <string name="miui_uninstall_title">Подтвердите удаление YukiSU Manager?</string>
     <string name="miui_uninstall_content">Удаление не повлияет на функциональность вашего root-доступа. Он продолжит работать от этого менеджера.</string>
     <string name="incompatible_kernel_msg">    Текущий менеджер несовместим с этим ядром! Пожалуйста, обновите ядро до версии %2$d или выше (сейчас %1$d)
     </string>

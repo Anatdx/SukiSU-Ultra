@@ -1,6 +1,6 @@
 # Integration Guidance
 
-SukiSU can be integrated into both GKI and non-GKI kernels and has been backported to version 4.14.
+YukiSU can be integrated into both GKI and non-GKI kernels and has been backported to version 4.14.
 
 Certain OEM customisations may result in up to 50% of kernel code originating outside the kernel tree, rather than from upstream Linux or ACK. Consequently, the bespoke features of non-GKI kernels cause significant kernel fragmentation, and we lack a universal method for building them. Therefore, we cannot provide boot images for non-GKI kernels.
 
@@ -22,15 +22,15 @@ Prerequisite: An open-source, bootable kernel.
    - Refer to [`guide/how-to-integrate.md`](how-to-integrate.md)
    - Optional reference: [backslashxx hooks](https://github.com/backslashxx/KernelSU/issues/5)
 
-### How to add the SukiSU kernel driver to the kernel source code
+### How to add the YukiSU kernel driver to the kernel source code
 
 - Main Branch (Typically used for standalone LKM builds)
 
 ```sh
-curl -LSs ‘https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh’ | bash -s main
+curl -LSs ‘https://raw.githubusercontent.com/YukiSU/YukiSU/main/kernel/setup.sh’ | bash -s main
 ```
 
 - Built-in Branch (for GKI/non-GKI builds, optional susfs support)
 ```sh
-curl -LSs ‘https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh’ | bash -s builtin
+curl -LSs ‘https://raw.githubusercontent.com/YukiSU/YukiSU/main/kernel/setup.sh’ | bash -s builtin
 ```

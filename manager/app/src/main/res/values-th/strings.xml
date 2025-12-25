@@ -214,11 +214,11 @@
     <string name="kpm_control">Execute</string>
     <string name="home_kpm_version">KPM Version</string>
     <string name="close_notice">Close</string>
-    <string name="kernel_module_notice">The following kernel module functions were developed by KernelPatch and modified to include the kernel module functions of SukiSU Ultra</string>
-    <string name="home_ContributionCard_kernelsu">SukiSU Ultra Look forward to</string>
+    <string name="kernel_module_notice">The following kernel module functions were developed by KernelPatch and modified to include the kernel module functions of YukiSU</string>
+    <string name="home_ContributionCard_kernelsu">YukiSU Look forward to</string>
     <string name="kpm_control_success">Success</string>
     <string name="kpm_control_failed">Failed</string>
-    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra will be a relatively independent branch of KSU in the future, but we still appreciate the official KernelSU and MKSU etc. for their contributions!</string>
+    <string name="home_click_to_ContributionCard_kernelsu">YukiSU will be a relatively independent branch of KSU in the future, but we still appreciate the official KernelSU and MKSU etc. for their contributions!</string>
     <string name="not_supported">Unsupported</string>
     <string name="supported">Supported</string>
     <string name="kernel_patched">Kernel not patched</string>

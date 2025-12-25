@@ -1,12 +1,12 @@
-# SukiSU Ultra
-<img align='right' src='SukiSU-mini.svg' width='220px' alt="sukisu logo">
+# YukiSU
+<img align='right' src='YukiSU-mini.svg' width='220px' alt="sukisu logo">
 
 
 **English** | [简体中文](./zh/README.md) | [日本語](./ja/README.md) | [Türkçe](./tr/README.md) | [Русский](./ru/README.md)
 
 A kernel-based root solution for Android devices, forked from [`tiann/KernelSU`](https://github.com/tiann/KernelSU), and added some interesting changes.
 
-[![Latest release](https://img.shields.io/github/v/release/SukiSU-Ultra/SukiSU-Ultra?label=Release&logo=github)](https://github.com/tiann/KernelSU/releases/latest)
+[![Latest release](https://img.shields.io/github/v/release/YukiSU/YukiSU?label=Release&logo=github)](https://github.com/tiann/KernelSU/releases/latest)
 [![Channel](https://img.shields.io/badge/Follow-Telegram-blue.svg?logo=telegram)](https://t.me/Sukiksu)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-orange.svg?logo=gnu)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 [![GitHub License](https://img.shields.io/github/license/tiann/KernelSU?logo=gnu)](/LICENSE)
@@ -15,7 +15,7 @@ A kernel-based root solution for Android devices, forked from [`tiann/KernelSU`]
 
 1. Kernel-based `su` and root access management
 2. Module system based on [Magic Mount](https://github.com/5ec1cff/KernelSU)
-   > **Note:** SukiSU now delegates all module mounting to the installed *metamodule*; the core no longer handles mount operations.
+   > **Note:** YukiSU now delegates all module mounting to the installed *metamodule*; the core no longer handles mount operations.
 3. [App Profile](https://kernelsu.org/guide/app-profile.html): Lock up the root power in a cage
 4. Support non-GKI and GKI 1.0
 5. KPM Support
@@ -23,11 +23,11 @@ A kernel-based root solution for Android devices, forked from [`tiann/KernelSU`]
 
 ## Compatibility Status
 
-- SukiSU officially supports Android GKI 2.0 devices (kernel 5.10+).
+- YukiSU officially supports Android GKI 2.0 devices (kernel 5.10+).
 
 - Older kernels (4.4+) are also compatible, but the kernel will have to be built manually.
 
-- With more backports, SukiSU can support 3.x kernel (3.4-3.18).
+- With more backports, YukiSU can support 3.x kernel (3.4-3.18).
 
 - Currently, only `arm64-v8a`, `armeabi-v7a (bare)` and `X86_64`(some) are supported.
 
@@ -41,14 +41,14 @@ See [`guide/how-to-integrate.md`](guide/how-to-integrate.md)
 
 ## Translation
 
-If you need to submit a translation for the manager, please go to [Crowdin](https://crowdin.com/project/SukiSU-Ultra).
+If you need to submit a translation for the manager, please go to [Crowdin](https://crowdin.com/project/YukiSU).
 
 ## KPM Support
 
 - Based on KernelPatch, we removed features redundant with KSU and retained only KPM support.
 - Work in Progress: Expanding APatch compatibility by integrating additional functions to ensure compatibility across different implementations.
 
-**Open-source repository**: [https://github.com/ShirkNeko/SukiSU_KernelPatch_patch](https://github.com/ShirkNeko/SukiSU_KernelPatch_patch)
+**Open-source repository**: [https://github.com/ShirkNeko/YukiSU_KernelPatch_patch](https://github.com/ShirkNeko/YukiSU_KernelPatch_patch)
 
 **KPM template**: [https://github.com/udochina/KPM-Build-Anywhere](https://github.com/udochina/KPM-Build-Anywhere)
 
@@ -65,7 +65,7 @@ If you need to submit a translation for the manager, please go to [Crowdin](http
 
 ## Sponsor
 
-- [ShirkNeko](https://afdian.com/a/shirkneko) (maintainer of SukiSU)
+- [ShirkNeko](https://afdian.com/a/shirkneko) (maintainer of YukiSU)
 - [weishu](https://github.com/sponsors/tiann) (author of KernelSU)
 
 ## ShirkNeko's sponsorship list

@@ -15,7 +15,7 @@ See [KernelSU Documentation - GKI mode Installation](https://kernelsu.org/guide/
 We provide pre-built kernels for you to use:
 
 - [ShirkNeko flavor kernel](https://github.com/ShirkNeko/GKI_KernelSU_SUSFS) (add ZRAM compression algorithm patch, susfs, KPM. Works on many devices.)
-- [MiRinFork flavored kernel](https://github.com/MiRinFork/GKI_SukiSU_SUSFS) (adds susfs, KPM. Closest kernel to GKI, works on most devices.)
+- [MiRinFork flavored kernel](https://github.com/MiRinFork/GKI_YukiSU_SUSFS) (adds susfs, KPM. Closest kernel to GKI, works on most devices.)
 
 Although some devices can be installed using LKM mode, they cannot be installed on the device by using the GKI kernel; therefore, the kernel needs to be modified manually to compile it. For example:
 

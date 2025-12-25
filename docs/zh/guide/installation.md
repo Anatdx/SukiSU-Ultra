@@ -15,7 +15,7 @@
 我们提供预编译的内核供您使用：
 
 - [ShirkNeko 内核](https://github.com/ShirkNeko/GKI_KernelSU_SUSFS)（添加了 ZRAM 压缩算法补丁、susfs 文件和 KPM 文件。适用于很多设备。）
-- [MiRinFork 内核](https://github.com/MiRinFork/GKI_SukiSU_SUSFS)（添加了 susfs 文件和 KPM 文件。最接近 GKI 的内核，适用于大多数设备。）
+- [MiRinFork 内核](https://github.com/MiRinFork/GKI_YukiSU_SUSFS)（添加了 susfs 文件和 KPM 文件。最接近 GKI 的内核，适用于大多数设备。）
 
 虽然某些设备可以使用 LKM 模式安装，但无法使用 GKI 内核将其安装到设备上；因此，需要手动修改内核进行编译。例如：
 

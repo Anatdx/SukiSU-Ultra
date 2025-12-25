@@ -1,12 +1,12 @@
-# SukiSU Ultra
-<img align='right' src='SukiSU-mini.svg' width='220px' alt="sukisu logo">
+# YukiSU
+<img align='right' src='YukiSU-mini.svg' width='220px' alt="sukisu logo">
 
 
 [English](../README.md) | **简体中文** | [日本語](../ja/README.md) | [Türkçe](../tr/README.md) | [Русский](../ru/README.md)
 
 一个 Android 上基于内核的 root 方案，由 [`tiann/KernelSU`](https://github.com/tiann/KernelSU) 分叉而来，添加了一些有趣的变更。
 
-[![最新发行](https://img.shields.io/github/v/release/SukiSU-Ultra/SukiSU-Ultra?label=Release&logo=github)](https://github.com/tiann/KernelSU/releases/latest)
+[![最新发行](https://img.shields.io/github/v/release/YukiSU/YukiSU?label=Release&logo=github)](https://github.com/tiann/KernelSU/releases/latest)
 [![频道](https://img.shields.io/badge/Follow-Telegram-blue.svg?logo=telegram)](https://t.me/Sukiksu)
 [![协议: GPL v2](https://img.shields.io/badge/License-GPL%20v2-orange.svg?logo=gnu)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 [![GitHub 协议](https://img.shields.io/github/license/tiann/KernelSU?logo=gnu)](/LICENSE)
@@ -40,14 +40,14 @@
 
 ## 参与翻译
 
-要将 SukiSU 翻译成您的语言，或完善现有的翻译，请使用 [Crowdin](https://crowdin.com/project/SukiSU-Ultra).
+要将 YukiSU 翻译成您的语言，或完善现有的翻译，请使用 [Crowdin](https://crowdin.com/project/YukiSU).
 
 ## KPM 支持
 
 - 基于 KernelPatch 开发，移除了与 KernelSU 重复的功能。
 - 正在进行（WIP）：通过集成附加功能来扩展 APatch 兼容性，以确保跨不同实现的兼容性。
 
-**开源仓库**: [https://github.com/ShirkNeko/SukiSU_KernelPatch_patch](https://github.com/ShirkNeko/SukiSU_KernelPatch_patch)
+**开源仓库**: [https://github.com/ShirkNeko/YukiSU_KernelPatch_patch](https://github.com/ShirkNeko/YukiSU_KernelPatch_patch)
 
 **KPM 模板**: [https://github.com/udochina/KPM-Build-Anywhere](https://github.com/udochina/KPM-Build-Anywhere)
 
@@ -70,7 +70,7 @@
 
 ## 赞助
 
-- [ShirkNeko](https://afdian.com/a/shirkneko) (SukiSU 主要维护者)
+- [ShirkNeko](https://afdian.com/a/shirkneko) (YukiSU 主要维护者)
 - [weishu](https://github.com/sponsors/tiann) (KernelSU 作者)
 
 ## ShirkNeko 的赞助列表

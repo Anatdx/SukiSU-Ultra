@@ -15,7 +15,7 @@
 Мы предоставляем заранее собранные ядра для использования:
 
 - [ShirkNeko flavor kernel](https://github.com/ShirkNeko/GKI_KernelSU_SUSFS) (добавлен патч алгоритма сжатия ZRAM, susfs, KPM. Работает на многих устройствах.)
-- [MiRinFork flavored kernel](https://github.com/MiRinFork/GKI_SukiSU_SUSFS) (добавлены susfs, KPM. Ближе всего к GKI, работает на большинстве устройств.)
+- [MiRinFork flavored kernel](https://github.com/MiRinFork/GKI_YukiSU_SUSFS) (добавлены susfs, KPM. Ближе всего к GKI, работает на большинстве устройств.)
 
 Хотя некоторые устройства можно установить в режиме LKM, их нельзя установить на устройство, используя GKI-ядро; поэтому ядро необходимо вручную модифицировать и скомпилировать. Например:
 

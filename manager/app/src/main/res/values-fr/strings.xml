@@ -214,11 +214,11 @@
     <string name="kpm_control">Exécuter</string>
     <string name="home_kpm_version">Version de KPM</string>
     <string name="close_notice">Fermer</string>
-    <string name="kernel_module_notice">Les fonctions suivantes du module du noyau ont été développées par KernelPatch et modifiées pour inclure les fonctions du module du noyau de SukiSU Ultra</string>
-    <string name="home_ContributionCard_kernelsu">SukiSU Ultra attend avec impatience</string>
+    <string name="kernel_module_notice">Les fonctions suivantes du module du noyau ont été développées par KernelPatch et modifiées pour inclure les fonctions du module du noyau de YukiSU</string>
+    <string name="home_ContributionCard_kernelsu">YukiSU attend avec impatience</string>
     <string name="kpm_control_success">Succès</string>
     <string name="kpm_control_failed">Echoué</string>
-    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra sera une branche relativement indépendante de KSU dans le futur, mais nous apprécions toujours le KernelSU officiel, MKSU etc. pour leurs contributions!</string>
+    <string name="home_click_to_ContributionCard_kernelsu">YukiSU sera une branche relativement indépendante de KSU dans le futur, mais nous apprécions toujours le KernelSU officiel, MKSU etc. pour leurs contributions!</string>
     <string name="not_supported">Non pris en charge</string>
     <string name="supported">Pris en charge</string>
     <string name="kernel_patched">Noyau non corrigé</string>

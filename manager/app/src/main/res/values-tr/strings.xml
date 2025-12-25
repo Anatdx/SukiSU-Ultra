@@ -233,11 +233,11 @@
     <string name="kpm_control">Yürüt</string>
     <string name="home_kpm_version">KPM Sürümü</string>
     <string name="close_notice">Kapat</string>
-    <string name="kernel_module_notice">Aşağıdaki çekirdek modül işlevleri KernelPatch tarafından geliştirilmiş ve SukiSU Ultra\'nın çekirdek modül işlevlerini içerecek şekilde değiştirilmiştir</string>
-    <string name="home_ContributionCard_kernelsu">SukiSU Ultra bekliyor</string>
+    <string name="kernel_module_notice">Aşağıdaki çekirdek modül işlevleri KernelPatch tarafından geliştirilmiş ve YukiSU\'nın çekirdek modül işlevlerini içerecek şekilde değiştirilmiştir</string>
+    <string name="home_ContributionCard_kernelsu">YukiSU bekliyor</string>
     <string name="kpm_control_success">Başarılı</string>
     <string name="kpm_control_failed">Başarısız</string>
-    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra, gelecekte KSU\'nun nispeten bağımsız bir dalı olacak, ancak yine de resmi KernelSU ve MKSU gibi katkılarından dolayı teşekkür ederiz!</string>
+    <string name="home_click_to_ContributionCard_kernelsu">YukiSU, gelecekte KSU\'nun nispeten bağımsız bir dalı olacak, ancak yine de resmi KernelSU ve MKSU gibi katkılarından dolayı teşekkür ederiz!</string>
     <string name="not_supported">Desteklenmiyor</string>
     <string name="supported">Destekleniyor</string>
     <string name="kernel_patched">Çekirdek yamalanmadı</string>
@@ -495,7 +495,7 @@
     <string name="susfs_hide_mounts_setting_all">Tüm işlemler için gizle</string>
     <string name="susfs_hide_mounts_setting_non_ksu">Sadece KSU dışı işlemler için gizle</string>
     <string name="kernel_simple_kernel">Çekirdek Sürümü Özet Modu</string>
-    <string name="kernel_simple_kernel_summary">SukiSU çekirdek sürümünün gösterdiği sade modu etkinleştirin veya devre dışı bırakın</string>
+    <string name="kernel_simple_kernel_summary">YukiSU çekirdek sürümünün gösterdiği sade modu etkinleştirin veya devre dışı bırakın</string>
     <string name="susfs_android_data_path_set">Android Veri yolu şuna ayarlandı: %s</string>
     <string name="susfs_sdcard_path_set">SD kart yolu şuna ayarlandı: %s</string>
     <string name="susfs_path_setup_warning">Yol kurulumu tam olarak başarılı olmayabilir, ancak SUS yolları eklenmeye devam edecektir</string>
@@ -561,7 +561,7 @@
     <string name="unknown_signature">Bilinmiyor</string>
     <string name="multi_manager_list">Aktif Yönetici</string>
     <string name="no_active_manager">Aktif yönetici yok</string>
-    <string name="default_signature">SukiSU</string>
+    <string name="default_signature">YukiSU</string>
     <string name="home_zygisk_implement">Zygisk uygulaması</string>
     <string name="home_meta_module_implement">Meta Modül uygulaması</string>
     <!-- 循环路径相关 -->
@@ -682,7 +682,7 @@
     <string name="log_viewer_load_more">Daha Fazla Günlük Yükle</string>
     <string name="log_viewer_all_logs_loaded">Tüm günlükler görüntülendi</string>
     <!-- MiUI Uninstall Desc -->
-    <string name="miui_uninstall_title">SukiSU Yöneticisi Kaldırılsın mı?</string>
+    <string name="miui_uninstall_title">YukiSU Yöneticisi Kaldırılsın mı?</string>
     <string name="miui_uninstall_content">Kaldırma işlemine devam etmek, root erişiminizin temel işlevselliğini etkilemeyecektir. Root, bu yöneticiden bağımsız olarak çalışacak şekilde tasarlanmıştır.</string>
     <string name="incompatible_kernel_msg">Mevcut yönetici bu çekirdekle uyumsuz! Lütfen çekirdeği %2$d veya daha yüksek bir sürüme yükseltin (mevcut sürüm %1$d)</string>
     <string name="umount_path_manager">Bağlantı Kaldırma Yolu Yönetimi</string>

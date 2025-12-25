@@ -218,11 +218,11 @@ Lanjutkan?</string>
     <string name="kpm_control">Jalankan</string>
     <string name="home_kpm_version">Versi KPM</string>
     <string name="close_notice">Tutup</string>
-    <string name="kernel_module_notice">Fitur modul kernel berikut dikembangkan oleh KernelPatch dan dimodifikasi untuk menyertakan fitur modul kernel SukiSU Ultra</string>
-    <string name="home_ContributionCard_kernelsu">SukiSU Ultra menantikan</string>
+    <string name="kernel_module_notice">Fitur modul kernel berikut dikembangkan oleh KernelPatch dan dimodifikasi untuk menyertakan fitur modul kernel YukiSU</string>
+    <string name="home_ContributionCard_kernelsu">YukiSU menantikan</string>
     <string name="kpm_control_success">Berhasil</string>
     <string name="kpm_control_failed">Gagal</string>
-    <string name="home_click_to_ContributionCard_kernelsu">Ke depannya, SukiSU Ultra akan menjadi cabang KSU yang relatif independen, tetapi kami tetap berterima kasih kepada KernelSU resmi, MKSU, dan lainnya atas kontribusi mereka!</string>
+    <string name="home_click_to_ContributionCard_kernelsu">Ke depannya, YukiSU akan menjadi cabang KSU yang relatif independen, tetapi kami tetap berterima kasih kepada KernelSU resmi, MKSU, dan lainnya atas kontribusi mereka!</string>
     <string name="not_supported">Tidak Didukung</string>
     <string name="supported">Didukung</string>
     <string name="kernel_patched">Kernel Belum Di-patch</string>
@@ -481,7 +481,7 @@ Tanamkan: Secara permanen memasang ke sistem</string>
     <string name="susfs_hide_mounts_setting_all">Sembunyikan untuk Semua Proses</string>
     <string name="susfs_hide_mounts_setting_non_ksu">Sembunyikan Hanya untuk Proses Non-KSU</string>
     <string name="kernel_simple_kernel">Mode Versi Kernel Sederhana</string>
-    <string name="kernel_simple_kernel_summary">Aktifkan atau nonaktifkan tampilan versi kernel SukiSU sederhana</string>
+    <string name="kernel_simple_kernel_summary">Aktifkan atau nonaktifkan tampilan versi kernel YukiSU sederhana</string>
     <string name="susfs_android_data_path_set">Jalur Data Android diatur ke: %s</string>
     <string name="susfs_sdcard_path_set">Jalur Kartu SD diatur ke: %s</string>
     <string name="susfs_path_setup_warning">Pengaturan jalur mungkin tidak sepenuhnya berhasil, tetapi jalur SUS akan tetap ditambahkan</string>

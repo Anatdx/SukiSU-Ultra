@@ -1,12 +1,12 @@
-# SukiSU Ultra
-<img align='right' src='SukiSU-mini.svg' width='220px' alt="sukisu logo">
+# YukiSU
+<img align='right' src='YukiSU-mini.svg' width='220px' alt="sukisu logo">
 
 
 [English](../README.md) | [简体中文](../zh/README.md) | [日本語](../ja/README.md) | [Türkçe](./tr/README.md) | **Русский**
 
 Решение для получения root доступа на основе ядра для устройств Android, форкнутый от [`tiann/KernelSU`](https://github.com/tiann/KernelSU) с добавлением некоторых интересных изменений.
 
-[![Latest release](https://img.shields.io/github/v/release/SukiSU-Ultra/SukiSU-Ultra?label=Release&logo=github)](https://github.com/tiann/KernelSU/releases/latest)
+[![Latest release](https://img.shields.io/github/v/release/YukiSU/YukiSU?label=Release&logo=github)](https://github.com/tiann/KernelSU/releases/latest)
 [![Channel](https://img.shields.io/badge/Follow-Telegram-blue.svg?logo=telegram)](https://t.me/Sukiksu)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-orange.svg?logo=gnu)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 [![GitHub License](https://img.shields.io/github/license/tiann/KernelSU?logo=gnu)](/LICENSE)
@@ -15,7 +15,7 @@
 
 1. Управление `su` и root доступом на основе ядра
 2. Система модулей основанная на [Magic Mount](https://github.com/5ec1cff/KernelSU)
-   > **Note:** SukiSU теперь делегирует все операции по монтированию модулей установленному *метамодулю*; ядро ​​больше не обрабатывает операции по монтированию.
+   > **Note:** YukiSU теперь делегирует все операции по монтированию модулей установленному *метамодулю*; ядро ​​больше не обрабатывает операции по монтированию.
 3. [App Profile](https://kernelsu.org/guide/app-profile.html): Запереть root-доступ в клетку
 4. Поддержка не-GKI и GKI 1.0
 5. Поддержка KPM
@@ -23,11 +23,11 @@
 
 ## Статус совместимости
 
-- SukiSU официально поддерживает устройства с Android GKI 2.0 (ядро 5.10+).
+- YukiSU официально поддерживает устройства с Android GKI 2.0 (ядро 5.10+).
 
 - Другие ядра (4.4+) также поддерживаются, но ядро придётся собирать вручную.
 
-- С добавлением большего количества бэкпортов SukiSU сможет поддерживать ядро 3.x (от 3.4 до 3.18).
+- С добавлением большего количества бэкпортов YukiSU сможет поддерживать ядро 3.x (от 3.4 до 3.18).
 
 - В настоящее время поддерживаются только `arm64-v8a`, `armeabi-v7a (голое)` и `X86_64 (некоторые)`.
 
@@ -41,14 +41,14 @@
 
 ## Перевод
 
-Если вам нужно отправить перевод для менеджера, пожалуйста перейдите на [Crowdin](https://crowdin.com/project/SukiSU-Ultra).
+Если вам нужно отправить перевод для менеджера, пожалуйста перейдите на [Crowdin](https://crowdin.com/project/YukiSU).
 
 ## Поддержка KPM
 
 - На основе KernelPatch мы удалили функции, дублирующие возможности KSU, и оставили только поддержку KPM.
 - Работа в процессе: расширение совместимости с APatch путём интеграции дополнительных функций для обеспечения работы на разных реализациях.
 
-**Open-source репозиторий**: [https://github.com/ShirkNeko/SukiSU_KernelPatch_patch](https://github.com/ShirkNeko/SukiSU_KernelPatch_patch)
+**Open-source репозиторий**: [https://github.com/ShirkNeko/YukiSU_KernelPatch_patch](https://github.com/ShirkNeko/YukiSU_KernelPatch_patch)
 
 **Шаблон KPM**: [https://github.com/udochina/KPM-Build-Anywhere](https://github.com/udochina/KPM-Build-Anywhere)
 
@@ -65,7 +65,7 @@
 
 ## Спонсоры
 
-- [ShirkNeko](https://afdian.com/a/shirkneko) (мейнтейнер SukiSU)
+- [ShirkNeko](https://afdian.com/a/shirkneko) (мейнтейнер YukiSU)
 - [weishu](https://github.com/sponsors/tiann) (автор KernelSU)
 
 ## Список спонсоров ShirkNeko

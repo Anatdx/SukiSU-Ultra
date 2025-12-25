@@ -4,19 +4,34 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-
-    <group
-        android:scaleX="0.135"
-        android:scaleY="0.135">
-        <path
-            android:pathData="M 259 259 H 541 V 541 H 259 V 259 Z"
-            android:strokeWidth="18"
-            android:strokeColor="#000000" />
-        <path
-            android:fillColor="#000000"
-            android:pathData="M 257 257 H 407 V 407 H 257 V 257 Z" />
-        <path
-            android:fillColor="#000000"
-            android:pathData="M 393 393 H 543 V 543 H 393 V 393 Z" />
+    <group android:translateX="54" android:translateY="54">
+        <path android:pathData="M0,0 L0,-30" android:strokeWidth="4" android:strokeColor="#000000" android:strokeLineCap="round"/>
+        <path android:pathData="M0,-18 L-5.5,-23.5" android:strokeWidth="4" android:strokeColor="#000000" android:strokeLineCap="round"/>
+        <path android:pathData="M0,-18 L5.5,-23.5" android:strokeWidth="4" android:strokeColor="#000000" android:strokeLineCap="round"/>
+        <group android:rotation="60">
+            <path android:pathData="M0,0 L0,-30" android:strokeWidth="4" android:strokeColor="#000000" android:strokeLineCap="round"/>
+            <path android:pathData="M0,-18 L-5.5,-23.5" android:strokeWidth="4" android:strokeColor="#000000" android:strokeLineCap="round"/>
+            <path android:pathData="M0,-18 L5.5,-23.5" android:strokeWidth="4" android:strokeColor="#000000" android:strokeLineCap="round"/>
+        </group>
+        <group android:rotation="120">
+            <path android:pathData="M0,0 L0,-30" android:strokeWidth="4" android:strokeColor="#000000" android:strokeLineCap="round"/>
+            <path android:pathData="M0,-18 L-5.5,-23.5" android:strokeWidth="4" android:strokeColor="#000000" android:strokeLineCap="round"/>
+            <path android:pathData="M0,-18 L5.5,-23.5" android:strokeWidth="4" android:strokeColor="#000000" android:strokeLineCap="round"/>
+        </group>
+        <group android:rotation="180">
+            <path android:pathData="M0,0 L0,-30" android:strokeWidth="4" android:strokeColor="#000000" android:strokeLineCap="round"/>
+            <path android:pathData="M0,-18 L-5.5,-23.5" android:strokeWidth="4" android:strokeColor="#000000" android:strokeLineCap="round"/>
+            <path android:pathData="M0,-18 L5.5,-23.5" android:strokeWidth="4" android:strokeColor="#000000" android:strokeLineCap="round"/>
+        </group>
+        <group android:rotation="240">
+            <path android:pathData="M0,0 L0,-30" android:strokeWidth="4" android:strokeColor="#000000" android:strokeLineCap="round"/>
+            <path android:pathData="M0,-18 L-5.5,-23.5" android:strokeWidth="4" android:strokeColor="#000000" android:strokeLineCap="round"/>
+            <path android:pathData="M0,-18 L5.5,-23.5" android:strokeWidth="4" android:strokeColor="#000000" android:strokeLineCap="round"/>
+        </group>
+        <group android:rotation="300">
+            <path android:pathData="M0,0 L0,-30" android:strokeWidth="4" android:strokeColor="#000000" android:strokeLineCap="round"/>
+            <path android:pathData="M0,-18 L-5.5,-23.5" android:strokeWidth="4" android:strokeColor="#000000" android:strokeLineCap="round"/>
+            <path android:pathData="M0,-18 L5.5,-23.5" android:strokeWidth="4" android:strokeColor="#000000" android:strokeLineCap="round"/>
+        </group>
     </group>
 </vector>

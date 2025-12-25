@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 /*
- * SukiSU SuperKey Authentication Implementation
+ * YukiSU SuperKey Authentication Implementation
  * 
  * 支持两种模式：
  * 1. 编译时配置: 通过 KSU_SUPERKEY="your_key" 编译参数写死

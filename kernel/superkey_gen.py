@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SukiSU SuperKey Hash Generator
+YukiSU SuperKey Hash Generator
 
 用法:
     python superkey_gen.py <your_superkey>
@@ -31,7 +31,7 @@ def main():
     hash_val = hash_superkey(key)
     
     print("=" * 60)
-    print("SukiSU SuperKey 配置")
+    print("YukiSU SuperKey 配置")
     print("=" * 60)
     print(f"超级密码: {key}")
     print(f"哈希值:   0x{hash_val:016x}")

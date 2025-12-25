@@ -226,11 +226,11 @@
     <string name="kpm_control">実行</string>
     <string name="home_kpm_version">KPM バージョン</string>
     <string name="close_notice">閉じる</string>
-    <string name="kernel_module_notice">以下のカーネルモジュール関数は KernelPatch によって開発され、SukiSU Ultra のカーネルモジュール関数を含むように変更されました</string>
-    <string name="home_ContributionCard_kernelsu">SukiSU Ultra の今後にご期待ください</string>
+    <string name="kernel_module_notice">以下のカーネルモジュール関数は KernelPatch によって開発され、YukiSU のカーネルモジュール関数を含むように変更されました</string>
+    <string name="home_ContributionCard_kernelsu">YukiSU の今後にご期待ください</string>
     <string name="kpm_control_success">成功</string>
     <string name="kpm_control_failed">失敗</string>
-    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra は将来的に KSU から比較的に独立したブランチになりますが、公式の KernelSU や MKSU などの貢献に感謝しています！</string>
+    <string name="home_click_to_ContributionCard_kernelsu">YukiSU は将来的に KSU から比較的に独立したブランチになりますが、公式の KernelSU や MKSU などの貢献に感謝しています！</string>
     <string name="not_supported">非対応</string>
     <string name="supported">対応</string>
     <string name="kernel_patched">カーネルはパッチされていません</string>
@@ -487,7 +487,7 @@
     <string name="susfs_hide_mounts_setting_all">すべてのプロセスを非表示</string>
     <string name="susfs_hide_mounts_setting_non_ksu">非 KSU プロセスのみ非表示</string>
     <string name="kernel_simple_kernel">簡潔モードなカーネル バージョン</string>
-    <string name="kernel_simple_kernel_summary">SukiSU のカーネル バージョンによって表示されるクリーンモードを有効または無効します。</string>
+    <string name="kernel_simple_kernel_summary">YukiSU のカーネル バージョンによって表示されるクリーンモードを有効または無効します。</string>
     <string name="susfs_android_data_path_set">Android データパスが設定されました: %s</string>
     <string name="susfs_sdcard_path_set">SD カードのパスは次のように設定済みです: %s</string>
     <string name="susfs_path_setup_warning">パスの設定は完全に成功しない可能性がありますが、SUS パスは引き続き追加されます。</string>
@@ -551,7 +551,7 @@
     <string name="unknown_signature">不明</string>
     <string name="multi_manager_list">有効なマネージャー</string>
     <string name="no_active_manager">有効なマネージャーがありません</string>
-    <string name="default_signature">SukiSU</string>
+    <string name="default_signature">YukiSU</string>
     <string name="home_zygisk_implement">Zygisk を実装</string>
     <string name="home_meta_module_implement">メタモジュールの実装</string>
     <!-- 循环路径相关 -->

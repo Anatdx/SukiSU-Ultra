@@ -1,6 +1,6 @@
 # 集成指导
 
-SukiSU 可以集成到 GKI 和 non-GKI 内核中，并且已反向移植到 4.14 版本。
+YukiSU 可以集成到 GKI 和 non-GKI 内核中，并且已反向移植到 4.14 版本。
 
 有些 OEM 定制可能导致多达 50% 的内核代码超出内核树代码，而非来自上游 Linux 内核或 ACK。因此，non-GKI 内核的定制特性导致了严重的内核碎片化，而且我们缺乏构建它们的通用方法。因此，我们无法提供 non-GKI 内核的启动映像。
 
@@ -22,15 +22,15 @@ SukiSU 可以集成到 GKI 和 non-GKI 内核中，并且已反向移植到 4.14
    - 参考 [`guide/how-to-integrate.md`](how-to-integrate.md)
    - 可选参考 [backslashxx的钩子](https://github.com/backslashxx/KernelSU/issues/5)
 
-### 如何将 SukiSU 内核驱动程序添加到内核源代码中
+### 如何将 YukiSU 内核驱动程序添加到内核源代码中
 
 - 主分支 （一般单独用于LKM构建）
 
 ```sh
-curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
+curl -LSs "https://raw.githubusercontent.com/YukiSU/YukiSU/main/kernel/setup.sh" | bash -s main
 ```
 
 - 内置分支 （用于GKI/非GKI构建，可选susfs支持）
 ```sh
-curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s builtin
+curl -LSs "https://raw.githubusercontent.com/YukiSU/YukiSU/main/kernel/setup.sh" | bash -s builtin
 ```

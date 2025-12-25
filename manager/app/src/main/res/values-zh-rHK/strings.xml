@@ -205,11 +205,11 @@
     <string name="kpm_control">調參</string>
     <string name="home_kpm_version">KPM 版本</string>
     <string name="close_notice">關閉</string>
-    <string name="kernel_module_notice">以下核心模組功能由 KernelPatch 開發，經過修改後加入 SukiSU Ultra 嘅核心模組功能</string>
-    <string name="home_ContributionCard_kernelsu">SukiSU Ultra 展望</string>
+    <string name="kernel_module_notice">以下核心模組功能由 KernelPatch 開發，經過修改後加入 YukiSU 嘅核心模組功能</string>
+    <string name="home_ContributionCard_kernelsu">YukiSU 展望</string>
     <string name="kpm_control_success">成功</string>
     <string name="kpm_control_failed">錯誤</string>
-    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra 未來將會成為一個相對獨立嘅 KSU 分支，但仲係會感謝官方 KernelSU 同 MKSU 等做出嘅貢獻</string>
+    <string name="home_click_to_ContributionCard_kernelsu">YukiSU 未來將會成為一個相對獨立嘅 KSU 分支，但仲係會感謝官方 KernelSU 同 MKSU 等做出嘅貢獻</string>
     <string name="not_supported">唔支援</string>
     <string name="supported">支援</string>
     <string name="kernel_patched">核心未進行補丁</string>
@@ -461,7 +461,7 @@
     <string name="susfs_hide_mounts_setting_all">對所有程序隱藏</string>
     <string name="susfs_hide_mounts_setting_non_ksu">淨係對非 KS&gt; 程序隱藏</string>
     <string name="kernel_simple_kernel">核心版本簡潔模式</string>
-    <string name="kernel_simple_kernel_summary">啟用或者禁用 SukiSU 核心版本顯示嘅簡潔模式</string>
+    <string name="kernel_simple_kernel_summary">啟用或者禁用 YukiSU 核心版本顯示嘅簡潔模式</string>
     <string name="susfs_android_data_path_set">Android Data 路徑已配置為: %s</string>
     <string name="susfs_sdcard_path_set">SD 卡路徑已配置為: %s</string>
     <string name="susfs_path_setup_warning">路徑配置可能未完全成功，但會繼續新增 SuS 路徑</string>

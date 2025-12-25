@@ -227,11 +227,11 @@
     <string name="kpm_control">Eksekusi</string>
     <string name="home_kpm_version">Versi KPM</string>
     <string name="close_notice">Tutup</string>
-    <string name="kernel_module_notice">Fungsi-fungsi modul kernel berikut dikembangkan oleh KernelPatch dan dimodifikasi untuk menyertakan fungsi modul kernel dari SukiSU Ultra</string>
-    <string name="home_ContributionCard_kernelsu">Antusias Untuk SukiSU Ultra</string>
+    <string name="kernel_module_notice">Fungsi-fungsi modul kernel berikut dikembangkan oleh KernelPatch dan dimodifikasi untuk menyertakan fungsi modul kernel dari YukiSU</string>
+    <string name="home_ContributionCard_kernelsu">Antusias Untuk YukiSU</string>
     <string name="kpm_control_success">Sukses</string>
     <string name="kpm_control_failed">Gagal</string>
-    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra akan menjadi cabang KSU yang relatif independen di masa mendatang, tetapi kami tetap menghargai KernelSU dan MKSU resmi dan sebagainya atas kontribusi mereka!</string>
+    <string name="home_click_to_ContributionCard_kernelsu">YukiSU akan menjadi cabang KSU yang relatif independen di masa mendatang, tetapi kami tetap menghargai KernelSU dan MKSU resmi dan sebagainya atas kontribusi mereka!</string>
     <string name="not_supported">Tidak Mendukung</string>
     <string name="supported">Mendukung</string>
     <string name="kernel_patched">Kernel belum ditambal</string>
@@ -486,7 +486,7 @@
     <string name="susfs_hide_mounts_setting_all">Sembunyikan untuk semua proses</string>
     <string name="susfs_hide_mounts_setting_non_ksu">Sembunyikan hanya untuk proses non-KSU</string>
     <string name="kernel_simple_kernel">Mode Ringkas Versi Kernel</string>
-    <string name="kernel_simple_kernel_summary">Aktifkan atau nonaktifkan mode bersih yang ditampilkan oleh versi kernel SukiSU</string>
+    <string name="kernel_simple_kernel_summary">Aktifkan atau nonaktifkan mode bersih yang ditampilkan oleh versi kernel YukiSU</string>
     <string name="susfs_android_data_path_set">Jalur Data Android telah diatur ke: %s</string>
     <string name="susfs_sdcard_path_set">Jalur SD card telah diatur ke: %s</string>
     <string name="susfs_path_setup_warning">Penyiapan jalur mungkin tidak sepenuhnya berhasil, tetapi jalur SUS akan terus ditambahkan</string>
@@ -552,7 +552,7 @@
     <string name="unknown_signature">Tidak diketahui</string>
     <string name="multi_manager_list">Manajer Aktif</string>
     <string name="no_active_manager">Tidak ada manajer aktif</string>
-    <string name="default_signature">SukiSU</string>
+    <string name="default_signature">YukiSU</string>
     <string name="home_zygisk_implement">Implementasi Zygisk</string>
     <!-- 循环路径相关 -->
     <string name="susfs_tab_sus_loop_paths">Jalur Loop SUS</string>

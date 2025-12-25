@@ -137,7 +137,7 @@ NativeBridge(getAppProfile, jobject, jstring pkg, jint uid) {
   bool useDefaultProfile = get_app_profile(&profile) != 0;
 
   jclass cls =
-      GetEnvironment()->FindClass(env, "com/sukisu/ultra/Natives$Profile");
+      GetEnvironment()->FindClass(env, "com/anatdx/yukisu/Natives$Profile");
   jmethodID constructor =
       GetEnvironment()->GetMethodID(env, cls, "<init>", "()V");
   jobject obj = GetEnvironment()->NewObject(env, cls, constructor);
@@ -238,7 +238,7 @@ NativeBridge(getAppProfile, jobject, jstring pkg, jint uid) {
 
 NativeBridge(setAppProfile, jboolean, jobject profile) {
   jclass cls =
-      GetEnvironment()->FindClass(env, "com/sukisu/ultra/Natives$Profile");
+      GetEnvironment()->FindClass(env, "com/anatdx/yukisu/Natives$Profile");
 
   jfieldID keyField =
       GetEnvironment()->GetFieldID(env, cls, "name", "Ljava/lang/String;");

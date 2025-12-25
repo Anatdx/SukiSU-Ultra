@@ -10,10 +10,10 @@
 
 #define GetEnvironment() (*env)
 #define NativeBridge(fn, rtn, ...)                                             \
-  JNIEXPORT rtn JNICALL Java_com_sukisu_ultra_Natives_##fn(                    \
+  JNIEXPORT rtn JNICALL Java_com_anatdx_yukisu_Natives_##fn(                    \
       JNIEnv *env, jclass clazz, __VA_ARGS__)
 #define NativeBridgeNP(fn, rtn)                                                \
-  JNIEXPORT rtn JNICALL Java_com_sukisu_ultra_Natives_##fn(JNIEnv *env,        \
+  JNIEXPORT rtn JNICALL Java_com_anatdx_yukisu_Natives_##fn(JNIEnv *env,        \
                                                            jclass clazz)
 
 // Macros to simplify field setup

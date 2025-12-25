@@ -1,5 +1,5 @@
-# SukiSU Ultra
-<img align='right' src='SukiSU-mini.svg' width='220px' alt="sukisu logo">
+# YukiSU
+<img align='right' src='YukiSU-mini.svg' width='220px' alt="sukisu logo">
 
 
 [English](../README.md) | [简体中文](../zh/README.md) | **日本語** | [Türkçe](../tr/README.md) | [Русский](../ru/README.md)
@@ -18,13 +18,13 @@
 メインブランチを使用 (非 GKI のデバイスのビルドは非対応) (susfs を手動で統合が必要)
 
 ```
-curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
+curl -LSs "https://raw.githubusercontent.com/YukiSU/YukiSU/main/kernel/setup.sh" | bash -s main
 ```
 
 非 GKI のデバイスに対応するブランチを使用 (susfs を手動で統合が必要)
 
 ```
-curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s nongki
+curl -LSs "https://raw.githubusercontent.com/YukiSU/YukiSU/main/kernel/setup.sh" | bash -s nongki
 ```
 
 ## 統合された susfs の使い方
@@ -32,7 +32,7 @@ curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kern
 1. susfs-main または他の susfs-\* ブランチを直接で使用、susfs の統合は不要 (非 GKI デバイスのビルドに対応)
 
 ```
-curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
+curl -LSs "https://raw.githubusercontent.com/YukiSU/YukiSU/main/kernel/setup.sh" | bash -s susfs-main
 ```
 
 ## フックの方式
@@ -56,7 +56,7 @@ curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kern
 - KernelPatch に基づいて重複した KSU の機能を削除、KPM の対応を維持させています。
 - KPM 機能の整合性を確保するために、APatch の互換機能を更に向上させる予定です。
 
-オープンソースアドレス: https://github.com/ShirkNeko/SukiSU_KernelPatch_patch
+オープンソースアドレス: https://github.com/ShirkNeko/YukiSU_KernelPatch_patch
 
 KPM テンプレートのアドレス: https://github.com/udochina/KPM-Build-Anywhere
 
@@ -83,10 +83,10 @@ KPM テンプレートのアドレス: https://github.com/udochina/KPM-Build-Any
 
 ## その他のリンク
 
-**マネージャーの翻訳を行う場合** https://crowdin.com/project/SukiSU-Ultra
+**マネージャーの翻訳を行う場合** https://crowdin.com/project/YukiSU
 
 - [その他パッチ済み GKI](https://github.com/ShirkNeko/GKI_KernelSU_SUSFS) ZRAM パッチ、KPM、susfs が含まれています...
-- [パッチの少ない GKI](https://github.com/MiRinFork/GKI_SukiSU_SUSFS/releases) susfs のみ
+- [パッチの少ない GKI](https://github.com/MiRinFork/GKI_YukiSU_SUSFS/releases) susfs のみ
 - [OnePlus](https://github.com/ShirkNeko/Action_OnePlus_MKSU_SUSFS)
 
 ## 使い方

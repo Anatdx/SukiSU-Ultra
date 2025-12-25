@@ -233,11 +233,11 @@
     <string name="kpm_control">調參</string>
     <string name="home_kpm_version">KPM 版本</string>
     <string name="close_notice">關閉</string>
-    <string name="kernel_module_notice">以下內核模組功能由 KernelPatch 開發，經修改後加入 SukiSU Ultra 的內核模組功能</string>
-    <string name="home_ContributionCard_kernelsu">SukiSU Ultra 展望</string>
+    <string name="kernel_module_notice">以下內核模組功能由 KernelPatch 開發，經修改後加入 YukiSU 的內核模組功能</string>
+    <string name="home_ContributionCard_kernelsu">YukiSU 展望</string>
     <string name="kpm_control_success">成功</string>
     <string name="kpm_control_failed">錯誤</string>
-    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra 未來將成為一個相對獨立的 KSU 分支，但仍感謝官方 KernelSU 及 MKSU 等做出的貢獻</string>
+    <string name="home_click_to_ContributionCard_kernelsu">YukiSU 未來將成為一個相對獨立的 KSU 分支，但仍感謝官方 KernelSU 及 MKSU 等做出的貢獻</string>
     <string name="not_supported">不支援</string>
     <string name="supported">支援</string>
     <string name="kernel_patched">內核未進行修補</string>
@@ -495,7 +495,7 @@
     <string name="susfs_hide_mounts_setting_all">對所有程序隱藏</string>
     <string name="susfs_hide_mounts_setting_non_ksu">僅對非 KSU 程序隱藏</string>
     <string name="kernel_simple_kernel">內核版本簡潔模式</string>
-    <string name="kernel_simple_kernel_summary">啟用或停用 SukiSU 內核版本顯示的簡潔模式</string>
+    <string name="kernel_simple_kernel_summary">啟用或停用 YukiSU 內核版本顯示的簡潔模式</string>
     <string name="susfs_android_data_path_set">Android Data 路徑已設定為: %s</string>
     <string name="susfs_sdcard_path_set">SD 卡路徑已設定為: %s</string>
     <string name="susfs_path_setup_warning">路徑設定可能未完全成功，但將繼續新增 SuS 路徑</string>
@@ -561,7 +561,7 @@
     <string name="unknown_signature">未知</string>
     <string name="multi_manager_list">活躍管理器</string>
     <string name="no_active_manager">無活躍管理器</string>
-    <string name="default_signature">SukiSU</string>
+    <string name="default_signature">YukiSU</string>
     <string name="home_zygisk_implement">Zygisk 實現</string>
     <string name="home_meta_module_implement">元模組實現</string>
     <!-- 循环路径相关 -->

@@ -1,6 +1,6 @@
 # Руководство по интеграции
 
-SukiSU может быть интегрирован как в ядра GKI, так и в ядра, не относящиеся к GKI, и был обратно портирован на версию 4.14.
+YukiSU может быть интегрирован как в ядра GKI, так и в ядра, не относящиеся к GKI, и был обратно портирован на версию 4.14.
 
 Некоторые настройки OEM могут привести к тому, что до 50 % кода ядра будет происходить извне дерева ядра, а не из исходного Linux или ACK. Следовательно, индивидуальные функции ядер, не относящихся к GKI, приводят к значительной фрагментации ядра, и у нас нет универсального метода для их сборки. Поэтому мы не можем предоставить загрузочные образы для ядер, не относящихся к GKI.
 
@@ -22,15 +22,15 @@ SukiSU может быть интегрирован как в ядра GKI, та
    - См. [`guide/how-to-integrate.md`](how-to-integrate.md)
    - Дополнительная ссылка: [backslashxx hooks](https://github.com/backslashxx/KernelSU/issues/5)
 
-### Как добавить драйвер ядра SukiSU в исходный код ядра
+### Как добавить драйвер ядра YukiSU в исходный код ядра
 
 - Основная ветвь (обычно используется исключительно для сборок LKM)
 
 ```sh
-curl -LSs «https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh» | bash -s main
+curl -LSs «https://raw.githubusercontent.com/YukiSU/YukiSU/main/kernel/setup.sh» | bash -s main
 ```
 
 - Встроенная ветвь (для сборок GKI/non-GKI, дополнительная поддержка susfs)
 ```sh
-curl -LSs «https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh» | bash -s builtin
+curl -LSs «https://raw.githubusercontent.com/YukiSU/YukiSU/main/kernel/setup.sh» | bash -s builtin
 ```

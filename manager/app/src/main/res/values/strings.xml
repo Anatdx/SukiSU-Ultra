@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">SukiSU Ultra</string>
+    <string name="app_name" translatable="false">YukiSU</string>
     <string name="home">Home</string>
     <string name="learn_more">Learn more</string>
     <string name="home_not_installed">Not installed</string>
@@ -235,11 +235,11 @@
     <string name="kpm_control">Execute</string>
     <string name="home_kpm_version">KPM Version</string>
     <string name="close_notice">Close</string>
-    <string name="kernel_module_notice">The following kernel module functions were developed by KernelPatch and modified to include the kernel module functions of SukiSU Ultra</string>
-    <string name="home_ContributionCard_kernelsu">SukiSU Ultra Look forward to</string>
+    <string name="kernel_module_notice">The following kernel module functions were developed by KernelPatch and modified to include the kernel module functions of YukiSU</string>
+    <string name="home_ContributionCard_kernelsu">YukiSU Look forward to</string>
     <string name="kpm_control_success">Success</string>
     <string name="kpm_control_failed">Failed</string>
-    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra will be a relatively independent branch of KSU in the future, but we still appreciate the official KernelSU and MKSU etc. for their contributions!</string>
+    <string name="home_click_to_ContributionCard_kernelsu">YukiSU will be a relatively independent branch of KSU in the future, but we still appreciate the official KernelSU and MKSU etc. for their contributions!</string>
     <string name="not_supported">Unsupported</string>
     <string name="supported">Supported</string>
     <string name="kernel_patched">Kernel not patched</string>
@@ -497,7 +497,7 @@
     <string name="susfs_hide_mounts_setting_all">Hide for all processes</string>
     <string name="susfs_hide_mounts_setting_non_ksu">Hide only for non-KSU processes</string>
     <string name="kernel_simple_kernel">Kernel Version Concise Mode</string>
-    <string name="kernel_simple_kernel_summary">Enable or disable the clean mode displayed by the SukiSU kernel version</string>
+    <string name="kernel_simple_kernel_summary">Enable or disable the clean mode displayed by the YukiSU kernel version</string>
     <string name="susfs_android_data_path_set">Android Data path has been set to: %s</string>
     <string name="susfs_sdcard_path_set">SD card path has been set to: %s</string>
     <string name="susfs_path_setup_warning">Path setup may not be fully successful, but SUS paths will continue to be added</string>
@@ -563,7 +563,7 @@
     <string name="unknown_signature">Unknown</string>
     <string name="multi_manager_list">Active Manager</string>
     <string name="no_active_manager">No active manager</string>
-    <string name="default_signature">SukiSU</string>
+    <string name="default_signature">YukiSU</string>
     <string name="home_zygisk_implement">Zygisk implement</string>
     <string name="home_meta_module_implement">Meta Module implement</string>
     <!-- 循环路径相关 -->
@@ -689,7 +689,7 @@ Important Note:\n
     <string name="log_viewer_load_more">Load More Logs</string>
     <string name="log_viewer_all_logs_loaded">All logs displayed</string>
     <!-- MiUI Uninstall Desc -->
-    <string name="miui_uninstall_title">Confirm Uninstallation SukiSU Manager?</string>
+    <string name="miui_uninstall_title">Confirm Uninstallation YukiSU Manager?</string>
     <string name="miui_uninstall_content">Proceeding with the uninstallation will not affect the core functionality of your root access. The root is designed to operate independently of this manager.</string>
     <string name="incompatible_kernel_msg">
     The current manager is incompatible with this kernel! Please upgrade the kernel to version %2$d or higher (currently %1$d)

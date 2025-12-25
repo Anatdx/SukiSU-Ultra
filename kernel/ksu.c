@@ -19,11 +19,11 @@ struct cred *ksu_cred;
 
 #include "sulog.h"
 
-void sukisu_custom_config_init(void)
+void yukisu_custom_config_init(void)
 {
 }
 
-void sukisu_custom_config_exit(void)
+void yukisu_custom_config_exit(void)
 {
 #if __SULOG_GATE
     ksu_sulog_exit();
@@ -54,7 +54,7 @@ int __init kernelsu_init(void)
     // Initialize SuperKey authentication (APatch-style)
     superkey_init();
 
-    sukisu_custom_config_init();
+    yukisu_custom_config_init();
 
     ksu_syscall_hook_manager_init();
 
@@ -87,7 +87,7 @@ void kernelsu_exit(void)
 
     ksu_syscall_hook_manager_exit();
 
-    sukisu_custom_config_exit();
+    yukisu_custom_config_exit();
 
     ksu_supercalls_exit();
 
