@@ -14,6 +14,28 @@
 #define KSU_INSTALL_MAGIC1 0xDEADBEEF
 #define KSU_INSTALL_MAGIC2 0xCAFEBABE
 
+// Magic for SuperKey authentication via reboot syscall
+// Usage: reboot(KSU_INSTALL_MAGIC1, KSU_SUPERKEY_MAGIC2, 0, &superkey_struct)
+#define KSU_SUPERKEY_MAGIC2 0xCAFE5555
+
+// Magic for SuperKey authentication via prctl syscall (SECCOMP-safe)
+// Usage: prctl(KSU_PRCTL_SUPERKEY_AUTH, &superkey_struct, 0, 0, 0)
+// prctl is not blocked by Android's SECCOMP policy, unlike reboot
+#define KSU_PRCTL_SUPERKEY_AUTH 0xDEAD5555
+
+// SuperKey auth structure for prctl hook
+struct ksu_superkey_prctl_cmd {
+    char superkey[65]; // Input: SuperKey string (null-terminated)
+    int result; // Output: 0 = success, negative = error
+};
+
+// SuperKey auth structure for reboot hook
+struct ksu_superkey_reboot_cmd {
+    char superkey[65]; // Input: SuperKey string (null-terminated)
+    int result; // Output: 0 = success, negative = error
+    int fd; // Output: fd on success
+};
+
 // Command structures for ioctl
 
 struct ksu_become_daemon_cmd {
@@ -145,6 +167,19 @@ struct ksu_manual_su_cmd {
 };
 #endif
 
+#ifdef CONFIG_KSU_SUPERKEY
+struct ksu_superkey_auth_cmd {
+	char superkey[65]; // Input: SuperKey string (null-terminated)
+	__s32 result; // Output: 0 = success, negative = error
+};
+
+struct ksu_superkey_status_cmd {
+	__u8 enabled; // Output: true if SuperKey is enabled
+	__u8 authenticated; // Output: true if current process is authenticated
+	__u32 manager_uid; // Output: manager UID if authenticated
+};
+#endif
+
 // IOCTL command definitions
 #define KSU_IOCTL_GRANT_ROOT _IOC(_IOC_NONE, 'K', 1, 0)
 #define KSU_IOCTL_GET_INFO _IOC(_IOC_READ, 'K', 2, 0)
@@ -173,6 +208,12 @@ struct ksu_manual_su_cmd {
 #define KSU_IOCTL_ENABLE_UID_SCANNER _IOC(_IOC_READ|_IOC_WRITE, 'K', 105, 0)
 #ifdef CONFIG_KSU_MANUAL_SU
 #define KSU_IOCTL_MANUAL_SU _IOC(_IOC_READ|_IOC_WRITE, 'K', 106, 0)
+#endif
+#ifdef CONFIG_KSU_SUPERKEY
+// SuperKey authentication IOCTL
+#define KSU_IOCTL_SUPERKEY_AUTH _IOC(_IOC_READ|_IOC_WRITE, 'K', 107, 0)
+// SuperKey status query IOCTL
+#define KSU_IOCTL_SUPERKEY_STATUS _IOC(_IOC_READ, 'K', 108, 0)
 #endif
 
 // IOCTL handler types

@@ -24,7 +24,7 @@
 struct superkey_data {
     volatile u64 magic;      // SUPERKEY_MAGIC
     volatile u64 hash;       // SuperKey hash
-    volatile u64 reserved;   // 保留
+    volatile u64 flags;      // 标志位: bit 0 = 禁用签名校验
 } __attribute__((packed, aligned(8)));
 
 // 导出的超级密码 hash 存储 (用于 LKM 修补模式)
@@ -34,7 +34,7 @@ struct superkey_data {
 static volatile struct superkey_data __attribute__((used, section(".data"))) superkey_store = {
     .magic = SUPERKEY_MAGIC,
     .hash = 0,  // 默认为 0，表示未设置 (LKM 修补模式会覆盖这个值)
-    .reserved = 0,
+    .flags = 0, // 标志位: bit 0 = 禁用签名校验 (SuperKey Only 模式)
 };
 
 // 外部可访问的 hash 变量
@@ -132,6 +132,21 @@ int superkey_authenticate(const char __user *user_key)
             authenticated_manager_uid);
     
     return 0;
+}
+
+/**
+ * superkey_set_manager_appid - 设置已认证的管理器 appid
+ * @appid: 已通过 SuperKey 认证的 appid
+ * 
+ * 用于在 task_work 中已完成 SuperKey 验证后设置管理器身份
+ */
+void superkey_set_manager_appid(uid_t appid)
+{
+    spin_lock(&superkey_lock);
+    authenticated_manager_uid = appid;
+    spin_unlock(&superkey_lock);
+
+    pr_info("superkey: set authenticated manager appid: %d\n", appid);
 }
 
 /**
