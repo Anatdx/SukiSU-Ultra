@@ -1364,8 +1364,6 @@ void ksu_supercalls_init(void)
 		pr_info("reboot kprobe registered successfully\n");
 	}
 #endif
-#endif
-
 #ifdef CONFIG_KSU_SUPERKEY
 	rc = register_kprobe(&prctl_kp);
 	if (rc) {
@@ -1373,6 +1371,7 @@ void ksu_supercalls_init(void)
 	} else {
 		pr_info("prctl kprobe registered for SuperKey auth\n");
 	}
+#endif
 #endif
 }
 
@@ -1382,12 +1381,11 @@ void ksu_supercalls_exit(void)
 #ifdef KSU_KPROBES_HOOK
 	unregister_kprobe(&reboot_kp);
 #endif
-#else
-	pr_info("susfs: do nothing\n");
-#endif
-
 #ifdef CONFIG_KSU_SUPERKEY
 	unregister_kprobe(&prctl_kp);
+#endif
+#else
+	pr_info("susfs: do nothing\n");
 #endif
 }
 
