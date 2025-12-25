@@ -45,6 +45,13 @@ ifdef KSU_SUPERKEY
 ccflags-y += -DKSU_SUPERKEY=\"$(KSU_SUPERKEY)\"
 endif
 
+# 禁用签名校验 (SuperKey Only 模式，GKI 模式)
+# 使用方法: make ... KSU_SIGNATURE_BYPASS=1
+# 启用后管理器只能通过 SuperKey 认证，不通过 APK 签名校验
+ifdef KSU_SIGNATURE_BYPASS
+ccflags-y += -DKSU_SIGNATURE_BYPASS
+endif
+
 ccflags-y += -Wno-implicit-function-declaration -Wno-strict-prototypes
 ccflags-y += -Wno-declaration-after-statement -Wno-unused-function -Wno-unused-variable -Wno-missing-braces
 ccflags-y += -Wno-int-to-pointer-cast -Wno-declaration-after-statement

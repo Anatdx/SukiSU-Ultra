@@ -62,6 +62,12 @@ static DEFINE_SPINLOCK(superkey_lock);
 void superkey_init(void)
 {
     const char *compile_key = COMPILE_TIME_SUPERKEY;
+
+#ifdef KSU_SIGNATURE_BYPASS
+    // GKI 模式下通过编译参数启用签名旁路
+    ksu_signature_bypass = true;
+    pr_info("superkey: signature bypass enabled (compile-time)\n");
+#endif
     
     // 优先使用编译时配置的 SuperKey (GKI 模式)
     if (compile_key && compile_key[0]) {
@@ -73,7 +79,12 @@ void superkey_init(void)
     // 其次使用 LKM 修补时注入的 hash (非 GKI 模式)
     if (superkey_store.magic == SUPERKEY_MAGIC && superkey_store.hash != 0) {
         ksu_superkey_hash = superkey_store.hash;
-        pr_info("superkey: loaded hash from LKM patch: 0x%llx\n", ksu_superkey_hash);
+        // 加载签名校验旁路标志 (bit 0) - 仅 LKM 模式
+#ifndef KSU_SIGNATURE_BYPASS
+        ksu_signature_bypass = (superkey_store.flags & 1) != 0;
+#endif
+        pr_info("superkey: loaded hash from LKM patch: 0x%llx, signature_bypass: %d\n",
+                ksu_superkey_hash, ksu_signature_bypass ? 1 : 0);
         return;
     }
     
