@@ -1,70 +1,63 @@
-#include <linux/export.h>
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/fs.h>
-#include <linux/kernfs.h>
-#include <linux/file.h>
-#include <linux/slab.h>
-#include <linux/vmalloc.h>
-#include <linux/uaccess.h>
-#include <linux/elf.h>
-#include <linux/kallsyms.h>
-#include <linux/version.h>
-#include <linux/list.h>
-#include <linux/spinlock.h>
-#include <linux/rcupdate.h>
-#include <asm/elf.h>
-#include <linux/vmalloc.h>
-#include <linux/mm.h>
-#include <linux/string.h>
-#include <asm/cacheflush.h>
-#include <linux/module.h>
-#include <linux/vmalloc.h>
-#include <linux/set_memory.h>
-#include <linux/version.h>
-#include <linux/export.h>
-#include <linux/slab.h>
-#include <linux/types.h>
-#include <linux/stddef.h>
-#include <linux/mount.h>
-#include <linux/kprobes.h>
-#include <linux/mm_types.h>
-#include <linux/netlink.h>
-#include <linux/sched.h>
-#include <../fs/mount.h>
-#include "kpm.h"
 #include "compact.h"
+#include "kpm.h"
+#include <../fs/mount.h>
+#include <asm/cacheflush.h>
+#include <asm/elf.h>
+#include <linux/elf.h>
+#include <linux/export.h>
+#include <linux/file.h>
+#include <linux/fs.h>
+#include <linux/kallsyms.h>
+#include <linux/kernel.h>
+#include <linux/kernfs.h>
+#include <linux/kprobes.h>
+#include <linux/list.h>
+#include <linux/mm.h>
+#include <linux/mm_types.h>
+#include <linux/module.h>
+#include <linux/mount.h>
+#include <linux/netlink.h>
+#include <linux/rcupdate.h>
+#include <linux/sched.h>
+#include <linux/set_memory.h>
+#include <linux/slab.h>
+#include <linux/spinlock.h>
+#include <linux/stddef.h>
+#include <linux/string.h>
+#include <linux/types.h>
+#include <linux/uaccess.h>
+#include <linux/version.h>
+#include <linux/vmalloc.h>
 
 struct DynamicStructMember {
-    const char *name;
-    size_t size;
-    size_t offset;
+	const char *name;
+	size_t size;
+	size_t offset;
 };
 
 struct DynamicStructInfo {
-    const char *name;
-    size_t count;
-    size_t total_size;
-    struct DynamicStructMember *members;
+	const char *name;
+	size_t count;
+	size_t total_size;
+	struct DynamicStructMember *members;
 };
 
 #define DYNAMIC_STRUCT_BEGIN(struct_name)                                      \
-    static struct DynamicStructMember struct_name##_members[] = {
+	static struct DynamicStructMember struct_name##_members[] = {
 #define DEFINE_MEMBER(struct_name, member)                                     \
-    { .name = #member,                                                         \
-      .size = sizeof(((struct struct_name *)0)->member),                       \
-      .offset = offsetof(struct struct_name, member) },
+	{.name = #member,                                                      \
+	 .size = sizeof(((struct struct_name *)0)->member),                    \
+	 .offset = offsetof(struct struct_name, member)},
 
 #define DYNAMIC_STRUCT_END(struct_name)                                        \
-    }                                                                          \
-    ;                                                                          \
-    static struct DynamicStructInfo struct_name##_info = {                     \
-        .name = #struct_name,                                                  \
-        .count = sizeof(struct_name##_members) /                               \
-                 sizeof(struct DynamicStructMember),                           \
-        .total_size = sizeof(struct struct_name),                              \
-        .members = struct_name##_members                                       \
-    };
+	}                                                                      \
+	;                                                                      \
+	static struct DynamicStructInfo struct_name##_info = {                 \
+	    .name = #struct_name,                                              \
+	    .count = sizeof(struct_name##_members) /                           \
+		     sizeof(struct DynamicStructMember),                       \
+	    .total_size = sizeof(struct struct_name),                          \
+	    .members = struct_name##_members};
 
 DYNAMIC_STRUCT_BEGIN(mount)
 DEFINE_MEMBER(mount, mnt_parent)
@@ -180,33 +173,32 @@ static struct DynamicStructInfo *dynamic_struct_infos[] = {
     STRUCT_INFO(vm_area_struct),
     STRUCT_INFO(vm_operations_struct),
     STRUCT_INFO(netlink_kernel_cfg),
-    STRUCT_INFO(task_struct)
-};
+    STRUCT_INFO(task_struct)};
 
 /*
  * return 0 if successful
  * return -1 if struct not defined
  */
 int yukisu_super_find_struct(const char *struct_name, size_t *out_size,
-                             int *out_members)
+			     int *out_members)
 {
-    for (size_t i = 0;
-         i < (sizeof(dynamic_struct_infos) / sizeof(dynamic_struct_infos[0]));
-         i++) {
-        struct DynamicStructInfo *info = dynamic_struct_infos[i];
+	for (size_t i = 0; i < (sizeof(dynamic_struct_infos) /
+				sizeof(dynamic_struct_infos[0]));
+	     i++) {
+		struct DynamicStructInfo *info = dynamic_struct_infos[i];
 
-        if (strcmp(struct_name, info->name) == 0) {
-            if (out_size)
-                *out_size = info->total_size;
+		if (strcmp(struct_name, info->name) == 0) {
+			if (out_size)
+				*out_size = info->total_size;
 
-            if (out_members)
-                *out_members = info->count;
+			if (out_members)
+				*out_members = info->count;
 
-            return 0;
-        }
-    }
+			return 0;
+		}
+	}
 
-    return -1;
+	return -1;
 }
 EXPORT_SYMBOL(yukisu_super_find_struct);
 
@@ -217,39 +209,43 @@ EXPORT_SYMBOL(yukisu_super_find_struct);
  * return -2 if member not defined
  */
 int yukisu_super_access(const char *struct_name, const char *member_name,
-                        size_t *out_offset, size_t *out_size)
+			size_t *out_offset, size_t *out_size)
 {
-    for (size_t i = 0;
-         i < (sizeof(dynamic_struct_infos) / sizeof(dynamic_struct_infos[0]));
-         i++) {
-        struct DynamicStructInfo *info = dynamic_struct_infos[i];
+	for (size_t i = 0; i < (sizeof(dynamic_struct_infos) /
+				sizeof(dynamic_struct_infos[0]));
+	     i++) {
+		struct DynamicStructInfo *info = dynamic_struct_infos[i];
 
-        if (strcmp(struct_name, info->name) == 0) {
-            for (size_t i1 = 0; i1 < info->count; i1++) {
-                if (strcmp(info->members[i1].name, member_name) == 0) {
-                    if (out_offset)
-                        *out_offset = info->members[i].offset;
+		if (strcmp(struct_name, info->name) == 0) {
+			for (size_t i1 = 0; i1 < info->count; i1++) {
+				if (strcmp(info->members[i1].name,
+					   member_name) == 0) {
+					if (out_offset)
+						*out_offset =
+						    info->members[i].offset;
 
-                    if (out_size)
-                        *out_size = info->members[i].size;
+					if (out_size)
+						*out_size =
+						    info->members[i].size;
 
-                    return 0;
-                }
-            }
+					return 0;
+				}
+			}
 
-            return -2;
-        }
-    }
+			return -2;
+		}
+	}
 
-    return -1;
+	return -1;
 }
 EXPORT_SYMBOL(yukisu_super_access);
 
 #define DYNAMIC_CONTAINER_OF(offset, member_ptr)                               \
-    ({                                                                         \
-        (offset != (size_t) - 1) ? (void *)((char *)(member_ptr) - offset) :   \
-                                   NULL;                                       \
-    })
+	({                                                                     \
+		(offset != (size_t) - 1)                                       \
+		    ? (void *)((char *)(member_ptr) - offset)                  \
+		    : NULL;                                                    \
+	})
 
 /*
  * Dynamic container_of
@@ -258,30 +254,31 @@ EXPORT_SYMBOL(yukisu_super_access);
  * return -2 if target member not defined
  */
 int yukisu_super_container_of(const char *struct_name, const char *member_name,
-                              void *ptr, void **out_ptr)
+			      void *ptr, void **out_ptr)
 {
-    if (ptr == NULL)
-        return -3;
+	if (ptr == NULL)
+		return -3;
 
-    for (size_t i = 0;
-         i < (sizeof(dynamic_struct_infos) / sizeof(dynamic_struct_infos[0]));
-         i++) {
-        struct DynamicStructInfo *info = dynamic_struct_infos[i];
+	for (size_t i = 0; i < (sizeof(dynamic_struct_infos) /
+				sizeof(dynamic_struct_infos[0]));
+	     i++) {
+		struct DynamicStructInfo *info = dynamic_struct_infos[i];
 
-        if (strcmp(struct_name, info->name) == 0) {
-            for (size_t i1 = 0; i1 < info->count; i1++) {
-                if (strcmp(info->members[i1].name, member_name) == 0) {
-                    *out_ptr = (void *)DYNAMIC_CONTAINER_OF(
-                        info->members[i1].offset, ptr);
+		if (strcmp(struct_name, info->name) == 0) {
+			for (size_t i1 = 0; i1 < info->count; i1++) {
+				if (strcmp(info->members[i1].name,
+					   member_name) == 0) {
+					*out_ptr = (void *)DYNAMIC_CONTAINER_OF(
+					    info->members[i1].offset, ptr);
 
-                    return 0;
-                }
-            }
+					return 0;
+				}
+			}
 
-            return -2;
-        }
-    }
+			return -2;
+		}
+	}
 
-    return -1;
+	return -1;
 }
 EXPORT_SYMBOL(yukisu_super_container_of);

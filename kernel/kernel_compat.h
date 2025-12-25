@@ -11,14 +11,14 @@
  * 0 = success
  */
 static long ksu_copy_from_user_retry(void *to, const void __user *from,
-                                     unsigned long count)
+				     unsigned long count)
 {
-    long ret = copy_from_user_nofault(to, from, count);
-    if (likely(!ret))
-        return ret;
+	long ret = copy_from_user_nofault(to, from, count);
+	if (likely(!ret))
+		return ret;
 
-    // we faulted! fallback to slow path
-    return copy_from_user(to, from, count);
+	// we faulted! fallback to slow path
+	return copy_from_user(to, from, count);
 }
 
 #endif

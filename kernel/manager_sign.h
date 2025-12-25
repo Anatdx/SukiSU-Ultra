@@ -4,16 +4,16 @@
 // First Manager (Official)
 #define EXPECTED_SIZE_FIRST 0x16b
 #define EXPECTED_HASH_FIRST                                                    \
-    "03b53b8bd866c029f2bb34798376977c43874dd589ddaf594080bcef0267a45b"
+	"03b53b8bd866c029f2bb34798376977c43874dd589ddaf594080bcef0267a45b"
 
 // Second Manager (Anatdx Custom - EC P-521)
 #define EXPECTED_SIZE_SECOND 0x16b
 #define EXPECTED_HASH_SECOND                                                   \
-    "e76c912ef2def3470f7293b73f983cfc795d7d61c46f85a7013d1fb745deaf89"
+	"e76c912ef2def3470f7293b73f983cfc795d7d61c46f85a7013d1fb745deaf89"
 
 typedef struct {
-    u32 size;
-    const char *sha256;
+	u32 size;
+	const char *sha256;
 } apk_sign_key_t;
 
 #endif /* MANAGER_SIGN_H */

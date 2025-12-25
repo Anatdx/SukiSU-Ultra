@@ -1,18 +1,18 @@
 #ifndef __SUKISU_KPM_H
 #define __SUKISU_KPM_H
 
-#include <linux/types.h>
 #include <linux/ioctl.h>
+#include <linux/types.h>
 
 struct ksu_kpm_cmd {
-    __aligned_u64 __user control_code;
-    __aligned_u64 __user arg1;
-    __aligned_u64 __user arg2;
-    __aligned_u64 __user result_code;
+	__aligned_u64 __user control_code;
+	__aligned_u64 __user arg1;
+	__aligned_u64 __user arg2;
+	__aligned_u64 __user result_code;
 };
 
 int yukisu_handle_kpm(unsigned long control_code, unsigned long arg3,
-                      unsigned long arg4, unsigned long result_code);
+		      unsigned long arg4, unsigned long result_code);
 int yukisu_is_kpm_control_code(unsigned long control_code);
 int do_kpm(void __user *arg);
 
