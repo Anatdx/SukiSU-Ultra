@@ -23,6 +23,17 @@
 // prctl is not blocked by Android's SECCOMP policy, unlike reboot
 #define KSU_PRCTL_SUPERKEY_AUTH 0xDEAD5555
 
+// Magic for getting driver fd for already authenticated manager (SECCOMP-safe)
+// Usage: prctl(KSU_PRCTL_GET_FD, &fd_output, 0, 0, 0)
+// This allows ksud to get driver fd when launched from manager app
+#define KSU_PRCTL_GET_FD 0xDEAD5556
+
+// Output structure for KSU_PRCTL_GET_FD
+struct ksu_prctl_get_fd_cmd {
+	int result; // Output: 0 = success, negative = error
+	int fd;	    // Output: fd on success, -1 on failure
+};
+
 // SuperKey auth structure for prctl hook
 struct ksu_superkey_prctl_cmd {
 	char superkey[65]; // Input: SuperKey string (null-terminated)
