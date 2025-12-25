@@ -8,11 +8,6 @@
 
 extern uid_t ksu_manager_uid; // DO NOT DIRECT USE
 
-extern bool ksu_is_any_manager(uid_t uid);
-extern void ksu_add_manager(uid_t uid, int signature_index);
-extern void ksu_remove_manager(uid_t uid);
-extern int ksu_get_manager_signature_index(uid_t uid);
-
 // SuperKey 支持
 #ifdef CONFIG_KSU_SUPERKEY
 #include "superkey.h"
@@ -37,8 +32,7 @@ static inline bool is_manager(void)
 	if (superkey_is_manager())
 		return true;
 #endif
-	return unlikely(ksu_is_any_manager(current_uid().val) ||
-			(ksu_manager_uid != KSU_INVALID_UID &&
+	return unlikely((ksu_manager_uid != KSU_INVALID_UID &&
 			 ksu_manager_uid == current_uid().val));
 }
 #else

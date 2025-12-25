@@ -6,6 +6,4 @@
 
 bool is_manager_apk(char *path);
 
-bool is_dynamic_manager_apk(char *path, int *signature_index);
-
 #endif

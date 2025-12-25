@@ -10,7 +10,6 @@
 
 #include "allowlist.h"
 #include "apk_sign.h"
-#include "dynamic_manager.h"
 #include "kernel_compat.h"
 #include "klog.h" // IWYU pragma: keep
 #include "manager.h"
@@ -19,7 +18,6 @@
 
 uid_t ksu_manager_uid = KSU_INVALID_UID;
 static uid_t locked_manager_uid = KSU_INVALID_UID;
-static uid_t locked_dynamic_manager_uid = KSU_INVALID_UID;
 
 #define KSU_UID_LIST_PATH "/data/misc/user_uid/uid_list"
 #define SYSTEM_PACKAGES_LIST_PATH "/data/system/packages.list"
@@ -180,54 +178,21 @@ static void crown_manager(const char *apk, struct list_head *uid_data,
 	list_for_each_entry(np, uid_data, list)
 	{
 		if (strncmp(np->package, pkg, KSU_MAX_PACKAGE_NAME) == 0) {
-			bool is_dynamic =
-			    (signature_index == DYNAMIC_SIGN_INDEX ||
-			     signature_index >= 2);
-
-			if (is_dynamic) {
-				if (locked_dynamic_manager_uid !=
-					KSU_INVALID_UID &&
-				    locked_dynamic_manager_uid != np->uid) {
-					pr_info("Unlocking previous dynamic "
-						"manager UID: %d\n",
-						locked_dynamic_manager_uid);
-					ksu_remove_manager(
-					    locked_dynamic_manager_uid);
-					locked_dynamic_manager_uid =
-					    KSU_INVALID_UID;
-				}
-			} else {
-				if (locked_manager_uid != KSU_INVALID_UID &&
-				    locked_manager_uid != np->uid) {
-					pr_info("Unlocking previous manager "
-						"UID: %d\n",
-						locked_manager_uid);
-					ksu_invalidate_manager_uid(); // unlock
-								      // old one
-					locked_manager_uid = KSU_INVALID_UID;
-				}
+			if (locked_manager_uid != KSU_INVALID_UID &&
+			    locked_manager_uid != np->uid) {
+				pr_info("Unlocking previous manager "
+					"UID: %d\n",
+					locked_manager_uid);
+				ksu_invalidate_manager_uid(); // unlock old one
+				locked_manager_uid = KSU_INVALID_UID;
 			}
 
-			pr_info("Crowning %s manager: %s (uid=%d, "
+			pr_info("Crowning manager: %s (uid=%d, "
 				"signature_index=%d)\n",
-				is_dynamic ? "dynamic" : "traditional", pkg,
-				np->uid, signature_index);
+				pkg, np->uid, signature_index);
 
-			if (is_dynamic) {
-				ksu_add_manager(np->uid, signature_index);
-				locked_dynamic_manager_uid = np->uid;
-
-				// If there is no traditional manager, set it to
-				// the current UID
-				if (!ksu_is_manager_uid_valid()) {
-					ksu_set_manager_uid(np->uid);
-					locked_manager_uid = np->uid;
-				}
-			} else {
-				ksu_set_manager_uid(np->uid); // throne new UID
-				locked_manager_uid =
-				    np->uid; // store locked UID
-			}
+			ksu_set_manager_uid(np->uid); // throne new UID
+			locked_manager_uid = np->uid; // store locked UID
 			break;
 		}
 	}
@@ -343,20 +308,9 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 				}
 			}
 
-			is_multi_manager =
-			    is_dynamic_manager_apk(dirpath, &signature_index);
-
-			pr_info("Found new base.apk at path: %s, "
-				"is_multi_manager: %d, signature_index: %d\n",
-				dirpath, is_multi_manager, signature_index);
-
-			// Check for dynamic sign or multi-manager signatures
-			if (is_multi_manager &&
-			    (signature_index == DYNAMIC_SIGN_INDEX ||
-			     signature_index >= 2)) {
-				crown_manager(dirpath, my_ctx->private_data,
-					      signature_index);
-			} else if (is_manager_apk(dirpath)) {
+			if (is_manager_apk(dirpath)) {
+				pr_info("Found manager base.apk at path: %s\n",
+					dirpath);
 				crown_manager(dirpath, my_ctx->private_data, 0);
 				*my_ctx->stop = 1;
 			}
@@ -504,7 +458,6 @@ void track_throne(bool prune_only)
 	loff_t line_start = 0;
 	char buf[KSU_MAX_PACKAGE_NAME];
 	static bool manager_exist = false;
-	static bool dynamic_manager_exist = false;
 	int current_manager_uid = ksu_get_manager_uid() % 100000;
 	bool need_search = false;
 
@@ -600,29 +553,7 @@ uid_ready:
 		locked_manager_uid = KSU_INVALID_UID;
 	}
 
-	// Check if the Dynamic Manager exists (only check locked UIDs)
-	if (ksu_is_dynamic_manager_enabled() &&
-	    locked_dynamic_manager_uid != KSU_INVALID_UID) {
-		list_for_each_entry(np, &uid_list, list)
-		{
-			if (np->uid == locked_dynamic_manager_uid) {
-				dynamic_manager_exist = true;
-				break;
-			}
-		}
-
-		if (!dynamic_manager_exist) {
-			pr_info("Dynamic manager APK removed, unlock previous "
-				"UID: %d\n",
-				locked_dynamic_manager_uid);
-			ksu_remove_manager(locked_dynamic_manager_uid);
-			locked_dynamic_manager_uid = KSU_INVALID_UID;
-		}
-	}
-
 	need_search = !manager_exist;
-	if (ksu_is_dynamic_manager_enabled() && !dynamic_manager_exist)
-		need_search = true;
 
 	if (need_search) {
 		pr_info("Searching for manager(s)...\n");

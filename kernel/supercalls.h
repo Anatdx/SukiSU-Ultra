@@ -157,16 +157,6 @@ struct ksu_enable_kpm_cmd {
 	__u8 enabled; // Output: true if KPM is enabled
 };
 
-struct ksu_dynamic_manager_cmd {
-	struct dynamic_manager_user_config
-	    config; // Input/Output: dynamic manager config
-};
-
-struct ksu_get_managers_cmd {
-	struct manager_list_info
-	    manager_info; // Output: manager list information
-};
-
 struct ksu_enable_uid_scanner_cmd {
 	__u32 operation; // Input: operation type (UID_SCANNER_OP_GET_STATUS,
 			 // UID_SCANNER_OP_TOGGLE, UID_SCANNER_OP_CLEAR_ENV)
@@ -221,8 +211,6 @@ struct ksu_superkey_status_cmd {
 #define KSU_IOCTL_GET_FULL_VERSION _IOC(_IOC_READ, 'K', 100, 0)
 #define KSU_IOCTL_HOOK_TYPE _IOC(_IOC_READ, 'K', 101, 0)
 #define KSU_IOCTL_ENABLE_KPM _IOC(_IOC_READ, 'K', 102, 0)
-#define KSU_IOCTL_DYNAMIC_MANAGER _IOC(_IOC_READ | _IOC_WRITE, 'K', 103, 0)
-#define KSU_IOCTL_GET_MANAGERS _IOC(_IOC_READ | _IOC_WRITE, 'K', 104, 0)
 #define KSU_IOCTL_ENABLE_UID_SCANNER _IOC(_IOC_READ | _IOC_WRITE, 'K', 105, 0)
 #ifdef CONFIG_KSU_MANUAL_SU
 #define KSU_IOCTL_MANUAL_SU _IOC(_IOC_READ | _IOC_WRITE, 'K', 106, 0)

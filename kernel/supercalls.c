@@ -33,7 +33,6 @@
 #ifndef CONFIG_KSU_SUSFS
 #include "syscall_hook_manager.h"
 #endif
-#include "dynamic_manager.h"
 #include "throne_comm.h"
 
 #ifdef CONFIG_KSU_MANUAL_SU
@@ -141,7 +140,6 @@ static int do_report_event(void __user *arg)
 #if __SULOG_GATE
 			ksu_sulog_init();
 #endif
-			ksu_dynamic_manager_init();
 		}
 		break;
 	}
@@ -754,44 +752,6 @@ static int do_enable_kpm(void __user *arg)
 	return 0;
 }
 
-static int do_dynamic_manager(void __user *arg)
-{
-	struct ksu_dynamic_manager_cmd cmd;
-
-	if (copy_from_user(&cmd, arg, sizeof(cmd))) {
-		pr_err("dynamic_manager: copy_from_user failed\n");
-		return -EFAULT;
-	}
-
-	int ret = ksu_handle_dynamic_manager(&cmd.config);
-	if (ret)
-		return ret;
-
-	if (cmd.config.operation == DYNAMIC_MANAGER_OP_GET &&
-	    copy_to_user(arg, &cmd, sizeof(cmd))) {
-		pr_err("dynamic_manager: copy_to_user failed\n");
-		return -EFAULT;
-	}
-
-	return 0;
-}
-
-static int do_get_managers(void __user *arg)
-{
-	struct ksu_get_managers_cmd cmd;
-
-	int ret = ksu_get_active_managers(&cmd.manager_info);
-	if (ret)
-		return ret;
-
-	if (copy_to_user(arg, &cmd, sizeof(cmd))) {
-		pr_err("get_managers: copy_from_user failed\n");
-		return -EFAULT;
-	}
-
-	return 0;
-}
-
 static int do_enable_uid_scanner(void __user *arg)
 {
 	struct ksu_enable_uid_scanner_cmd cmd;
@@ -1033,14 +993,6 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
     {.cmd = KSU_IOCTL_ENABLE_KPM,
      .name = "GET_ENABLE_KPM",
      .handler = do_enable_kpm,
-     .perm_check = manager_or_root},
-    {.cmd = KSU_IOCTL_DYNAMIC_MANAGER,
-     .name = "SET_DYNAMIC_MANAGER",
-     .handler = do_dynamic_manager,
-     .perm_check = manager_or_root},
-    {.cmd = KSU_IOCTL_GET_MANAGERS,
-     .name = "GET_MANAGERS",
-     .handler = do_get_managers,
      .perm_check = manager_or_root},
     {.cmd = KSU_IOCTL_ENABLE_UID_SCANNER,
      .name = "SET_ENABLE_UID_SCANNER",

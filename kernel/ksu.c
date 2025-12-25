@@ -25,7 +25,6 @@
 
 struct cred *ksu_cred;
 
-#include "dynamic_manager.h"
 #include "setuid_hook.h"
 #include "sucompat.h"
 #include "sulog.h"
@@ -39,7 +38,6 @@ void sukisu_custom_config_exit(void)
 {
 	ksu_uid_exit();
 	ksu_throne_comm_exit();
-	ksu_dynamic_manager_exit();
 #if __SULOG_GATE
 	ksu_sulog_exit();
 #endif
