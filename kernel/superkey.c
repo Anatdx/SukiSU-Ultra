@@ -24,7 +24,7 @@
 struct superkey_data {
     volatile u64 magic;      // SUPERKEY_MAGIC
     volatile u64 hash;       // SuperKey hash
-    volatile u64 reserved;   // 保留
+    volatile u64 flags;      // 标志位: bit 0 = signature_bypass
 } __attribute__((packed, aligned(8)));
 
 // 导出的超级密码 hash 存储 (用于 LKM 修补模式)
@@ -34,7 +34,7 @@ struct superkey_data {
 static volatile struct superkey_data __attribute__((used, section(".data"))) superkey_store = {
     .magic = SUPERKEY_MAGIC,
     .hash = 0,  // 默认为 0，表示未设置 (LKM 修补模式会覆盖这个值)
-    .reserved = 0,
+    .flags = 0,
 };
 
 // 外部可访问的 hash 变量
