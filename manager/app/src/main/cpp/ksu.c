@@ -377,28 +377,37 @@ bool authenticate_superkey(const char *superkey) {
     reset_cached_info(); // Clear cached version/flags so next is_manager()
                          // check is fresh
 
-    // Verify the fd is working by trying to get info
-    struct ksu_get_info_cmd verify_cmd = {};
-    if (ioctl(fd, KSU_IOCTL_GET_INFO, &verify_cmd) == 0 &&
-        verify_cmd.version > 0) {
-      LogDebug(
-          "authenticate_superkey: prctl success, fd=%d, version=%d, flags=0x%x",
-          fd, verify_cmd.version, verify_cmd.flags);
-      return true;
-    } else {
-      LogDebug(
-          "authenticate_superkey: prctl returned fd but ioctl failed, fd=%d",
-          fd);
-      // fd might not be ready yet, wait a bit more
-      usleep(50000); // 50ms more
+    // Verify the fd is working AND that we are now manager
+    // Retry up to 5 times with increasing delays to ensure kernel state is ready
+    for (int retry = 0; retry < 5; retry++) {
+      struct ksu_get_info_cmd verify_cmd = {};
       if (ioctl(fd, KSU_IOCTL_GET_INFO, &verify_cmd) == 0 &&
           verify_cmd.version > 0) {
-        LogDebug("authenticate_superkey: prctl success after retry, fd=%d, "
-                 "version=%d",
-                 fd, verify_cmd.version);
-        return true;
+        // Check if is_manager flag is set (0x2)
+        if (verify_cmd.flags & 0x2) {
+          LogDebug(
+              "authenticate_superkey: prctl success, fd=%d, version=%d, flags=0x%x, retry=%d",
+              fd, verify_cmd.version, verify_cmd.flags, retry);
+          return true;
+        }
+        LogDebug(
+            "authenticate_superkey: fd ok but not manager yet, flags=0x%x, retry=%d",
+            verify_cmd.flags, retry);
+      } else {
+        LogDebug(
+            "authenticate_superkey: ioctl failed, retry=%d", retry);
       }
+      // Exponential backoff: 20ms, 40ms, 80ms, 160ms, 320ms
+      usleep(20000 << retry);
     }
+    // Final check
+    struct ksu_get_info_cmd final_cmd = {};
+    if (ioctl(fd, KSU_IOCTL_GET_INFO, &final_cmd) == 0 &&
+        final_cmd.version > 0 && (final_cmd.flags & 0x2)) {
+      LogDebug("authenticate_superkey: success after retries, fd=%d", fd);
+      return true;
+    }
+    LogDebug("authenticate_superkey: failed to become manager after retries");
   }
 
   // Method 2: Fallback to reboot syscall (only if we already have fd)
@@ -414,7 +423,7 @@ bool authenticate_superkey(const char *superkey) {
 
     // Use reboot syscall with SuperKey magic
     // reboot(KSU_INSTALL_MAGIC1, KSU_SUPERKEY_MAGIC2, 0, &cmd)
-    ret = syscall(__NR_reboot, KSU_INSTALL_MAGIC1, KSU_SUPERKEY_MAGIC2, 0,
+    long ret = syscall(__NR_reboot, KSU_INSTALL_MAGIC1, KSU_SUPERKEY_MAGIC2, 0,
                   &reboot_cmd);
 
     // Give task_work a chance to execute
@@ -428,8 +437,17 @@ bool authenticate_superkey(const char *superkey) {
       fd = reboot_cmd.fd;
       reset_cached_info(); // Clear cached version/flags so next is_manager()
                            // check is fresh
-      LogDebug("authenticate_superkey: reboot success, fd=%d", fd);
-      return true;
+      // Verify is_manager flag with retries
+      for (int retry = 0; retry < 5; retry++) {
+        struct ksu_get_info_cmd verify_cmd = {};
+        if (ioctl(fd, KSU_IOCTL_GET_INFO, &verify_cmd) == 0 &&
+            verify_cmd.version > 0 && (verify_cmd.flags & 0x2)) {
+          LogDebug("authenticate_superkey: reboot success, fd=%d, flags=0x%x", fd, verify_cmd.flags);
+          return true;
+        }
+        usleep(20000 << retry);
+      }
+      LogDebug("authenticate_superkey: reboot fd ok but not manager");
     }
   } else {
     LogDebug("authenticate_superkey: skipping reboot method (no fd, would "
@@ -448,7 +466,17 @@ bool authenticate_superkey(const char *superkey) {
                ioctl_cmd.result);
       if (ioctl_cmd.result == 0) {
         reset_cached_info(); // Clear cached info on success
-        return true;
+        // Verify is_manager flag with retries
+        for (int retry = 0; retry < 5; retry++) {
+          struct ksu_get_info_cmd verify_cmd = {};
+          if (ioctl(fd, KSU_IOCTL_GET_INFO, &verify_cmd) == 0 &&
+              verify_cmd.version > 0 && (verify_cmd.flags & 0x2)) {
+            LogDebug("authenticate_superkey: ioctl auth success, flags=0x%x", verify_cmd.flags);
+            return true;
+          }
+          usleep(20000 << retry);
+        }
+        LogDebug("authenticate_superkey: ioctl auth ok but not manager");
       }
     }
   }

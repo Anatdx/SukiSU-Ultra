@@ -203,7 +203,9 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                                 }
                                 if (success) {
                                     superKeyAuthSuccess = true
-                                    viewModel.refreshData(context)
+                                    // 等待内核状态完全更新，然后强制刷新
+                                    kotlinx.coroutines.delay(100)
+                                    viewModel.refreshData(context, forceRefresh = true)
                                 }
                             } catch (e: Exception) {
                                 android.util.Log.e("SuperKey", "Auto-auth error", e)
