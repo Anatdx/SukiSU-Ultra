@@ -40,6 +40,10 @@ static volatile struct superkey_data __attribute__((used, section(".data"))) sup
 // 外部可访问的 hash 变量
 u64 ksu_superkey_hash __read_mostly = 0;
 
+// 是否禁用签名校验 (SuperKey Only 模式)
+// 当此标志为 true 时，管理器不通过签名校验，只通过 SuperKey 认证
+bool ksu_signature_bypass __read_mostly = false;
+
 // 当前已认证的 UID（通过超级密码认证后设置）
 static uid_t authenticated_manager_uid = -1;
 static DEFINE_SPINLOCK(superkey_lock);
