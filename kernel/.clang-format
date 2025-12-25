@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: GPL-2.0
+# Simplified clang-format configuration for YukiSU kernel
+---
+BasedOnStyle: LLVM
+IndentWidth: 8
+UseTab: Always
+TabWidth: 8
+BreakBeforeBraces: Linux
+AllowShortFunctionsOnASingleLine: None
+ColumnLimit: 80
+AlignTrailingComments: false
+SortIncludes: false
+PointerAlignment: Right
+SpaceAfterCStyleCast: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+IndentCaseLabels: false
+
+# Minimal ForEachMacros for kernel code
+ForEachMacros:
+  - 'list_for_each'
+  - 'list_for_each_entry'
+  - 'list_for_each_entry_safe'
+  - 'for_each_set_bit'
