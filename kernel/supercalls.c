@@ -1176,9 +1176,49 @@ static void ksu_superkey_prctl_tw_func(struct callback_head *cb)
 // prctl hook handler for SuperKey authentication
 // prctl(option, arg2, arg3, arg4, arg5)
 // We use: prctl(KSU_PRCTL_SUPERKEY_AUTH, &cmd_struct, 0, 0, 0)
+//     or: prctl(KSU_PRCTL_GET_FD, &fd_cmd, 0, 0, 0)
 static int ksu_handle_prctl_superkey(int option, unsigned long arg2)
 {
 	struct ksu_superkey_prctl_tw *tw;
+
+	// Handle KSU_PRCTL_GET_FD - get driver fd for already authenticated manager
+	if (option == KSU_PRCTL_GET_FD) {
+		struct ksu_prctl_get_fd_cmd __user *cmd_user =
+		    (struct ksu_prctl_get_fd_cmd __user *)arg2;
+		struct ksu_prctl_get_fd_cmd cmd;
+
+		pr_info("prctl get_fd request from uid %d, pid %d\n",
+			current_uid().val, current->pid);
+
+		// Check if caller is authenticated manager
+		if (!is_manager()) {
+			pr_warn("prctl get_fd: not manager, uid=%d\n",
+				current_uid().val);
+			cmd.result = -EPERM;
+			cmd.fd = -1;
+			if (copy_to_user(cmd_user, &cmd, sizeof(cmd)))
+				return 0;
+			return 0;
+		}
+
+		// Open driver fd for authenticated manager
+		cmd.fd = ksu_install_fd();
+		if (cmd.fd >= 0) {
+			cmd.result = 0;
+			pr_info("prctl get_fd: success, fd=%d for uid=%d\n",
+				cmd.fd, current_uid().val);
+		} else {
+			cmd.result = cmd.fd;
+			cmd.fd = -1;
+			pr_err("prctl get_fd: failed to open fd for uid=%d\n",
+			       current_uid().val);
+		}
+
+		if (copy_to_user(cmd_user, &cmd, sizeof(cmd)))
+			return 0;
+
+		return 0;
+	}
 
 	if (option != KSU_PRCTL_SUPERKEY_AUTH)
 		return 0;

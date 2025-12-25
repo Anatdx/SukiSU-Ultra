@@ -109,6 +109,17 @@ static INFO_CACHE: OnceLock<GetInfoCmd> = OnceLock::new();
 const KSU_INSTALL_MAGIC1: u32 = 0xDEADBEEF;
 const KSU_INSTALL_MAGIC2: u32 = 0xCAFEBABE;
 
+// Magic for getting driver fd via prctl (SECCOMP-safe)
+const KSU_PRCTL_GET_FD: libc::c_int = 0xDEAD5556u32 as i32;
+
+// Output structure for KSU_PRCTL_GET_FD
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+struct PrctlGetFdCmd {
+    result: i32,  // Output: 0 = success, negative = error
+    fd: i32,      // Output: fd on success, -1 on failure
+}
+
 fn scan_driver_fd() -> Option<RawFd> {
     let fd_dir = fs::read_dir("/proc/self/fd").ok()?;
 
@@ -129,22 +140,40 @@ fn scan_driver_fd() -> Option<RawFd> {
 
 // Get cached driver fd
 fn init_driver_fd() -> Option<RawFd> {
+    // Method 1: Check if we already have an inherited fd
     let fd = scan_driver_fd();
-    if fd.is_none() {
-        let mut fd = -1;
-        unsafe {
-            libc::syscall(
-                libc::SYS_reboot,
-                KSU_INSTALL_MAGIC1,
-                KSU_INSTALL_MAGIC2,
-                0,
-                &mut fd,
-            );
-        };
-        if fd >= 0 { Some(fd) } else { None }
-    } else {
-        fd
+    if fd.is_some() {
+        return fd;
     }
+
+    // Method 2: Try prctl to get fd (SECCOMP-safe, works for authenticated manager)
+    // This is useful when ksud is launched from manager app after SuperKey auth
+    let mut prctl_cmd = PrctlGetFdCmd { result: -1, fd: -1 };
+    unsafe {
+        libc::prctl(
+            KSU_PRCTL_GET_FD,
+            &mut prctl_cmd as *mut _ as libc::c_ulong,
+            0,
+            0,
+            0,
+        );
+    }
+    if prctl_cmd.result == 0 && prctl_cmd.fd >= 0 {
+        return Some(prctl_cmd.fd);
+    }
+
+    // Method 3: Fallback to reboot syscall (may be blocked by SECCOMP)
+    let mut fd = -1;
+    unsafe {
+        libc::syscall(
+            libc::SYS_reboot,
+            KSU_INSTALL_MAGIC1,
+            KSU_INSTALL_MAGIC2,
+            0,
+            &mut fd,
+        );
+    };
+    if fd >= 0 { Some(fd) } else { None }
 }
 
 // ioctl wrapper using libc
