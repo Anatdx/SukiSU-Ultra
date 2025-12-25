@@ -31,13 +31,7 @@ static apk_sign_key_t apk_sign_keys[] = {
 #ifdef EXPECTED_SIZE
 	{EXPECTED_SIZE, EXPECTED_HASH}, // Custom
 #endif
-#endif
-};
 
-static struct sdesc *init_sdesc(struct crypto_shash *alg)
-{
-	struct sdesc *sdesc;
-	int size;
 
 	size = sizeof(struct shash_desc) + crypto_shash_descsize(alg);
 	sdesc = kzalloc(size, GFP_KERNEL);
