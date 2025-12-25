@@ -40,7 +40,6 @@ import androidx.compose.ui.res.painterResource
 /**
  * KPM 管理界面
  * 以下内核模块功能由KernelPatch开发，经过修改后加入SukiSU Ultra的内核模块功能
- * 开发者：ShirkNeko, Liaokong
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination<RootGraph>
