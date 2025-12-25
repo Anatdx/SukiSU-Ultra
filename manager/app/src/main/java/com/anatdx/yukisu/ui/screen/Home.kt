@@ -66,10 +66,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.random.Random
 
-/**
- * @author ShirkNeko
- * @date 2025/9/29.
- */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Destination<RootGraph>(start = true)
 @Composable

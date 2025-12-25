@@ -28,10 +28,6 @@ import kotlin.math.log10
 import kotlin.math.pow
 import androidx.core.content.edit
 
-/**
- * @author ShirkNeko
- * @date 2025/5/31.
- */
 class ModuleViewModel : ViewModel() {
 
     companion object {

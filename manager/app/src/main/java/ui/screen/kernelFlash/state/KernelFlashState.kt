@@ -22,11 +22,6 @@ import java.io.IOException
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-
-/**
- * @author ShirkNeko
- * @date 2025/5/31.
- */
 data class FlashState(
     val isFlashing: Boolean = false,
     val isCompleted: Boolean = false,

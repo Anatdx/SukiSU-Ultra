@@ -59,10 +59,6 @@ import com.anatdx.yukisu.ui.util.module.ModuleOperationUtils
 import com.anatdx.yukisu.ui.util.module.ModuleUtils
 import com.topjohnwu.superuser.io.SuFile
 
-/**
- * @author ShirkNeko
- * @date 2025/5/31.
- */
 enum class FlashingStatus {
     FLASHING,
     SUCCESS,

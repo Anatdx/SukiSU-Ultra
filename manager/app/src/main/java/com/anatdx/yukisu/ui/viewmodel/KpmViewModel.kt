@@ -11,10 +11,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * @author ShirkNeko
- * @date 2025/5/31.
- */
 class KpmViewModel : ViewModel() {
     var moduleList by mutableStateOf(emptyList<ModuleInfo>())
         private set

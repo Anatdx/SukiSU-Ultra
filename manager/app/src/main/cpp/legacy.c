@@ -1,6 +1,3 @@
-//
-// Created by shirkneko on 2025/11/3.
-//
 // Legacy Compatible
 #include <android/log.h>
 #include <dirent.h>

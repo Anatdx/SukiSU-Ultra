@@ -94,10 +94,6 @@ data class ModuleBottomSheetMenuItem(
     val onClick: () -> Unit
 )
 
-/**
- * @author ShirkNeko
- * @date 2025/9/29.
- */
 @SuppressLint("ResourceType", "AutoboxingStateCreation")
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination<RootGraph>

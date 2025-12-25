@@ -8,10 +8,6 @@ import android.util.Log
 import com.topjohnwu.superuser.ipc.RootService
 import com.anatdx.yukisu.IKsuInterface
 
-/**
- * @author ShirkNeko
- * @date 2025/10/17.
- */
 class KsuService : RootService() {
 
     private val TAG = "KsuService"

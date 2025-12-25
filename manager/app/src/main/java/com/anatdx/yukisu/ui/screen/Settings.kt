@@ -61,10 +61,6 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-/**
- * @author ShirkNeko
- * @date 2025/9/29.
- */
 private val SPACING_SMALL = 3.dp
 private val SPACING_MEDIUM = 8.dp
 private val SPACING_LARGE = 16.dp

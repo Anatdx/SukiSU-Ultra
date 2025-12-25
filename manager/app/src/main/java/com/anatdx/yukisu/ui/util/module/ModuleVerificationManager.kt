@@ -8,11 +8,6 @@ import com.anatdx.yukisu.ui.util.getRootShell
 import java.io.File
 import java.io.FileOutputStream
 
-/**
- * @author ShirkNeko
- * @date 2025/8/3
- */
-
 // 模块签名验证工具类
 object ModuleSignatureUtils {
     private const val TAG = "ModuleSignatureUtils"

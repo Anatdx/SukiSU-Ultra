@@ -63,11 +63,6 @@ import com.anatdx.yukisu.ui.theme.getCardElevation
 import com.anatdx.yukisu.ui.util.*
 import ui.screen.kernelFlash.component.SlotSelectionDialog
 
-/**
- * @author ShirkNeko
- * @date 2025/5/31.
- */
-
 enum class KpmPatchOption {
     FOLLOW_KERNEL,
     PATCH_KPM,
