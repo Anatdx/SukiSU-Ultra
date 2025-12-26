@@ -142,6 +142,20 @@ static bool exec_install_script(const std::string& zip_path) {
         busybox = "/system/bin/sh";
     }
     
+    // Prepare all environment variable values BEFORE fork
+    std::string ver_code_str = std::to_string(get_version());
+    const char* old_path = getenv("PATH");
+    std::string new_path = std::string(BINARY_DIR);
+    if (old_path && old_path[0] != '\0') {
+        new_path = new_path + ":" + old_path;
+    }
+    
+    // Make copies of string data that child process will use
+    const char* busybox_path = busybox.c_str();
+    const char* zipfile_path = zipfile.c_str();
+    const char* ver_code = ver_code_str.c_str();
+    const char* path_env = new_path.c_str();
+    
     pid_t pid = fork();
     if (pid < 0) {
         LOGE("Failed to fork for install script");
@@ -149,26 +163,19 @@ static bool exec_install_script(const std::string& zip_path) {
     }
     
     if (pid == 0) {
-        // Child process - set environment variables
+        // Child process - set environment variables (only use const char* pointers)
         setenv("ASH_STANDALONE", "1", 1);
         setenv("KSU", "true", 1);
         setenv("KSU_SUKISU", "true", 1);
-        setenv("KSU_KERNEL_VER_CODE", std::to_string(get_version()).c_str(), 1);
+        setenv("KSU_KERNEL_VER_CODE", ver_code, 1);
         setenv("KSU_VER_CODE", VERSION_CODE, 1);
         setenv("KSU_VER", VERSION_NAME, 1);
         setenv("OUTFD", "1", 1);  // stdout
-        setenv("ZIPFILE", zipfile.c_str(), 1);
-        
-        // Add binary dir to PATH
-        const char* old_path = getenv("PATH");
-        std::string new_path = std::string(BINARY_DIR);
-        if (old_path) {
-            new_path = new_path + ":" + old_path;
-        }
-        setenv("PATH", new_path.c_str(), 1);
+        setenv("ZIPFILE", zipfile_path, 1);
+        setenv("PATH", path_env, 1);
         
         // Execute script via sh -c
-        execl(busybox.c_str(), "sh", "-c", install_script, nullptr);
+        execl(busybox_path, "sh", "-c", install_script, nullptr);
         _exit(127);
     }
     
@@ -488,38 +495,50 @@ static int run_script(const std::string& script, bool block, const std::string& 
     std::string script_dir = script.substr(0, script.find_last_of('/'));
     if (script_dir.empty()) script_dir = "/";
 
+    // Prepare all environment variable values BEFORE fork
+    // to avoid calling C++ library functions in child process
+    std::string ver_code_str = std::to_string(get_version());
+    const char* old_path = getenv("PATH");
+    std::string new_path = std::string(BINARY_DIR);
+    if (!new_path.empty() && new_path.back() == '/') new_path.pop_back();
+    if (old_path && old_path[0] != '\0') {
+        new_path = new_path + ":" + std::string(old_path);  // BINARY_DIR first!
+    }
+    
+    // Make copies of string data that child process will use
+    const char* busybox_path = busybox.c_str();
+    const char* script_path = script.c_str();
+    const char* script_dir_path = script_dir.c_str();
+    const char* ver_code = ver_code_str.c_str();
+    const char* path_env = new_path.c_str();
+    const char* module_id_cstr = module_id.c_str();
+
     pid_t pid = fork();
     if (pid == 0) {
         // Child process
         setsid();
         
         // Change to script directory (like Rust version)
-        chdir(script_dir.c_str());
+        chdir(script_dir_path);
 
         // Set environment variables (matching Rust version's get_common_script_envs)
         setenv("ASH_STANDALONE", "1", 1);
         setenv("KSU", "true", 1);
         setenv("KSU_SUKISU", "true", 1);
-        setenv("KSU_KERNEL_VER_CODE", std::to_string(get_version()).c_str(), 1);
+        setenv("KSU_KERNEL_VER_CODE", ver_code, 1);
         setenv("KSU_VER_CODE", VERSION_CODE, 1);
         setenv("KSU_VER", VERSION_NAME, 1);
         
         // Set KSU_MODULE if module_id provided
-        if (!module_id.empty()) {
-            setenv("KSU_MODULE", module_id.c_str(), 1);
+        if (module_id_cstr[0] != '\0') {
+            setenv("KSU_MODULE", module_id_cstr, 1);
         }
         
-        // Set PATH - prepend binary dir
-        const char* old_path = getenv("PATH");
-        std::string new_path = std::string(BINARY_DIR);
-        if (new_path.back() == '/') new_path.pop_back();
-        if (old_path) {
-            new_path = std::string(old_path) + ":" + new_path;
-        }
-        setenv("PATH", new_path.c_str(), 1);
+        // Set PATH
+        setenv("PATH", path_env, 1);
 
         // Execute with busybox sh
-        execl(busybox.c_str(), "sh", script.c_str(), nullptr);
+        execl(busybox_path, "sh", script_path, nullptr);
         _exit(127);
     }
 
@@ -622,6 +641,13 @@ int load_system_prop() {
     DIR* dir = opendir(MODULE_DIR);
     if (!dir) return 0;
 
+    // Check if resetprop exists
+    if (!file_exists(RESETPROP_PATH)) {
+        LOGW("resetprop not found at %s, skipping system.prop loading", RESETPROP_PATH);
+        closedir(dir);
+        return 0;
+    }
+
     struct dirent* entry;
     while ((entry = readdir(dir)) != nullptr) {
         if (entry->d_name[0] == '.') continue;
@@ -634,6 +660,8 @@ int load_system_prop() {
 
         std::string prop_file = module_path + "/system.prop";
         if (!file_exists(prop_file)) continue;
+
+        LOGI("Loading system.prop from %s", entry->d_name);
 
         // Read and set properties
         std::ifstream ifs(prop_file);
@@ -648,9 +676,16 @@ int load_system_prop() {
             std::string key = trim(line.substr(0, eq));
             std::string value = trim(line.substr(eq + 1));
 
-            // Set property via setprop command
-            std::string cmd = "resetprop " + key + " '" + value + "'";
-            system(cmd.c_str());
+            // Execute resetprop with full path
+            pid_t pid = fork();
+            if (pid == 0) {
+                execl(RESETPROP_PATH, "resetprop", "-n", key.c_str(), value.c_str(), nullptr);
+                _exit(127);
+            }
+            if (pid > 0) {
+                int status;
+                waitpid(pid, &status, 0);
+            }
         }
     }
 

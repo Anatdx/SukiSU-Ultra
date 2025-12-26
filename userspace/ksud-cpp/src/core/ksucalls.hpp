@@ -38,6 +38,7 @@ constexpr uint32_t KSU_IOCTL_LIST_TRY_UMOUNT  = _IOWR(K, 200, uint64_t);
 struct GetInfoCmd {
     uint32_t version;
     uint32_t flags;
+    uint32_t features;  // max feature ID supported
 };
 
 struct ReportEventCmd {

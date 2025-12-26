@@ -21,16 +21,28 @@ static int run_script(const std::string& script, bool block) {
 
     LOGI("Running metamodule script: %s", script.c_str());
 
+    // Use busybox for script execution (like regular module scripts)
+    std::string busybox = BUSYBOX_PATH;
+    if (!file_exists(busybox)) {
+        LOGW("Busybox not found at %s, falling back to /system/bin/sh", BUSYBOX_PATH);
+        busybox = "/system/bin/sh";
+    }
+    
+    // Prepare all values BEFORE fork
+    const char* busybox_path = busybox.c_str();
+    const char* script_path = script.c_str();
+
     pid_t pid = fork();
     if (pid == 0) {
         setsid();
         chdir("/");
 
+        setenv("ASH_STANDALONE", "1", 1);
         setenv("KSU", "true", 1);
         setenv("KSU_VER", KSUD_VERSION, 1);
         setenv("PATH", "/data/adb/ksu/bin:/data/adb/ap/bin:/system/bin:/vendor/bin", 1);
 
-        execl("/system/bin/sh", "sh", script.c_str(), nullptr);
+        execl(busybox_path, "sh", script_path, nullptr);
         _exit(127);
     }
 
