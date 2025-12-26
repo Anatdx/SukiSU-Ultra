@@ -427,7 +427,7 @@ static int cmd_boot_info(const std::vector<std::string>& args) {
     } else if (subcmd == "available-partitions") {
         return boot_info_available_partitions();
     } else if (subcmd == "slot-suffix") {
-        bool ota = args.size() > 1 && args[1] == "-u";
+        bool ota = args.size() > 1 && (args[1] == "-u" || args[1] == "--ota");
         return boot_info_slot_suffix(ota);
     }
 
