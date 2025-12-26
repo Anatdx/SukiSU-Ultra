@@ -6,8 +6,8 @@
 namespace ksud {
 
 // Version info
-constexpr const char* KSUD_VERSION = "1.0.3";
-constexpr int KSUD_VERSION_CODE = 11998;
+constexpr const char* KSUD_VERSION = "1.0.0";
+constexpr int KSUD_VERSION_CODE = 10000;
 extern const char* VERSION_CODE;
 extern const char* VERSION_NAME;
 

@@ -5,6 +5,9 @@
 #include <linux/types.h>
 #include <linux/version.h>
 
+#ifndef KSU_VERSION
+#define KSU_VERSION 10000
+#endif
 #define KERNEL_SU_VERSION KSU_VERSION
 #define KERNEL_SU_OPTION 0xDEADBEEF
 
