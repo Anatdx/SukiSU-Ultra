@@ -31,6 +31,7 @@ jobs:
 
   build-ksuinit:
     uses: ./.github/workflows/ksuinit-cpp.yml
+    secrets: inherit
 
   build-ksud:
     needs: [build-lkm, build-ksuinit]
@@ -44,6 +45,7 @@ jobs:
           - target: armv7-linux-androideabi
             os: ubuntu-latest
     uses: ./.github/workflows/ksud-cpp.yml
+    secrets: inherit
     with:
       target: ${{ matrix.target }}
       os: ${{ matrix.os }}
