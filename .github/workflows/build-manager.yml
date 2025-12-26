@@ -3,7 +3,7 @@ name: Build Manager
 on:
   workflow_dispatch:
   push:
-    branches: [ "main", "dev", "ci" ]
+    branches: [ "main", "dev", "ci", "exp-ksud-cpp" ]
     paths:
       - '.github/workflows/build-manager.yml'
       - '.github/workflows/build-lkm.yml'
@@ -92,7 +92,7 @@ jobs:
           ./randomizer
 
       - name: Write key
-        if: ${{ ( github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' )) || github.ref_type == 'tag' }}
+        if: ${{ github.event_name != 'pull_request' }}
         run: |
           if [ ! -z "${{ secrets.KEYSTORE }}" ]; then
             {
@@ -150,14 +150,14 @@ jobs:
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
-        if: ${{ ( github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' )) || github.ref_type == 'tag' }}
+        if: ${{ github.event_name != 'pull_request' }}
         with:
           name: ${{ steps.determine.outputs.title }}
           path: manager/app/build/outputs/apk/release/*.apk
 
       - name: Upload mappings
         uses: actions/upload-artifact@v4
-        if: ${{ ( github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' )) || github.ref_type == 'tag' }}
+        if: ${{ github.event_name != 'pull_request' }}
         with:
           name: "${{ steps.determine.outputs.title }}-mappings"
           path: "manager/app/build/outputs/mapping/release/"
