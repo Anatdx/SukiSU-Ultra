@@ -168,10 +168,27 @@ static bool is_kernelsu_patched(const std::string& magiskboot, const std::string
 // Find magiskboot binary
 static std::string find_magiskboot(const std::string& specified_path, const std::string& workdir) {
     if (!specified_path.empty()) {
+        // For .so files from app package, we need to copy them to workdir and make executable
+        if (specified_path.find(".so") != std::string::npos) {
+            std::string local_copy = workdir + "/magiskboot";
+            std::ifstream src(specified_path, std::ios::binary);
+            std::ofstream dst(local_copy, std::ios::binary);
+            if (src && dst) {
+                dst << src.rdbuf();
+                dst.close();
+                chmod(local_copy.c_str(), 0755);
+                if (access(local_copy.c_str(), X_OK) == 0) {
+                    return local_copy;
+                }
+            }
+            LOGE("Failed to prepare magiskboot from %s", specified_path.c_str());
+            return "";
+        }
+        
         if (access(specified_path.c_str(), X_OK) == 0) {
             return specified_path;
         }
-        LOGE("Specified magiskboot not found: %s", specified_path.c_str());
+        LOGE("Specified magiskboot not found or not executable: %s", specified_path.c_str());
         return "";
     }
 
@@ -540,17 +557,23 @@ int boot_patch(const std::vector<std::string>& args) {
         }
         dst << src.rdbuf();
     } else {
-        // ksuinit must be provided externally for now
-        // Check standard location
-        std::string ksuinit_path = std::string(BINARY_DIR) + "ksuinit";
-        if (access(ksuinit_path.c_str(), R_OK) == 0) {
-            std::ifstream src(ksuinit_path, std::ios::binary);
-            std::ofstream dst(init_file, std::ios::binary);
-            dst << src.rdbuf();
+        // Try to extract ksuinit from embedded assets first (like Rust version)
+        if (copy_asset_to_file("ksuinit", init_file)) {
+            printf("- Using embedded ksuinit\n");
         } else {
-            LOGE("ksuinit not found, please install KernelSU Manager first");
-            cleanup();
-            return 1;
+            // Fallback: check standard location
+            std::string ksuinit_path = std::string(BINARY_DIR) + "ksuinit";
+            if (access(ksuinit_path.c_str(), R_OK) == 0) {
+                std::ifstream src(ksuinit_path, std::ios::binary);
+                std::ofstream dst(init_file, std::ios::binary);
+                dst << src.rdbuf();
+                printf("- Using ksuinit from %s\n", ksuinit_path.c_str());
+            } else {
+                LOGE("ksuinit not found in embedded assets or %s", ksuinit_path.c_str());
+                LOGE("Please install KernelSU Manager or rebuild ksud with ksuinit embedded");
+                cleanup();
+                return 1;
+            }
         }
     }
     chmod(init_file.c_str(), 0755);
