@@ -28,7 +28,7 @@ jobs:
     secrets: inherit
 
   build-ksuinit:
-    uses: ./.github/workflows/ksuinit.yml
+    uses: ./.github/workflows/ksuinit-cpp.yml
 
   build-ksud:
     needs: [build-lkm, build-ksuinit]
