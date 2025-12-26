@@ -1,0 +1,111 @@
+name: Build ksud (C++)
+on:
+  workflow_call:
+    inputs:
+      target:
+        required: true
+        type: string
+        description: "Target architecture: aarch64, x86_64, armv7"
+      os:
+        required: false
+        type: string
+        default: ubuntu-latest
+      pack_lkm:
+        required: false
+        type: boolean
+        default: true
+      pack_ksuinit:
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  build:
+    runs-on: ${{ inputs.os }}
+    steps:
+    - uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+    
+    - name: Prepare LKM files
+      if: ${{ inputs.pack_lkm }}
+      run: |
+        mkdir -p ./userspace/ksud-cpp/assets
+        cp android*-lkm/*_kernelsu.ko ./userspace/ksud-cpp/assets/
+    
+    - name: Prepare ksuinit
+      if: ${{ inputs.pack_ksuinit }}
+      run: |
+        mkdir -p ./userspace/ksud-cpp/assets
+        # C++ 版本: ksuinit 直接在 artifact 根目录
+        if [ -f ksuinit/ksuinit ]; then
+          cp ksuinit/ksuinit ./userspace/ksud-cpp/assets/
+        fi
+
+    - name: Setup NDK
+      run: |
+        echo "Using NDK from ANDROID_NDK_HOME: $ANDROID_NDK_HOME"
+
+    - name: Determine target settings
+      id: target
+      run: |
+        case "${{ inputs.target }}" in
+          aarch64-linux-android|aarch64)
+            echo "arch=aarch64" >> $GITHUB_OUTPUT
+            echo "abi=arm64-v8a" >> $GITHUB_OUTPUT
+            echo "android_target=aarch64-linux-android26" >> $GITHUB_OUTPUT
+            ;;
+          x86_64-linux-android|x86_64)
+            echo "arch=x86_64" >> $GITHUB_OUTPUT
+            echo "abi=x86_64" >> $GITHUB_OUTPUT
+            echo "android_target=x86_64-linux-android26" >> $GITHUB_OUTPUT
+            ;;
+          armv7-linux-androideabi|armv7)
+            echo "arch=armv7" >> $GITHUB_OUTPUT
+            echo "abi=armeabi-v7a" >> $GITHUB_OUTPUT
+            echo "android_target=armv7a-linux-androideabi26" >> $GITHUB_OUTPUT
+            ;;
+          *)
+            echo "Unknown target: ${{ inputs.target }}"
+            exit 1
+            ;;
+        esac
+
+    - name: Build ksud
+      run: |
+        cd userspace/ksud-cpp
+        mkdir -p build && cd build
+        
+        # 使用 Android NDK 工具链进行交叉编译
+        TOOLCHAIN=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64
+        export CC=$TOOLCHAIN/bin/${{ steps.target.outputs.android_target }}-clang
+        export CXX=$TOOLCHAIN/bin/${{ steps.target.outputs.android_target }}-clang++
+        export AR=$TOOLCHAIN/bin/llvm-ar
+        export RANLIB=$TOOLCHAIN/bin/llvm-ranlib
+        export STRIP=$TOOLCHAIN/bin/llvm-strip
+        
+        cmake .. \
+          -DCMAKE_SYSTEM_NAME=Android \
+          -DCMAKE_ANDROID_ARCH_ABI=${{ steps.target.outputs.abi }} \
+          -DCMAKE_ANDROID_NDK=$ANDROID_NDK_HOME \
+          -DCMAKE_C_COMPILER=$CC \
+          -DCMAKE_CXX_COMPILER=$CXX \
+          -DCMAKE_BUILD_TYPE=Release
+        
+        make -j$(nproc)
+        
+        # Strip the binary
+        $STRIP ksud
+        
+        # Show binary info
+        ls -lh ksud
+        file ksud
+
+    - name: Upload ksud artifact
+      uses: actions/upload-artifact@v5
+      with:
+        name: ksud-${{ inputs.target }}
+        path: userspace/ksud-cpp/build/ksud
