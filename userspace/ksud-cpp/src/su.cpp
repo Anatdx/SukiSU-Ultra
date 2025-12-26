@@ -54,7 +54,7 @@ int su_main(int argc, char* argv[]) {
 
     // Parse options
     std::string command;
-    std::string shell = "/data/adb/ksu/bin/busybox";  // Use busybox by default
+    std::string shell = "/system/bin/sh";  // Use system shell by default (like Rust version)
     bool is_login = false;
     bool preserve_env = false;
     bool mount_master = false;
@@ -192,6 +192,11 @@ int su_main(int argc, char* argv[]) {
     }
     setenv("PATH", new_path.c_str(), 1);
 
+    // Set ENV to KSURC_PATH if exists (for shell initialization)
+    if (access(KSURC_PATH, F_OK) == 0 && getenv("ENV") == nullptr) {
+        setenv("ENV", KSURC_PATH, 1);
+    }
+
     if (!preserve_env) {
         struct passwd* pw = getpwuid(target_uid);
         if (pw) {
@@ -211,18 +216,16 @@ int su_main(int argc, char* argv[]) {
     umask(022);
     set_identity(target_uid, target_gid, groups);
 
-    // Build argv for shell
-    // Use static strings to avoid lifetime issues
-    static const char* arg0_sh = "sh";
-    static const char* arg0_login = "-";
-    static const char* arg_c = "-c";
+    // Build argv for shell (matching Rust behavior)
+    // arg0 is "-" for login shell, otherwise the shell path itself
+    std::string arg0 = is_login ? "-" : shell;
     
     std::vector<const char*> shell_argv;
-    shell_argv.push_back(is_login ? arg0_login : arg0_sh);
+    shell_argv.push_back(arg0.c_str());
 
     // If command specified, add -c and command
     if (!command.empty()) {
-        shell_argv.push_back(arg_c);
+        shell_argv.push_back("-c");
         shell_argv.push_back(command.c_str());
     }
 
@@ -230,12 +233,6 @@ int su_main(int argc, char* argv[]) {
 
     // Execute shell
     execv(shell.c_str(), const_cast<char* const*>(shell_argv.data()));
-
-    // Fallback to toybox if busybox fails
-    if (shell == "/data/adb/ksu/bin/busybox") {
-        shell = "/system/bin/toybox";
-        execv(shell.c_str(), const_cast<char* const*>(shell_argv.data()));
-    }
 
     LOGE("Failed to exec shell %s: %s", shell.c_str(), strerror(errno));
     return 127;
