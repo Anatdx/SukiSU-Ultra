@@ -4,6 +4,7 @@
 #include <linux/module.h>
 #include <linux/workqueue.h>
 #include <linux/kallsyms.h>
+#include <linux/delay.h>
 
 #include "allowlist.h"
 #include "feature.h"
@@ -28,6 +29,8 @@ struct cred *ksu_cred;
  */
 static void try_yield_gki(void)
 {
+	int ret, retry;
+	
 	// Check if GKI's ksu_is_active symbol exists
 	bool *gki_is_active = (bool *)kallsyms_lookup_name("ksu_is_active");
 	if (!gki_is_active) {
@@ -40,11 +43,32 @@ static void try_yield_gki(void)
 		return;
 	}
 
-	// GKI is active, try to call ksu_yield()
+	// Check if GKI has finished initializing
+	bool *gki_initialized = (bool *)kallsyms_lookup_name("ksu_initialized");
+	if (gki_initialized && !(*gki_initialized)) {
+		pr_info("KernelSU GKI not fully initialized, waiting...\n");
+		// Wait up to 5 seconds for GKI to initialize
+		for (retry = 0; retry < 50 && !(*gki_initialized); retry++) {
+			msleep(100);
+		}
+		if (!(*gki_initialized)) {
+			pr_warn("KernelSU GKI init timeout, forcing takeover\n");
+			*gki_is_active = false;
+			return;
+		}
+		pr_info("KernelSU GKI now initialized\n");
+	}
+
+	// GKI is active and initialized, try to call ksu_yield()
 	int (*gki_yield)(void) = (void *)kallsyms_lookup_name("ksu_yield");
 	if (gki_yield) {
 		pr_info("KernelSU GKI detected and active, requesting yield...\n");
-		gki_yield();
+		ret = gki_yield();
+		if (ret == 0) {
+			pr_info("KernelSU GKI yielded successfully\n");
+		} else {
+			pr_warn("KernelSU GKI yield returned %d\n", ret);
+		}
 	} else {
 		// GKI doesn't have ksu_yield, just mark it inactive
 		pr_warn("KernelSU GKI has no yield function, forcing takeover\n");
