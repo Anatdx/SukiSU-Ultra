@@ -17,6 +17,11 @@ constexpr const char* WORKING_DIR = "/data/adb/ksu/";
 constexpr const char* BINARY_DIR = "/data/adb/ksu/bin/";
 constexpr const char* LOG_DIR = "/data/adb/ksu/log/";
 
+// Binary tool paths
+constexpr const char* BUSYBOX_PATH = "/data/adb/ksu/bin/busybox";
+constexpr const char* RESETPROP_PATH = "/data/adb/ksu/bin/resetprop";
+constexpr const char* BOOTCTL_PATH = "/data/adb/ksu/bin/bootctl";
+
 constexpr const char* PROFILE_DIR = "/data/adb/ksu/profile/";
 constexpr const char* PROFILE_SELINUX_DIR = "/data/adb/ksu/profile/selinux/";
 constexpr const char* PROFILE_TEMPLATE_DIR = "/data/adb/ksu/profile/templates/";

@@ -45,6 +45,29 @@ jobs:
           cp ksuinit/ksuinit ./userspace/ksud-cpp/assets/
         fi
 
+    - name: Prepare binary tools (busybox, resetprop, bootctl)
+      run: |
+        mkdir -p ./userspace/ksud-cpp/assets
+        # Copy binary tools from Rust ksud bin directory (same arch)
+        case "${{ inputs.target }}" in
+          aarch64-linux-android|aarch64)
+            BIN_DIR=./userspace/ksud/bin/aarch64
+            ;;
+          x86_64-linux-android|x86_64)
+            BIN_DIR=./userspace/ksud/bin/x86_64
+            ;;
+          armv7-linux-androideabi|armv7)
+            BIN_DIR=./userspace/ksud/bin/arm
+            ;;
+        esac
+        
+        if [ -d "$BIN_DIR" ]; then
+          cp "$BIN_DIR/busybox" ./userspace/ksud-cpp/assets/ || true
+          cp "$BIN_DIR/resetprop" ./userspace/ksud-cpp/assets/ || true
+          cp "$BIN_DIR/bootctl" ./userspace/ksud-cpp/assets/ || true
+          ls -la ./userspace/ksud-cpp/assets/
+        fi
+
     - name: Setup NDK
       run: |
         echo "Using NDK from ANDROID_NDK_HOME: $ANDROID_NDK_HOME"

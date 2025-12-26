@@ -131,10 +131,11 @@ static bool exec_install_script(const std::string& zip_path) {
     }
     std::string zipfile = realpath_buf;
     
-    // Find busybox
-    std::string busybox = std::string(BINARY_DIR) + "busybox";
+    // Use busybox for script execution (preferred, like Rust version)
+    std::string busybox = BUSYBOX_PATH;
     if (!file_exists(busybox)) {
         // Fallback to system sh if busybox not available
+        LOGW("Busybox not found at %s, falling back to /system/bin/sh", BUSYBOX_PATH);
         busybox = "/system/bin/sh";
     }
     

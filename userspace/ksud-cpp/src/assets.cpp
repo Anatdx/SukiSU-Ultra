@@ -5,27 +5,15 @@
 
 namespace ksud {
 
-// In the Rust version, assets are embedded using rust-embed
-// For C++, we need a different approach:
-// 1. Assets are embedded at compile time using xxd or similar
-// 2. Or loaded from a known location on disk
+// Assets are now embedded at compile time by embed_assets.py
+// The generated assets_data.cpp contains:
+// - list_assets()
+// - get_asset()
+// - copy_asset_to_file()
+// - list_supported_kmi()
+// - ensure_binaries()
+// - get_install_module_script()
 
-// For now, this is a stub that doesn't embed anything
-// The actual implementation would need to embed the magiskboot binary and other assets
-
-int ensure_binaries(bool ignore_if_exist) {
-    // Ensure binary directory exists
-    if (!ensure_dir_exists(BINARY_DIR)) {
-        LOGE("Failed to create binary directory");
-        return 1;
-    }
-
-    // TODO: Extract embedded binaries
-    // For now, we rely on magiskboot being provided externally
-    // or installed via the manager app
-
-    LOGD("ensure_binaries: binaries should be provided externally");
-    return 0;
-}
+// This file is kept for any additional asset-related utilities
 
 } // namespace ksud
