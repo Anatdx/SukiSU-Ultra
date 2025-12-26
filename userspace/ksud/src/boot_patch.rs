@@ -588,7 +588,7 @@ pub struct BootPatchArgs {
     /// LKM priority over GKI (default: true)
     /// When enabled, LKM will trigger GKI yield and take over
     /// When disabled, both GKI and LKM will run independently
-    #[arg(long, default_value = "true")]
+    #[arg(long, default_value_t = true, num_args = 0..=1, default_missing_value = "true", action = clap::ArgAction::Set)]
     pub lkm_priority: bool,
 
     /// will use another slot when boot image is not specified
