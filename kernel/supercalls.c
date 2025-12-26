@@ -1214,8 +1214,18 @@ static int ksu_handle_prctl_superkey(int option, unsigned long arg2)
 			       current_uid().val);
 		}
 
-		if (copy_to_user(cmd_user, &cmd, sizeof(cmd)))
+		if (copy_to_user(cmd_user, &cmd, sizeof(cmd))) {
+			// Failed to copy, must close the fd we just opened
+			if (cmd.fd >= 0) {
+				pr_err("prctl get_fd: copy_to_user failed, closing fd=%d\n", cmd.fd);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+				close_fd(cmd.fd);
+#else
+				ksys_close(cmd.fd);
+#endif
+			}
 			return 0;
+		}
 
 		return 0;
 	}
