@@ -3,6 +3,7 @@
 #include <linux/kobject.h>
 #include <linux/module.h>
 #include <linux/workqueue.h>
+#include <linux/kallsyms.h>
 
 #include "allowlist.h"
 #include "feature.h"
@@ -18,6 +19,38 @@
 struct cred *ksu_cred;
 
 #include "sulog.h"
+
+/**
+ * try_yield_gki - Try to make GKI KernelSU yield to LKM
+ *
+ * This function attempts to find and call the GKI's ksu_yield() function
+ * to gracefully take over from GKI KernelSU.
+ */
+static void try_yield_gki(void)
+{
+	// Check if GKI's ksu_is_active symbol exists
+	bool *gki_is_active = (bool *)kallsyms_lookup_name("ksu_is_active");
+	if (!gki_is_active) {
+		pr_info("KernelSU GKI not detected, LKM running standalone\n");
+		return;
+	}
+
+	if (!(*gki_is_active)) {
+		pr_info("KernelSU GKI already inactive, LKM taking over\n");
+		return;
+	}
+
+	// GKI is active, try to call ksu_yield()
+	int (*gki_yield)(void) = (void *)kallsyms_lookup_name("ksu_yield");
+	if (gki_yield) {
+		pr_info("KernelSU GKI detected and active, requesting yield...\n");
+		gki_yield();
+	} else {
+		// GKI doesn't have ksu_yield, just mark it inactive
+		pr_warn("KernelSU GKI has no yield function, forcing takeover\n");
+		*gki_is_active = false;
+	}
+}
 
 void yukisu_custom_config_init(void)
 {
@@ -48,6 +81,9 @@ int __init kernelsu_init(void)
 	pr_alert(
 	    "*************************************************************");
 #endif
+
+	// Try to take over from GKI if it exists
+	try_yield_gki();
 
 	ksu_cred = prepare_creds();
 	if (!ksu_cred) {
