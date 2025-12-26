@@ -23,16 +23,21 @@ int root_shell() {
 
     // Set environment
     setenv("HOME", "/data", 1);
-    setenv("SHELL", "/system/bin/sh", 1);
     setenv("USER", "root", 1);
     setenv("LOGNAME", "root", 1);
+    setenv("ASH_STANDALONE", "1", 1);
 
-    // Get shell from environment or use default
-    const char* shell = getenv("SHELL");
-    if (!shell) shell = "/system/bin/sh";
+    // Use busybox sh as the shell to avoid recursion
+    // (since /system/bin/sh might be a hardlink to ksud itself)
+    const char* shell = "/data/adb/ksu/bin/busybox";
+    setenv("SHELL", shell, 1);
 
-    // Execute shell
-    char* const argv[] = {const_cast<char*>(shell), nullptr};
+    // Execute busybox sh
+    char* const argv[] = {const_cast<char*>("sh"), nullptr};
+    execv(shell, argv);
+
+    // If busybox fails, fall back to toybox
+    shell = "/system/bin/toybox";
     execv(shell, argv);
 
     // If execv fails
@@ -61,9 +66,16 @@ int grant_root_shell(bool global_mnt) {
     // Switch cgroups
     switch_cgroups();
 
-    // Execute shell
-    const char* shell = "/system/bin/sh";
-    char* const argv[] = {const_cast<char*>(shell), nullptr};
+    // Set environment
+    setenv("ASH_STANDALONE", "1", 1);
+
+    // Use busybox sh as the shell to avoid recursion
+    const char* shell = "/data/adb/ksu/bin/busybox";
+    char* const argv[] = {const_cast<char*>("sh"), nullptr};
+    execv(shell, argv);
+
+    // Fallback to toybox
+    shell = "/system/bin/toybox";
     execv(shell, argv);
 
     LOGE("Failed to exec shell: %s", strerror(errno));

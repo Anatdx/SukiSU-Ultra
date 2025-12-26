@@ -19,8 +19,11 @@
 #include "restorecon.hpp"
 
 #include <cstring>
+#include <cstdlib>
 #include <iostream>
 #include <algorithm>
+#include <unistd.h>
+#include <vector>
 
 namespace ksud {
 
@@ -508,13 +511,36 @@ int cli_run(int argc, char* argv[]) {
     // Initialize logging
     log_init("KernelSU");
 
-    // Check if invoked as su
+    // Check if invoked as su or sh
     std::string arg0 = argv[0];
     size_t last_slash = arg0.rfind('/');
     std::string basename = (last_slash != std::string::npos) ? arg0.substr(last_slash + 1) : arg0;
     
     if (basename == "su") {
         return root_shell();
+    }
+    
+    // If invoked as "sh", forward to busybox sh with all arguments
+    // This handles the case where /system/bin/sh is a hardlink to ksud
+    if (basename == "sh") {
+        // Use busybox to handle shell operations
+        const char* busybox = "/data/adb/ksu/bin/busybox";
+        
+        // Build argv for busybox: busybox sh [original args...]
+        std::vector<char*> new_argv;
+        new_argv.push_back(const_cast<char*>("sh"));
+        for (int i = 1; i < argc; i++) {
+            new_argv.push_back(argv[i]);
+        }
+        new_argv.push_back(nullptr);
+        
+        // Set ASH_STANDALONE to make busybox ash work properly
+        setenv("ASH_STANDALONE", "1", 1);
+        
+        execv(busybox, new_argv.data());
+        // If busybox fails, try system sh as fallback
+        execv("/system/bin/toybox", new_argv.data());
+        _exit(127);
     }
 
     if (argc < 2) {
