@@ -103,6 +103,9 @@ static bool validate_module_id(const std::string& id) {
     return true;
 }
 
+// Forward declaration
+static int run_script(const std::string& script, bool block, const std::string& module_id = "");
+
 // Extract zip file to directory using unzip command
 static bool extract_zip(const std::string& zip_path, const std::string& dest_dir) {
     auto result = exec_command({"unzip", "-o", "-q", zip_path, "-d", dest_dir});
@@ -300,18 +303,8 @@ int module_run_action(const std::string& id) {
         return 1;
     }
 
-    // Run action script
-    std::vector<std::string> args = {"sh", action_script};
-    auto result = exec_command(args);
-
-    if (!result.stdout_str.empty()) {
-        printf("%s", result.stdout_str.c_str());
-    }
-    if (!result.stderr_str.empty()) {
-        fprintf(stderr, "%s", result.stderr_str.c_str());
-    }
-
-    return result.exit_code;
+    // Run action script with module_id for KSU_MODULE env var
+    return run_script(action_script, true, id);
 }
 
 int module_list() {
@@ -468,24 +461,54 @@ int handle_updated_modules() {
     return 0;
 }
 
-static int run_script(const std::string& script, bool block) {
+static int run_script(const std::string& script, bool block, const std::string& module_id) {
     if (!file_exists(script)) return 0;
 
     LOGI("Running script: %s", script.c_str());
+    
+    // Use busybox for script execution (like Rust version)
+    std::string busybox = BUSYBOX_PATH;
+    if (!file_exists(busybox)) {
+        LOGW("Busybox not found at %s, falling back to /system/bin/sh", BUSYBOX_PATH);
+        busybox = "/system/bin/sh";
+    }
+    
+    // Get the script's directory for current_dir
+    std::string script_dir = script.substr(0, script.find_last_of('/'));
+    if (script_dir.empty()) script_dir = "/";
 
     pid_t pid = fork();
     if (pid == 0) {
         // Child process
         setsid();
-        chdir("/");
+        
+        // Change to script directory (like Rust version)
+        chdir(script_dir.c_str());
 
-        // Set environment
+        // Set environment variables (matching Rust version's get_common_script_envs)
+        setenv("ASH_STANDALONE", "1", 1);
         setenv("KSU", "true", 1);
-        setenv("KSU_VER", KSUD_VERSION, 1);
-        setenv("KSU_VER_CODE", std::to_string(KSUD_VERSION_CODE).c_str(), 1);
-        setenv("PATH", "/data/adb/ksu/bin:/data/adb/ap/bin:/system/bin:/vendor/bin", 1);
+        setenv("KSU_SUKISU", "true", 1);
+        setenv("KSU_KERNEL_VER_CODE", std::to_string(get_version()).c_str(), 1);
+        setenv("KSU_VER_CODE", VERSION_CODE, 1);
+        setenv("KSU_VER", VERSION_NAME, 1);
+        
+        // Set KSU_MODULE if module_id provided
+        if (!module_id.empty()) {
+            setenv("KSU_MODULE", module_id.c_str(), 1);
+        }
+        
+        // Set PATH - prepend binary dir
+        const char* old_path = getenv("PATH");
+        std::string new_path = std::string(BINARY_DIR);
+        if (new_path.back() == '/') new_path.pop_back();
+        if (old_path) {
+            new_path = std::string(old_path) + ":" + new_path;
+        }
+        setenv("PATH", new_path.c_str(), 1);
 
-        execl("/system/bin/sh", "sh", script.c_str(), nullptr);
+        // Execute with busybox sh
+        execl(busybox.c_str(), "sh", script.c_str(), nullptr);
         _exit(127);
     }
 
@@ -512,7 +535,8 @@ int exec_stage_script(const std::string& stage, bool block) {
         if (entry->d_name[0] == '.') continue;
         if (entry->d_type != DT_DIR) continue;
 
-        std::string module_path = std::string(MODULE_DIR) + entry->d_name;
+        std::string module_id = entry->d_name;
+        std::string module_path = std::string(MODULE_DIR) + module_id;
 
         // Skip disabled modules
         if (file_exists(module_path + "/" + DISABLE_FILE_NAME)) continue;
@@ -520,9 +544,9 @@ int exec_stage_script(const std::string& stage, bool block) {
         // Skip modules marked for removal
         if (file_exists(module_path + "/" + REMOVE_FILE_NAME)) continue;
 
-        // Run stage script
+        // Run stage script with module_id for KSU_MODULE env var
         std::string script = module_path + "/" + stage + ".sh";
-        run_script(script, block);
+        run_script(script, block, module_id);
     }
 
     closedir(dir);
