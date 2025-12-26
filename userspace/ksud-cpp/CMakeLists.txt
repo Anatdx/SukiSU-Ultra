@@ -7,8 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # 静态链接
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
 
-# 优化选项
-set(CMAKE_CXX_FLAGS_RELEASE "-Os -s -DNDEBUG")
+# 优化选项 (strip 由外部工具完成，不使用 -s 避免 clang 警告)
+set(CMAKE_CXX_FLAGS_RELEASE "-Os -DNDEBUG")
 
 # 源文件
 set(SOURCES
@@ -41,10 +41,10 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 
 add_executable(ksud ${SOURCES})
 
-# 链接库
-target_link_libraries(ksud PRIVATE
-    pthread
-)
+# 链接库 - Android bionic libc 已内置 pthread，不需要单独链接
+if(NOT ANDROID)
+    target_link_libraries(ksud PRIVATE pthread)
+endif()
 
 # 安装
 install(TARGETS ksud DESTINATION bin)
