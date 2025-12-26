@@ -22,47 +22,36 @@ struct cred *ksu_cred;
 #include "sulog.h"
 
 /**
- * try_yield_gki - Try to make GKI KernelSU yield to LKM
- *
- * This function attempts to find and call the GKI's ksu_yield() function
- * to gracefully take over from GKI KernelSU.
+ * GKI yield work - deferred execution to avoid issues during module_init
  */
-static void try_yield_gki(void)
+static void gki_yield_work_func(struct work_struct *work);
+static DECLARE_DELAYED_WORK(gki_yield_work, gki_yield_work_func);
+
+static void gki_yield_work_func(struct work_struct *work)
 {
-	int ret, retry;
-	
-	// Check if GKI's ksu_is_active symbol exists
-	bool *gki_is_active = (bool *)kallsyms_lookup_name("ksu_is_active");
-	if (!gki_is_active) {
-		pr_info("KernelSU GKI not detected, LKM running standalone\n");
+	bool *gki_is_active;
+	bool *gki_initialized;
+	int (*gki_yield)(void);
+	int ret;
+
+	gki_is_active = (bool *)kallsyms_lookup_name("ksu_is_active");
+	if (!gki_is_active || !(*gki_is_active)) {
+		pr_info("KernelSU GKI not active, LKM taking over\n");
 		return;
 	}
 
-	if (!(*gki_is_active)) {
-		pr_info("KernelSU GKI already inactive, LKM taking over\n");
-		return;
-	}
-
-	// Check if GKI has finished initializing
-	bool *gki_initialized = (bool *)kallsyms_lookup_name("ksu_initialized");
+	gki_initialized = (bool *)kallsyms_lookup_name("ksu_initialized");
 	if (gki_initialized && !(*gki_initialized)) {
-		pr_info("KernelSU GKI not fully initialized, waiting...\n");
-		// Wait up to 5 seconds for GKI to initialize
-		for (retry = 0; retry < 50 && !(*gki_initialized); retry++) {
-			msleep(100);
-		}
-		if (!(*gki_initialized)) {
-			pr_warn("KernelSU GKI init timeout, forcing takeover\n");
-			*gki_is_active = false;
-			return;
-		}
-		pr_info("KernelSU GKI now initialized\n");
+		// GKI still initializing, retry in 100ms
+		pr_info("KernelSU GKI still initializing, retrying...\n");
+		schedule_delayed_work(&gki_yield_work, msecs_to_jiffies(100));
+		return;
 	}
 
 	// GKI is active and initialized, try to call ksu_yield()
-	int (*gki_yield)(void) = (void *)kallsyms_lookup_name("ksu_yield");
+	gki_yield = (void *)kallsyms_lookup_name("ksu_yield");
 	if (gki_yield) {
-		pr_info("KernelSU GKI detected and active, requesting yield...\n");
+		pr_info("KernelSU requesting GKI to yield...\n");
 		ret = gki_yield();
 		if (ret == 0) {
 			pr_info("KernelSU GKI yielded successfully\n");
@@ -74,6 +63,30 @@ static void try_yield_gki(void)
 		pr_warn("KernelSU GKI has no yield function, forcing takeover\n");
 		*gki_is_active = false;
 	}
+}
+
+/**
+ * try_yield_gki - Schedule GKI yield work
+ *
+ * This schedules a delayed work to handle GKI yield, avoiding
+ * potential issues with blocking in module_init context.
+ */
+static void try_yield_gki(void)
+{
+	bool *gki_is_active = (bool *)kallsyms_lookup_name("ksu_is_active");
+	if (!gki_is_active) {
+		pr_info("KernelSU GKI not detected, LKM running standalone\n");
+		return;
+	}
+
+	if (!(*gki_is_active)) {
+		pr_info("KernelSU GKI already inactive, LKM taking over\n");
+		return;
+	}
+
+	// Schedule yield work to run after module_init completes
+	pr_info("KernelSU GKI detected, scheduling yield...\n");
+	schedule_delayed_work(&gki_yield_work, msecs_to_jiffies(500));
 }
 
 void yukisu_custom_config_init(void)
@@ -144,6 +157,9 @@ int __init kernelsu_init(void)
 extern void ksu_observer_exit(void);
 void kernelsu_exit(void)
 {
+	// Cancel any pending GKI yield work
+	cancel_delayed_work_sync(&gki_yield_work);
+
 	ksu_allowlist_exit();
 
 	ksu_throne_tracker_exit();
