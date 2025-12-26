@@ -42,7 +42,13 @@ jobs:
     - name: Prepare ksuinit
       if: ${{ inputs.pack_ksuinit }}
       run: |
-        mv ksuinit/*/release/ksuinit ./userspace/ksud/bin/aarch64/
+        # C++ 版本: ksuinit 直接在 artifact 根目录
+        # Rust 版本: ksuinit/*/release/ksuinit
+        if [ -f ksuinit/ksuinit ]; then
+          mv ksuinit/ksuinit ./userspace/ksud/bin/aarch64/
+        else
+          mv ksuinit/*/release/ksuinit ./userspace/ksud/bin/aarch64/
+        fi
         
     - name: Setup rustup
       run: |
