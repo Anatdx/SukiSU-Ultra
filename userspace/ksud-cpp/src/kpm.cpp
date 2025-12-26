@@ -17,16 +17,14 @@ constexpr uint64_t KPM_CONTROL = 6;
 constexpr uint64_t KPM_VERSION = 7;
 
 // KPM ioctl command (same as _IOWR(K, 200) but different struct)
-constexpr int32_t KSU_IOCTL_KPM = _IOWR('K', 200, uint64_t);
+constexpr uint32_t KSU_IOCTL_KPM = _IOWR('K', 200, uint64_t);
 
-#pragma pack(push, 1)
 struct KsuKpmCmd {
     uint64_t control_code;
     uint64_t arg1;
     uint64_t arg2;
     uint64_t result_code;
 };
-#pragma pack(pop)
 
 static bool is_kpm_supported() {
     // Try to get KPM version to check if supported
