@@ -191,6 +191,9 @@ static bool exec_install_script(const std::string& zip_path) {
 }
 
 int module_install(const std::string& zip_path) {
+    // Ensure stdout is line-buffered to prevent output ordering issues
+    setvbuf(stdout, nullptr, _IOLBF, 0);
+    
     printf("\n");
     printf("__   __ _   _  _  __ ___  ____   _   _ \n");
     printf("\\ \\ / /| | | || |/ /|_ _|/ ___| | | | |\n");
@@ -198,6 +201,7 @@ int module_install(const std::string& zip_path) {
     printf("  | |  | |_| || . \\  | |  ___) || |_| |\n");
     printf("  |_|   \\___/ |_|\\_\\|___||____/  \\___/ \n");
     printf("\n");
+    fflush(stdout);  // Ensure banner is output before script execution
     
     LOGI("Installing module from %s", zip_path.c_str());
     
