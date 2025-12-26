@@ -11,4 +11,7 @@ int profile_set_template(const std::string& id, const std::string& template_str)
 int profile_delete_template(const std::string& id);
 int profile_list_templates();
 
+// Apply all profile sepolicies
+int apply_profile_sepolies();
+
 } // namespace ksud

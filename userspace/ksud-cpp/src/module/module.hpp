@@ -17,5 +17,13 @@ int module_list();
 // Internal functions
 int uninstall_all_modules();
 int prune_modules();
+int disable_all_modules();
+int handle_updated_modules();
+
+// Script execution
+int exec_stage_script(const std::string& stage, bool block);
+int exec_common_scripts(const std::string& stage_dir, bool block);
+int load_sepolicy_rule();
+int load_system_prop();
 
 } // namespace ksud

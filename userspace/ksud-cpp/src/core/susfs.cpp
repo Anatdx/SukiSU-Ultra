@@ -4,47 +4,68 @@
 
 #include <sys/syscall.h>
 #include <unistd.h>
+#include <cstring>
 
 namespace ksud {
 
-// SUSFS syscall constants
-constexpr long SUSFS_SYSCALL_NUM = 462;
+// SUSFS constants - communicate via reboot syscall like KSU
+constexpr uint32_t KSU_INSTALL_MAGIC1 = 0xDEADBEEF;
+constexpr uint32_t SUSFS_MAGIC = 0xFAFAFAFA;
+constexpr uint32_t CMD_SUSFS_SHOW_VERSION = 0x555e1;
+constexpr uint32_t CMD_SUSFS_SHOW_ENABLED_FEATURES = 0x555e2;
+constexpr size_t SUSFS_MAX_VERSION_BUFSIZE = 16;
+constexpr size_t SUSFS_ENABLED_FEATURES_SIZE = 8192;
+constexpr int32_t ERR_CMD_NOT_SUPPORTED = 126;
 
-enum SusfsCmd {
-    CMD_SUSFS_GET_VERSION = 0x60000,
-    CMD_SUSFS_GET_STATUS = 0x60001,
-    CMD_SUSFS_GET_FEATURES = 0x60002,
+#pragma pack(push, 1)
+struct SusfsVersion {
+    char susfs_version[SUSFS_MAX_VERSION_BUFSIZE];
+    int32_t err;
 };
 
-static long susfs_syscall(int cmd, void* arg) {
-    return syscall(SUSFS_SYSCALL_NUM, cmd, arg);
+struct SusfsFeatures {
+    char enabled_features[SUSFS_ENABLED_FEATURES_SIZE];
+    int32_t err;
+};
+#pragma pack(pop)
+
+std::string susfs_get_version() {
+    SusfsVersion cmd{};
+    cmd.err = ERR_CMD_NOT_SUPPORTED;
+    
+    long ret = syscall(SYS_reboot, KSU_INSTALL_MAGIC1, SUSFS_MAGIC, 
+                       CMD_SUSFS_SHOW_VERSION, &cmd);
+    
+    if (ret < 0) {
+        return "unsupport";
+    }
+    
+    // Find null terminator
+    size_t len = strnlen(cmd.susfs_version, SUSFS_MAX_VERSION_BUFSIZE);
+    return std::string(cmd.susfs_version, len);
 }
 
 std::string susfs_get_status() {
-    char buf[64] = {0};
-    long ret = susfs_syscall(CMD_SUSFS_GET_STATUS, buf);
-    if (ret < 0) {
+    std::string version = susfs_get_version();
+    if (version == "unsupport") {
         return "Not available";
     }
-    return std::string(buf);
-}
-
-std::string susfs_get_version() {
-    char buf[32] = {0};
-    long ret = susfs_syscall(CMD_SUSFS_GET_VERSION, buf);
-    if (ret < 0) {
-        return "Unknown";
-    }
-    return std::string(buf);
+    return "Enabled (v" + version + ")";
 }
 
 std::string susfs_get_features() {
-    char buf[256] = {0};
-    long ret = susfs_syscall(CMD_SUSFS_GET_FEATURES, buf);
+    SusfsFeatures cmd{};
+    cmd.err = ERR_CMD_NOT_SUPPORTED;
+    
+    long ret = syscall(SYS_reboot, KSU_INSTALL_MAGIC1, SUSFS_MAGIC,
+                       CMD_SUSFS_SHOW_ENABLED_FEATURES, &cmd);
+    
     if (ret < 0) {
         return "None";
     }
-    return std::string(buf);
+    
+    size_t len = strnlen(cmd.enabled_features, SUSFS_ENABLED_FEATURES_SIZE);
+    return std::string(cmd.enabled_features, len);
 }
 
 } // namespace ksud

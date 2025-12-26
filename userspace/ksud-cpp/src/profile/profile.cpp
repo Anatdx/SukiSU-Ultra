@@ -81,4 +81,24 @@ int profile_list_templates() {
     return 0;
 }
 
+int apply_profile_sepolies() {
+    DIR* dir = opendir(PROFILE_SELINUX_DIR);
+    if (!dir) return 0;
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        if (entry->d_name[0] == '.') continue;
+
+        std::string path = std::string(PROFILE_SELINUX_DIR) + entry->d_name;
+        auto content = read_file(path);
+        if (!content) continue;
+
+        // TODO: Apply sepolicy via ksucalls
+        LOGD("Apply sepolicy for %s", entry->d_name);
+    }
+
+    closedir(dir);
+    return 0;
+}
+
 } // namespace ksud

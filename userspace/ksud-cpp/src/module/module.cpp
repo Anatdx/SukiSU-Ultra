@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <fstream>
 #include <sstream>
 #include <map>
@@ -244,6 +245,209 @@ int prune_modules() {
             std::string cmd = "rm -rf " + module_path;
             system(cmd.c_str());
             LOGI("Removed module %s", entry->d_name);
+        }
+    }
+
+    closedir(dir);
+    return 0;
+}
+
+int disable_all_modules() {
+    DIR* dir = opendir(MODULE_DIR);
+    if (!dir) return 0;
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        if (entry->d_name[0] == '.') continue;
+        if (entry->d_type != DT_DIR) continue;
+
+        module_disable(entry->d_name);
+    }
+
+    closedir(dir);
+    return 0;
+}
+
+int handle_updated_modules() {
+    // Check modules_update directory and move updated modules
+    std::string update_dir = std::string(ADB_DIR) + "modules_update/";
+    DIR* dir = opendir(update_dir.c_str());
+    if (!dir) return 0;
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        if (entry->d_name[0] == '.') continue;
+        if (entry->d_type != DT_DIR) continue;
+
+        std::string src = update_dir + entry->d_name;
+        std::string dst = std::string(MODULE_DIR) + entry->d_name;
+
+        // Remove old module if exists
+        if (file_exists(dst)) {
+            std::string cmd = "rm -rf " + dst;
+            system(cmd.c_str());
+        }
+
+        // Move updated module
+        if (rename(src.c_str(), dst.c_str()) == 0) {
+            LOGI("Updated module: %s", entry->d_name);
+        } else {
+            LOGE("Failed to update module: %s", entry->d_name);
+        }
+    }
+
+    closedir(dir);
+    return 0;
+}
+
+static int run_script(const std::string& script, bool block) {
+    if (!file_exists(script)) return 0;
+
+    LOGI("Running script: %s", script.c_str());
+
+    pid_t pid = fork();
+    if (pid == 0) {
+        // Child process
+        setsid();
+        chdir("/");
+
+        // Set environment
+        setenv("KSU", "true", 1);
+        setenv("KSU_VER", KSUD_VERSION, 1);
+        setenv("KSU_VER_CODE", std::to_string(KSUD_VERSION_CODE).c_str(), 1);
+        setenv("PATH", "/data/adb/ksu/bin:/data/adb/ap/bin:/system/bin:/vendor/bin", 1);
+
+        execl("/system/bin/sh", "sh", script.c_str(), nullptr);
+        _exit(127);
+    }
+
+    if (pid < 0) {
+        LOGE("Failed to fork for script: %s", script.c_str());
+        return -1;
+    }
+
+    if (block) {
+        int status;
+        waitpid(pid, &status, 0);
+        return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+    }
+
+    return 0;
+}
+
+int exec_stage_script(const std::string& stage, bool block) {
+    DIR* dir = opendir(MODULE_DIR);
+    if (!dir) return 0;
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        if (entry->d_name[0] == '.') continue;
+        if (entry->d_type != DT_DIR) continue;
+
+        std::string module_path = std::string(MODULE_DIR) + entry->d_name;
+
+        // Skip disabled modules
+        if (file_exists(module_path + "/" + DISABLE_FILE_NAME)) continue;
+
+        // Skip modules marked for removal
+        if (file_exists(module_path + "/" + REMOVE_FILE_NAME)) continue;
+
+        // Run stage script
+        std::string script = module_path + "/" + stage + ".sh";
+        run_script(script, block);
+    }
+
+    closedir(dir);
+    return 0;
+}
+
+int exec_common_scripts(const std::string& stage_dir, bool block) {
+    std::string dir_path = std::string(ADB_DIR) + stage_dir + "/";
+    DIR* dir = opendir(dir_path.c_str());
+    if (!dir) return 0;
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        if (entry->d_name[0] == '.') continue;
+        if (entry->d_type != DT_REG) continue;
+
+        // Only run .sh files
+        std::string name = entry->d_name;
+        if (name.size() < 3 || name.substr(name.size() - 3) != ".sh") continue;
+
+        std::string script = dir_path + name;
+        run_script(script, block);
+    }
+
+    closedir(dir);
+    return 0;
+}
+
+int load_sepolicy_rule() {
+    DIR* dir = opendir(MODULE_DIR);
+    if (!dir) return 0;
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        if (entry->d_name[0] == '.') continue;
+        if (entry->d_type != DT_DIR) continue;
+
+        std::string module_path = std::string(MODULE_DIR) + entry->d_name;
+
+        // Skip disabled modules
+        if (file_exists(module_path + "/" + DISABLE_FILE_NAME)) continue;
+
+        std::string rule_file = module_path + "/sepolicy.rule";
+        if (!file_exists(rule_file)) continue;
+
+        // Read and apply rules
+        std::ifstream ifs(rule_file);
+        std::string line;
+        while (std::getline(ifs, line)) {
+            line = trim(line);
+            if (line.empty() || line[0] == '#') continue;
+            // TODO: Apply sepolicy rule via ksucalls
+            LOGD("sepolicy rule: %s", line.c_str());
+        }
+    }
+
+    closedir(dir);
+    return 0;
+}
+
+int load_system_prop() {
+    DIR* dir = opendir(MODULE_DIR);
+    if (!dir) return 0;
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        if (entry->d_name[0] == '.') continue;
+        if (entry->d_type != DT_DIR) continue;
+
+        std::string module_path = std::string(MODULE_DIR) + entry->d_name;
+
+        // Skip disabled modules
+        if (file_exists(module_path + "/" + DISABLE_FILE_NAME)) continue;
+
+        std::string prop_file = module_path + "/system.prop";
+        if (!file_exists(prop_file)) continue;
+
+        // Read and set properties
+        std::ifstream ifs(prop_file);
+        std::string line;
+        while (std::getline(ifs, line)) {
+            line = trim(line);
+            if (line.empty() || line[0] == '#') continue;
+
+            size_t eq = line.find('=');
+            if (eq == std::string::npos) continue;
+
+            std::string key = trim(line.substr(0, eq));
+            std::string value = trim(line.substr(eq + 1));
+
+            // Set property via setprop command
+            std::string cmd = "resetprop " + key + " '" + value + "'";
+            system(cmd.c_str());
         }
     }
 
