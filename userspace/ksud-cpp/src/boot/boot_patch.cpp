@@ -459,12 +459,61 @@ int boot_patch(const std::vector<std::string>& args) {
         }
         dst << src.rdbuf();
     } else {
-        // Try to find embedded LKM based on KMI
-        // For now, LKM must be provided externally
-        LOGE("No LKM module specified, please use --module <path>");
-        LOGE("Example: ksud boot-patch --boot boot.img --module kernelsu.ko");
-        cleanup();
-        return 1;
+        // Try to extract LKM from embedded assets first
+        std::string kmi_lkm_name = kmi + "_kernelsu.ko";
+        printf("- KMI: %s\n", kmi.c_str());
+        
+        if (copy_asset_to_file(kmi_lkm_name, kmod_file)) {
+            printf("- Using embedded LKM: %s\n", kmi_lkm_name.c_str());
+        } else {
+            // Fallback: try to find LKM from known locations
+            std::vector<std::string> search_paths = {
+                std::string(BINARY_DIR) + kmi_lkm_name,
+                std::string(BINARY_DIR) + "kernelsu.ko",
+                std::string(WORKING_DIR) + kmi_lkm_name,
+                std::string(WORKING_DIR) + "kernelsu.ko",
+                "/data/local/tmp/" + kmi_lkm_name,
+                "/data/local/tmp/kernelsu.ko",
+            };
+            
+            bool found = false;
+            for (const auto& path : search_paths) {
+                if (access(path.c_str(), R_OK) == 0) {
+                    printf("- Found LKM at %s\n", path.c_str());
+                    std::ifstream src(path, std::ios::binary);
+                    std::ofstream dst(kmod_file, std::ios::binary);
+                    if (src && dst) {
+                        dst << src.rdbuf();
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (!found) {
+                // List available KMIs from embedded assets
+                auto supported = list_supported_kmi();
+                
+                printf("\n");
+                printf("! No LKM module found for KMI: %s\n", kmi.c_str());
+                printf("!\n");
+                if (!supported.empty()) {
+                    printf("! Supported KMIs in this build:\n");
+                    for (const auto& k : supported) {
+                        printf("!   - %s\n", k.c_str());
+                    }
+                    printf("!\n");
+                }
+                printf("! Please select an LKM file in Manager, or place it at:\n");
+                printf("!   %s%s\n", BINARY_DIR, kmi_lkm_name.c_str());
+                printf("!\n");
+                printf("! You can download LKM from:\n");
+                printf("!   https://github.com/Anatdx/YukiSU/releases\n");
+                printf("\n");
+                cleanup();
+                return 1;
+            }
+        }
     }
     
     // Inject SuperKey if specified
@@ -895,9 +944,15 @@ int boot_info_current_kmi() {
 }
 
 int boot_info_supported_kmis() {
-    // TODO: List supported KMIs from embedded assets
-    printf("Supported KMIs not yet implemented\n");
-    return 1;
+    auto supported = list_supported_kmi();
+    if (supported.empty()) {
+        printf("No embedded LKMs found\n");
+        return 1;
+    }
+    for (const auto& kmi : supported) {
+        printf("%s\n", kmi.c_str());
+    }
+    return 0;
 }
 
 int boot_info_is_ab_device() {

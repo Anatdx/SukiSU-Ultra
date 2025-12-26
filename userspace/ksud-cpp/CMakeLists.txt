@@ -10,6 +10,24 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
 # 优化选项 (strip 由外部工具完成，不使用 -s 避免 clang 警告)
 set(CMAKE_CXX_FLAGS_RELEASE "-Os -DNDEBUG")
 
+# Generate embedded assets
+set(ASSETS_DIR ${CMAKE_SOURCE_DIR}/assets)
+set(GENERATED_DIR ${CMAKE_BINARY_DIR}/generated)
+set(ASSETS_CPP ${GENERATED_DIR}/assets_data.cpp)
+
+# Create generated directory
+file(MAKE_DIRECTORY ${GENERATED_DIR})
+
+# Run embed_assets.py to generate assets_data.cpp
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+add_custom_command(
+    OUTPUT ${ASSETS_CPP}
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/embed_assets.py 
+            ${ASSETS_DIR} ${ASSETS_CPP}
+    DEPENDS ${CMAKE_SOURCE_DIR}/scripts/embed_assets.py
+    COMMENT "Generating embedded assets..."
+)
+
 # 源文件
 set(SOURCES
     src/main.cpp
@@ -33,11 +51,12 @@ set(SOURCES
     src/restorecon.cpp
     src/debug.cpp
     src/kpm.cpp
-    src/assets.cpp
+    ${ASSETS_CPP}
 )
 
 # 头文件目录
 include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${GENERATED_DIR})
 
 add_executable(ksud ${SOURCES})
 
