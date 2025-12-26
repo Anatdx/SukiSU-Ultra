@@ -8,6 +8,9 @@ import os
 import sys
 from pathlib import Path
 
+# Path to installer.sh relative to this script
+INSTALLER_SH_PATH = Path(__file__).parent.parent.parent / "ksud" / "src" / "installer.sh"
+
 def to_c_identifier(name: str) -> str:
     """Convert filename to valid C identifier."""
     # Replace dots and dashes with underscores
@@ -56,6 +59,33 @@ def main():
 #include <sys/stat.h>
 
 namespace ksud {
+
+'''
+    
+    # First, embed installer.sh as a string literal
+    installer_content = ""
+    if INSTALLER_SH_PATH.exists():
+        with open(INSTALLER_SH_PATH, 'r') as f:
+            installer_content = f.read()
+        print(f"Embedding installer.sh from {INSTALLER_SH_PATH}")
+    else:
+        print(f"WARNING: installer.sh not found at {INSTALLER_SH_PATH}")
+    
+    # Generate escaped installer script content
+    output += '// Installer script content (from ksud/src/installer.sh)\n'
+    output += 'static const char* INSTALLER_CONTENT = R"INSTALLER_SCRIPT(\n'
+    output += installer_content
+    output += ')INSTALLER_SCRIPT";\n\n'
+    
+    # Generate install module script (installer.sh + install_module call)
+    output += '''// Full install module script
+const char* get_install_module_script() {
+    static std::string script;
+    if (script.empty()) {
+        script = std::string(INSTALLER_CONTENT) + "\\ninstall_module\\nexit 0\\n";
+    }
+    return script.c_str();
+}
 
 '''
     

@@ -2,6 +2,8 @@
 #include "../defs.hpp"
 #include "../log.hpp"
 #include "../utils.hpp"
+#include "../assets.hpp"
+#include "../core/ksucalls.hpp"
 
 #include <unistd.h>
 #include <dirent.h>
@@ -13,6 +15,7 @@
 #include <vector>
 #include <cstdlib>
 #include <cstring>
+#include <climits>
 
 namespace ksud {
 
@@ -112,36 +115,56 @@ static void restore_syscon(const std::string& path) {
     exec_command({"restorecon", "-R", path});
 }
 
-// Execute customize.sh script
-static bool exec_install_script(const std::string& module_dir, const std::string& zip_path) {
-    std::string customize_sh = module_dir + "/customize.sh";
-    
-    if (!file_exists(customize_sh)) {
-        // No customize.sh, that's OK
-        return true;
+// Execute the install script using busybox sh
+static bool exec_install_script(const std::string& zip_path) {
+    const char* install_script = get_install_module_script();
+    if (!install_script || install_script[0] == '\0') {
+        LOGE("Install script not available");
+        return false;
     }
     
-    printf("- Running module installer\n");
+    // Get full path of zip file
+    char realpath_buf[PATH_MAX];
+    if (!realpath(zip_path.c_str(), realpath_buf)) {
+        LOGE("Failed to get realpath for %s", zip_path.c_str());
+        return false;
+    }
+    std::string zipfile = realpath_buf;
     
-    // Set environment variables
-    std::string env_modpath = "MODPATH=" + module_dir;
-    std::string env_zipfile = "ZIPFILE=" + zip_path;
-    std::string env_tmpdir = "TMPDIR=/data/local/tmp";
+    // Find busybox
+    std::string busybox = std::string(BINARY_DIR) + "busybox";
+    if (!file_exists(busybox)) {
+        // Fallback to system sh if busybox not available
+        busybox = "/system/bin/sh";
+    }
     
     pid_t pid = fork();
     if (pid < 0) {
-        LOGE("Failed to fork for customize.sh");
+        LOGE("Failed to fork for install script");
         return false;
     }
     
     if (pid == 0) {
-        // Child process
-        putenv(const_cast<char*>(env_modpath.c_str()));
-        putenv(const_cast<char*>(env_zipfile.c_str()));
-        putenv(const_cast<char*>(env_tmpdir.c_str()));
+        // Child process - set environment variables
+        setenv("ASH_STANDALONE", "1", 1);
+        setenv("KSU", "true", 1);
+        setenv("KSU_SUKISU", "true", 1);
+        setenv("KSU_KERNEL_VER_CODE", std::to_string(get_version()).c_str(), 1);
+        setenv("KSU_VER_CODE", VERSION_CODE, 1);
+        setenv("KSU_VER", VERSION_NAME, 1);
+        setenv("OUTFD", "1", 1);  // stdout
+        setenv("ZIPFILE", zipfile.c_str(), 1);
         
-        // Execute script
-        execl("/system/bin/sh", "sh", customize_sh.c_str(), nullptr);
+        // Add binary dir to PATH
+        const char* old_path = getenv("PATH");
+        std::string new_path = std::string(BINARY_DIR);
+        if (old_path) {
+            new_path = new_path + ":" + old_path;
+        }
+        setenv("PATH", new_path.c_str(), 1);
+        
+        // Execute script via sh -c
+        execl(busybox.c_str(), "sh", "-c", install_script, nullptr);
         _exit(127);
     }
     
@@ -149,8 +172,14 @@ static bool exec_install_script(const std::string& module_dir, const std::string
     int status;
     waitpid(pid, &status, 0);
     
-    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
-        printf("! customize.sh failed with code %d\n", WEXITSTATUS(status));
+    if (WIFEXITED(status)) {
+        int exit_code = WEXITSTATUS(status);
+        if (exit_code != 0) {
+            LOGE("Install script failed with code %d", exit_code);
+            return false;
+        }
+    } else {
+        LOGE("Install script terminated abnormally");
         return false;
     }
     
@@ -174,117 +203,13 @@ int module_install(const std::string& zip_path) {
         return 1;
     }
     
-    // Create temp directory for extraction
-    char tmpdir_template[] = "/data/local/tmp/ksu_module_XXXXXX";
-    char* tmpdir = mkdtemp(tmpdir_template);
-    if (!tmpdir) {
-        printf("! Failed to create temp directory\n");
-        return 1;
-    }
-    std::string extract_dir = tmpdir;
-    
-    auto cleanup = [&extract_dir]() {
-        std::string cmd = "rm -rf " + extract_dir;
-        system(cmd.c_str());
-    };
-    
-    // Extract module.prop first to get module ID
-    printf("- Extracting module files\n");
-    if (!extract_zip(zip_path, extract_dir)) {
-        printf("! Failed to extract module\n");
-        cleanup();
+    // Use the embedded installer script (same as Rust version)
+    if (!exec_install_script(zip_path)) {
+        printf("! Module installation failed\n");
         return 1;
     }
     
-    // Parse module.prop
-    std::string module_prop_path = extract_dir + "/module.prop";
-    if (!file_exists(module_prop_path)) {
-        printf("! module.prop not found in zip\n");
-        cleanup();
-        return 1;
-    }
-    
-    auto props = parse_module_prop(module_prop_path);
-    auto id_it = props.find("id");
-    if (id_it == props.end() || id_it->second.empty()) {
-        printf("! Module id not found in module.prop\n");
-        cleanup();
-        return 1;
-    }
-    
-    std::string module_id = id_it->second;
-    
-    // Validate module ID
-    if (!validate_module_id(module_id)) {
-        printf("! Invalid module ID: %s\n", module_id.c_str());
-        cleanup();
-        return 1;
-    }
-    
-    std::string module_name = props.count("name") ? props["name"] : module_id;
-    printf("- Module: %s (%s)\n", module_name.c_str(), module_id.c_str());
-    
-    // Ensure directories exist
-    ensure_dir_exists(MODULE_UPDATE_DIR);
-    ensure_dir_exists(MODULE_DIR);
-    
-    // Target directory in modules_update
-    std::string update_dir = std::string(MODULE_UPDATE_DIR) + module_id;
-    
-    // Clean existing update directory if any
-    if (file_exists(update_dir)) {
-        std::string cmd = "rm -rf " + update_dir;
-        system(cmd.c_str());
-    }
-    
-    // Move extracted files to update directory
-    printf("- Installing to %s\n", update_dir.c_str());
-    if (rename(extract_dir.c_str(), update_dir.c_str()) != 0) {
-        // If rename fails (different filesystems), use copy
-        std::string cmd = "cp -r " + extract_dir + " " + update_dir;
-        if (system(cmd.c_str()) != 0) {
-            printf("! Failed to install module files\n");
-            cleanup();
-            return 1;
-        }
-    }
-    
-    // Set permissions for system directory
-    std::string system_dir = update_dir + "/system";
-    if (file_exists(system_dir)) {
-        chmod(system_dir.c_str(), 0755);
-        restore_syscon(system_dir);
-    }
-    
-    // Execute customize.sh
-    if (!exec_install_script(update_dir, zip_path)) {
-        // Script failed, clean up
-        std::string cmd = "rm -rf " + update_dir;
-        system(cmd.c_str());
-        return 1;
-    }
-    
-    // Ensure module directory exists and copy module.prop
-    std::string module_dir = std::string(MODULE_DIR) + module_id;
-    ensure_dir_exists(module_dir);
-    
-    std::string src_prop = update_dir + "/module.prop";
-    std::string dst_prop = module_dir + "/module.prop";
-    
-    std::ifstream src(src_prop, std::ios::binary);
-    std::ofstream dst(dst_prop, std::ios::binary);
-    if (src && dst) {
-        dst << src.rdbuf();
-    }
-    
-    // Mark for update
-    std::string update_flag = module_dir + "/" + UPDATE_FILE_NAME;
-    std::ofstream ofs(update_flag);
-    ofs.close();
-    
-    printf("- Module installed successfully!\n");
-    LOGI("Module %s installed successfully", module_id.c_str());
-    
+    LOGI("Module installed successfully");
     return 0;
 }
 

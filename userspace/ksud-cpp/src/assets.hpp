@@ -22,4 +22,7 @@ std::vector<std::string> list_supported_kmi();
 // Ensure binary assets are extracted
 int ensure_binaries(bool ignore_if_exist);
 
+// Get the full module installation script (installer.sh + install_module call)
+const char* get_install_module_script();
+
 } // namespace ksud
