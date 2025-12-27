@@ -4,6 +4,7 @@
 #include "../utils.hpp"
 
 #include <unistd.h>
+#include <dirent.h>
 #include <fstream>
 #include <sstream>
 #include <map>
@@ -150,6 +151,28 @@ int module_config_handle(const std::vector<std::string>& args) {
 
     printf("Unknown config command: %s\n", cmd.c_str());
     return 1;
+}
+
+void clear_all_temp_configs() {
+    // Clear all temporary module configs
+    // This is called during post-fs-data to clean up temp configs from previous boot
+    DIR* dir = opendir(MODULE_CONFIG_DIR);
+    if (!dir) {
+        return;
+    }
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        if (entry->d_name[0] == '.') continue;
+        if (entry->d_type != DT_DIR) continue;
+
+        std::string temp_config = std::string(MODULE_CONFIG_DIR) + entry->d_name + "/" + TEMP_CONFIG_NAME;
+        if (access(temp_config.c_str(), F_OK) == 0) {
+            unlink(temp_config.c_str());
+        }
+    }
+
+    closedir(dir);
 }
 
 } // namespace ksud

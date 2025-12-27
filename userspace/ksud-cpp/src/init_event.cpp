@@ -2,6 +2,7 @@
 #include "core/ksucalls.hpp"
 #include "core/feature.hpp"
 #include "module/module.hpp"
+#include "module/module_config.hpp"
 #include "module/metamodule.hpp"
 #include "umount.hpp"
 #include "restorecon.hpp"
@@ -18,6 +19,12 @@ namespace ksud {
 
 static void run_stage(const std::string& stage, bool block) {
     umask(0);
+
+    // Check for Magisk (like Rust version)
+    if (has_magisk()) {
+        LOGW("Magisk detected, skip %s", stage.c_str());
+        return;
+    }
 
     if (is_safe_mode()) {
         LOGW("safe mode, skip %s scripts", stage.c_str());
@@ -42,10 +49,25 @@ int on_post_data_fs() {
 
     umask(0);
 
-    // Switch to init mount namespace
-    if (!switch_mnt_ns(1)) {
-        LOGE("Failed to switch to init mount namespace");
-        return 1;
+    // Clear all temporary module configs early (like Rust version)
+    clear_all_temp_configs();
+
+    // TODO: catch_bootlog for logcat and dmesg
+
+    // Check for Magisk (like Rust version)
+    if (has_magisk()) {
+        LOGW("Magisk detected, skip post-fs-data!");
+        return 0;
+    }
+
+    // Check for safe mode FIRST (like Rust version)
+    bool safe_mode = is_safe_mode();
+
+    if (safe_mode) {
+        LOGW("safe mode, skip common post-fs-data.d scripts");
+    } else {
+        // Execute common post-fs-data scripts
+        exec_common_scripts("post-fs-data.d", true);
     }
 
     // Ensure directories exist
@@ -54,22 +76,17 @@ int on_post_data_fs() {
     ensure_dir_exists(LOG_DIR);
     ensure_dir_exists(PROFILE_DIR);
 
-    // Ensure binaries exist
+    // Ensure binaries exist (AFTER safe mode check, like Rust)
     if (ensure_binaries(true) != 0) {
         LOGW("Failed to ensure binaries");
     }
 
-    // Check for safe mode
-    bool safe_mode = is_safe_mode();
-
+    // if we are in safe mode, we should disable all modules
     if (safe_mode) {
-        LOGW("Safe mode detected, disabling all modules!");
+        LOGW("safe mode, skip post-fs-data scripts and disable all modules!");
         disable_all_modules();
         return 0;
     }
-
-    // Execute common post-fs-data scripts
-    exec_common_scripts("post-fs-data.d", true);
 
     // Handle updated modules
     handle_updated_modules();
