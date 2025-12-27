@@ -3,12 +3,12 @@ name: Build Manager
 on:
   workflow_dispatch:
   push:
-    branches: [ "main", "dev", "ci", "exp-ksud-cpp" ]
+    branches: [ "main", "dev", "ci" ]
     paths:
       - '.github/workflows/build-manager.yml'
       - '.github/workflows/build-lkm.yml'
-      - '.github/workflows/ksud-cpp.yml'
-      - '.github/workflows/ksuinit-cpp.yml'
+      - '.github/workflows/ksud.yml'
+      - '.github/workflows/ksuinit.yml'
       - 'manager/**'
       - 'kernel/**'
       - 'userspace/**'
@@ -17,8 +17,8 @@ on:
     paths:
       - '.github/workflows/build-manager.yml'
       - '.github/workflows/build-lkm.yml'
-      - '.github/workflows/ksud-cpp.yml'
-      - '.github/workflows/ksuinit-cpp.yml'
+      - '.github/workflows/ksud.yml'
+      - '.github/workflows/ksuinit.yml'
       - 'manager/**'
       - 'kernel/**'
       - 'userspace/**'
@@ -30,7 +30,7 @@ jobs:
     secrets: inherit
 
   build-ksuinit:
-    uses: ./.github/workflows/ksuinit-cpp.yml
+    uses: ./.github/workflows/ksuinit.yml
     secrets: inherit
 
   build-ksud:
@@ -44,7 +44,7 @@ jobs:
             os: ubuntu-latest
           - target: armv7-linux-androideabi
             os: ubuntu-latest
-    uses: ./.github/workflows/ksud-cpp.yml
+    uses: ./.github/workflows/ksud.yml
     secrets: inherit
     with:
       target: ${{ matrix.target }}
