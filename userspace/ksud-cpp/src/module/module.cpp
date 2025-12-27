@@ -4,6 +4,7 @@
 #include "../utils.hpp"
 #include "../assets.hpp"
 #include "../core/ksucalls.hpp"
+#include "../sepolicy/sepolicy.hpp"
 
 #include <unistd.h>
 #include <dirent.h>
@@ -639,11 +640,19 @@ int load_sepolicy_rule() {
         // Read and apply rules
         std::ifstream ifs(rule_file);
         std::string line;
+        std::string all_rules;
         while (std::getline(ifs, line)) {
             line = trim(line);
             if (line.empty() || line[0] == '#') continue;
-            // TODO: Apply sepolicy rule via ksucalls
-            LOGD("sepolicy rule: %s", line.c_str());
+            all_rules += line + "\n";
+        }
+        
+        if (!all_rules.empty()) {
+            LOGI("Applying sepolicy rules from %s", entry->d_name);
+            int ret = sepolicy_live_patch(all_rules);
+            if (ret != 0) {
+                LOGW("Failed to apply some sepolicy rules from %s", entry->d_name);
+            }
         }
     }
 
