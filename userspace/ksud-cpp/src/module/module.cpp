@@ -33,6 +33,7 @@ struct ModuleInfo {
     bool web;
     bool action;
     bool mount;
+    bool metamodule;
 };
 
 // Escape special characters for JSON string
@@ -366,6 +367,9 @@ int module_list() {
         info.action = file_exists(module_path + "/" + MODULE_ACTION_SH);
         // Check if module needs mounting (has system folder and no skip_mount)
         info.mount = file_exists(module_path + "/system") && !file_exists(module_path + "/skip_mount");
+        // Check if module is a metamodule
+        std::string metamodule_val = props.count("metamodule") ? props["metamodule"] : "";
+        info.metamodule = (metamodule_val == "1" || metamodule_val == "true" || metamodule_val == "TRUE");
 
         modules.push_back(info);
     }
@@ -388,7 +392,8 @@ int module_list() {
         printf("    \"remove\": \"%s\",\n", m.remove ? "true" : "false");
         printf("    \"web\": \"%s\",\n", m.web ? "true" : "false");
         printf("    \"action\": \"%s\",\n", m.action ? "true" : "false");
-        printf("    \"mount\": \"%s\"\n", m.mount ? "true" : "false");
+        printf("    \"mount\": \"%s\",\n", m.mount ? "true" : "false");
+        printf("    \"metamodule\": \"%s\"\n", m.metamodule ? "true" : "false");
         printf("  }%s\n", i < modules.size() - 1 ? "," : "");
     }
     printf("]\n");
