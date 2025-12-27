@@ -169,7 +169,10 @@ static bool exec_install_script(const std::string& zip_path) {
     }
     
     if (pid == 0) {
-        // Child process - set environment variables (only use const char* pointers)
+        // Child process - disable stdout buffering for real-time output
+        setvbuf(stdout, nullptr, _IONBF, 0);
+        
+        // Set environment variables (only use const char* pointers)
         setenv("ASH_STANDALONE", "1", 1);
         setenv("KSU", "true", 1);
         setenv("KSU_SUKISU", "true", 1);
@@ -204,8 +207,8 @@ static bool exec_install_script(const std::string& zip_path) {
 }
 
 int module_install(const std::string& zip_path) {
-    // Ensure stdout is line-buffered to prevent output ordering issues
-    setvbuf(stdout, nullptr, _IOLBF, 0);
+    // Ensure stdout is unbuffered for real-time output
+    setvbuf(stdout, nullptr, _IONBF, 0);
     
     printf("\n");
     printf("__   __ _   _  _  __ ___  ____   _   _ \n");

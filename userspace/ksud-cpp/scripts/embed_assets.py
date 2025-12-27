@@ -54,9 +54,11 @@ def main():
 #include "assets.hpp"
 #include "defs.hpp"
 #include "utils.hpp"
+#include "log.hpp"
 #include <cstring>
 #include <map>
 #include <sys/stat.h>
+#include <cerrno>
 
 namespace ksud {
 
@@ -150,15 +152,24 @@ bool copy_asset_to_file(const std::string& name, const std::string& dest_path) {
     const uint8_t* data;
     size_t size;
     if (!get_asset(name, data, size)) {
+        LOGE("Asset not found: %s", name.c_str());
         return false;
     }
     
+    // Remove existing file first (like Rust version)
+    unlink(dest_path.c_str());
+    
     std::ofstream ofs(dest_path, std::ios::binary);
     if (!ofs) {
+        LOGE("Failed to open file for writing: %s (errno=%d: %s)", dest_path.c_str(), errno, strerror(errno));
         return false;
     }
     ofs.write(reinterpret_cast<const char*>(data), size);
-    return ofs.good();
+    if (!ofs.good()) {
+        LOGE("Failed to write asset %s to %s", name.c_str(), dest_path.c_str());
+        return false;
+    }
+    return true;
 }
 
 std::vector<std::string> list_supported_kmi() {
@@ -176,7 +187,10 @@ std::vector<std::string> list_supported_kmi() {
 }
 
 int ensure_binaries(bool ignore_if_exist) {
-    ensure_dir_exists(BINARY_DIR);
+    if (!ensure_dir_exists(BINARY_DIR)) {
+        LOGE("Failed to create binary directory: %s", BINARY_DIR);
+        return 1;
+    }
     
     for (const auto& name : list_assets()) {
         // Skip ksuinit and kernel modules - they are extracted on demand
@@ -194,6 +208,7 @@ int ensure_binaries(bool ignore_if_exist) {
         }
         
         if (!copy_asset_to_file(name, dest)) {
+            LOGE("Failed to extract binary: %s", name.c_str());
             return 1;
         }
         chmod(dest.c_str(), 0755);
