@@ -101,7 +101,7 @@ int su_main(int argc, char* argv[]) {
 
     optind = 1;  // Reset getopt
     int opt;
-    while ((opt = getopt_long(argc, argv, "c:hlps:vVM:g:G:", long_options, nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, "c:hlps:vVMg:G:", long_options, nullptr)) != -1) {
         switch (opt) {
             case 'c':
                 command = optarg;
