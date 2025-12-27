@@ -1,18 +1,18 @@
 #include "feature.hpp"
-#include "ksucalls.hpp"
-#include "../module/module.hpp"
-#include "../log.hpp"
 #include "../defs.hpp"
+#include "../log.hpp"
+#include "../module/module.hpp"
 #include "../utils.hpp"
+#include "ksucalls.hpp"
 
-#include <cstdio>
 #include <cinttypes>
-#include <map>
-#include <fstream>
-#include <sstream>
+#include <cstdio>
 #include <cstring>
-#include <vector>
+#include <fstream>
+#include <map>
 #include <set>
+#include <sstream>
+#include <vector>
 
 namespace ksud {
 
@@ -30,13 +30,13 @@ static const std::map<std::string, uint32_t> FEATURE_MAP = {
 };
 
 static const std::map<uint32_t, const char*> FEATURE_DESCRIPTIONS = {
-    {static_cast<uint32_t>(FeatureId::SuCompat), 
+    {static_cast<uint32_t>(FeatureId::SuCompat),
      "SU Compatibility Mode - allows authorized apps to gain root via traditional 'su' command"},
-    {static_cast<uint32_t>(FeatureId::KernelUmount), 
+    {static_cast<uint32_t>(FeatureId::KernelUmount),
      "Kernel Umount - controls whether kernel automatically unmounts modules when not needed"},
-    {static_cast<uint32_t>(FeatureId::EnhancedSecurity), 
+    {static_cast<uint32_t>(FeatureId::EnhancedSecurity),
      "Enhanced Security - disable non-KSU root elevation and unauthorized UID downgrades"},
-    {static_cast<uint32_t>(FeatureId::SuLog), 
+    {static_cast<uint32_t>(FeatureId::SuLog),
      "SU Log - enables logging of SU command usage to kernel log for auditing purposes"},
 };
 
@@ -47,10 +47,12 @@ static std::pair<uint32_t, bool> parse_feature_id(const std::string& id) {
         uint32_t num = std::stoul(id);
         // Check if it's a known feature ID
         for (const auto& [name, fid] : FEATURE_MAP) {
-            if (fid == num) return {num, true};
+            if (fid == num)
+                return {num, true};
         }
         return {0, false};
-    } catch (...) {}
+    } catch (...) {
+    }
 
     // Try name lookup
     auto it = FEATURE_MAP.find(id);
@@ -86,12 +88,12 @@ int feature_get(const std::string& id) {
     }
 
     auto [value, supported] = get_feature(feature_id);
-    
+
     if (!supported) {
         printf("Feature '%s' is not supported by kernel\n", id.c_str());
         return 0;
     }
-    
+
     printf("Feature: %s (%u)\n", feature_id_to_name(feature_id), feature_id);
     printf("Description: %s\n", feature_id_to_description(feature_id));
     printf("Value: %" PRIu64 "\n", value);
@@ -113,8 +115,7 @@ int feature_set(const std::string& id, uint64_t value) {
         return 1;
     }
 
-    printf("Feature '%s' set to %" PRIu64 " (%s)\n", 
-           feature_id_to_name(feature_id), value,
+    printf("Feature '%s' set to %" PRIu64 " (%s)\n", feature_id_to_name(feature_id), value,
            value != 0 ? "enabled" : "disabled");
     return 0;
 }
@@ -122,10 +123,10 @@ int feature_set(const std::string& id, uint64_t value) {
 void feature_list() {
     printf("Available Features:\n");
     printf("================================================================================\n");
-    
+
     for (const auto& [name, id] : FEATURE_MAP) {
         auto [value, supported] = get_feature(id);
-        
+
         const char* status;
         if (!supported) {
             status = "NOT_SUPPORTED";
@@ -134,7 +135,7 @@ void feature_list() {
         } else {
             status = "DISABLED";
         }
-        
+
         printf("[%s] %s (ID=%u)\n", status, name.c_str(), id);
         printf("    %s\n", feature_id_to_description(id));
     }
@@ -149,7 +150,7 @@ int feature_check(const std::string& id) {
 
     // TODO: Check if this feature is managed by any module
     // For now, just check kernel support
-    
+
     auto [value, supported] = get_feature(feature_id);
     if (supported) {
         printf("supported\n");
@@ -173,10 +174,12 @@ int feature_load_config() {
     std::string line;
     while (std::getline(iss, line)) {
         line = trim(line);
-        if (line.empty() || line[0] == '#') continue;
+        if (line.empty() || line[0] == '#')
+            continue;
 
         size_t eq = line.find('=');
-        if (eq == std::string::npos) continue;
+        if (eq == std::string::npos)
+            continue;
 
         std::string key = trim(line.substr(0, eq));
         std::string val = trim(line.substr(eq + 1));
@@ -357,4 +360,4 @@ int init_features() {
     return 0;
 }
 
-} // namespace ksud
+}  // namespace ksud

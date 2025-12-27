@@ -16,4 +16,4 @@ namespace ksud {
 
 // This file is kept for any additional asset-related utilities
 
-} // namespace ksud
+}  // namespace ksud

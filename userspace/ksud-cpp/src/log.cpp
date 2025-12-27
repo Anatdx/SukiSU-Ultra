@@ -1,8 +1,8 @@
 #include "log.hpp"
+#include <unistd.h>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
-#include <unistd.h>
 #ifdef __ANDROID__
 #include <sys/system_properties.h>
 #endif
@@ -22,17 +22,36 @@ void log_set_level(LogLevel level) {
 }
 
 static void log_write(LogLevel level, const char* fmt, va_list args) {
-    if (level < g_log_level) return;
+    if (level < g_log_level)
+        return;
 
     const char* level_str;
     int android_level;
     switch (level) {
-        case LogLevel::VERBOSE: level_str = "V"; android_level = 2; break;
-        case LogLevel::DEBUG:   level_str = "D"; android_level = 3; break;
-        case LogLevel::INFO:    level_str = "I"; android_level = 4; break;
-        case LogLevel::WARN:    level_str = "W"; android_level = 5; break;
-        case LogLevel::ERROR:   level_str = "E"; android_level = 6; break;
-        default:                level_str = "?"; android_level = 4; break;
+    case LogLevel::VERBOSE:
+        level_str = "V";
+        android_level = 2;
+        break;
+    case LogLevel::DEBUG:
+        level_str = "D";
+        android_level = 3;
+        break;
+    case LogLevel::INFO:
+        level_str = "I";
+        android_level = 4;
+        break;
+    case LogLevel::WARN:
+        level_str = "W";
+        android_level = 5;
+        break;
+    case LogLevel::ERROR:
+        level_str = "E";
+        android_level = 6;
+        break;
+    default:
+        level_str = "?";
+        android_level = 4;
+        break;
     }
 
     char msg[1024];
@@ -90,4 +109,4 @@ void log_e(const char* fmt, ...) {
     va_end(args);
 }
 
-} // namespace ksud
+}  // namespace ksud

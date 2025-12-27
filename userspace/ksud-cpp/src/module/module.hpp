@@ -1,8 +1,8 @@
 #pragma once
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 namespace ksud {
 
@@ -32,4 +32,4 @@ int load_system_prop();
 // Returns: map<ModuleId, vector<ManagedFeature>>
 std::map<std::string, std::vector<std::string>> get_managed_features();
 
-} // namespace ksud
+}  // namespace ksud

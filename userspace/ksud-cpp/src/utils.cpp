@@ -2,15 +2,15 @@
 #include "defs.hpp"
 #include "log.hpp"
 
-#include <fstream>
-#include <sstream>
-#include <cstring>
 #include <dirent.h>
-#include <unistd.h>
 #include <fcntl.h>
+#include <sys/mount.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#include <sys/mount.h>
+#include <unistd.h>
+#include <cstring>
+#include <fstream>
+#include <sstream>
 #ifdef __ANDROID__
 #include <sys/system_properties.h>
 #endif
@@ -71,7 +71,8 @@ bool ensure_file_exists(const std::string& path) {
     return true;
 }
 
-bool ensure_binary(const std::string& path, const uint8_t* data, size_t size, bool ignore_if_exist) {
+bool ensure_binary(const std::string& path, const uint8_t* data, size_t size,
+                   bool ignore_if_exist) {
     if (ignore_if_exist) {
         struct stat st;
         if (stat(path.c_str(), &st) == 0) {
@@ -209,7 +210,8 @@ void umask(mode_t mask) {
 bool has_magisk() {
     // Check if magisk binary exists in PATH
     const char* path_env = getenv("PATH");
-    if (!path_env) return false;
+    if (!path_env)
+        return false;
 
     std::string path_str(path_env);
     std::stringstream ss(path_str);
@@ -227,7 +229,8 @@ bool has_magisk() {
 
 std::string trim(const std::string& str) {
     size_t start = str.find_first_not_of(" \t\n\r");
-    if (start == std::string::npos) return "";
+    if (start == std::string::npos)
+        return "";
     size_t end = str.find_last_not_of(" \t\n\r");
     return str.substr(start, end - start + 1);
 }
@@ -247,12 +250,14 @@ bool starts_with(const std::string& str, const std::string& prefix) {
 }
 
 bool ends_with(const std::string& str, const std::string& suffix) {
-    return str.size() >= suffix.size() && str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+    return str.size() >= suffix.size() &&
+           str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
 
 std::optional<std::string> read_file(const std::string& path) {
     std::ifstream ifs(path);
-    if (!ifs) return std::nullopt;
+    if (!ifs)
+        return std::nullopt;
 
     std::stringstream ss;
     ss << ifs.rdbuf();
@@ -261,14 +266,16 @@ std::optional<std::string> read_file(const std::string& path) {
 
 bool write_file(const std::string& path, const std::string& content) {
     std::ofstream ofs(path);
-    if (!ofs) return false;
+    if (!ofs)
+        return false;
     ofs << content;
     return true;
 }
 
 bool append_file(const std::string& path, const std::string& content) {
     std::ofstream ofs(path, std::ios::app);
-    if (!ofs) return false;
+    if (!ofs)
+        return false;
     ofs << content;
     return true;
 }
@@ -276,7 +283,8 @@ bool append_file(const std::string& path, const std::string& content) {
 ExecResult exec_command(const std::vector<std::string>& args) {
     ExecResult result{-1, "", ""};
 
-    if (args.empty()) return result;
+    if (args.empty())
+        return result;
 
     int stdout_pipe[2], stderr_pipe[2];
     if (pipe(stdout_pipe) != 0 || pipe(stderr_pipe) != 0) {
@@ -285,8 +293,10 @@ ExecResult exec_command(const std::vector<std::string>& args) {
 
     pid_t pid = fork();
     if (pid < 0) {
-        close(stdout_pipe[0]); close(stdout_pipe[1]);
-        close(stderr_pipe[0]); close(stderr_pipe[1]);
+        close(stdout_pipe[0]);
+        close(stdout_pipe[1]);
+        close(stderr_pipe[0]);
+        close(stderr_pipe[1]);
         return result;
     }
 
@@ -337,10 +347,12 @@ ExecResult exec_command(const std::vector<std::string>& args) {
 }
 
 int exec_command_async(const std::vector<std::string>& args) {
-    if (args.empty()) return -1;
+    if (args.empty())
+        return -1;
 
     pid_t pid = fork();
-    if (pid < 0) return -1;
+    if (pid < 0)
+        return -1;
 
     if (pid == 0) {
         // Child process
@@ -443,4 +455,4 @@ uint64_t get_zip_uncompressed_size(const std::string& zip_path) {
     return 0;
 }
 
-} // namespace ksud
+}  // namespace ksud

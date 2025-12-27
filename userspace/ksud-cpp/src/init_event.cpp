@@ -1,22 +1,22 @@
 #include "init_event.hpp"
-#include "core/ksucalls.hpp"
+#include "assets.hpp"
 #include "core/feature.hpp"
+#include "core/ksucalls.hpp"
+#include "defs.hpp"
+#include "kpm.hpp"
+#include "log.hpp"
+#include "module/metamodule.hpp"
 #include "module/module.hpp"
 #include "module/module_config.hpp"
-#include "module/metamodule.hpp"
-#include "umount.hpp"
-#include "restorecon.hpp"
-#include "assets.hpp"
 #include "profile/profile.hpp"
-#include "kpm.hpp"
-#include "defs.hpp"
-#include "log.hpp"
+#include "restorecon.hpp"
+#include "umount.hpp"
 #include "utils.hpp"
 
-#include <unistd.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#include <fcntl.h>
+#include <unistd.h>
 #include <cstring>
 
 namespace ksud {
@@ -215,4 +215,4 @@ void on_boot_completed() {
     LOGI("boot-completed completed");
 }
 
-} // namespace ksud
+}  // namespace ksud

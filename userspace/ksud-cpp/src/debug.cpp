@@ -1,6 +1,6 @@
 #include "debug.hpp"
-#include "core/ksucalls.hpp"
 #include "boot/apk_sign.hpp"
+#include "core/ksucalls.hpp"
 #include "log.hpp"
 #include "utils.hpp"
 
@@ -70,4 +70,4 @@ int debug_mark(const std::vector<std::string>& args) {
     return 1;
 }
 
-} // namespace ksud
+}  // namespace ksud

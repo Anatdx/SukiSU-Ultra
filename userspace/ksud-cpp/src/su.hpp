@@ -9,4 +9,4 @@ int su_main(int argc, char* argv[]);
 int root_shell();
 int grant_root_shell(bool global_mnt);
 
-} // namespace ksud
+}  // namespace ksud

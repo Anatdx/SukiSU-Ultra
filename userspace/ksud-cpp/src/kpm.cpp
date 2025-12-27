@@ -1,12 +1,12 @@
 #include "kpm.hpp"
+#include "core/ksucalls.hpp"
 #include "log.hpp"
 #include "utils.hpp"
-#include "core/ksucalls.hpp"
 
-#include <cstdio>
-#include <cstring>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <cstdio>
+#include <cstring>
 
 namespace ksud {
 
@@ -35,14 +35,10 @@ static bool is_kpm_supported() {
     // Try to get KPM version to check if supported
     char buf[64] = {0};
     int32_t ret = -1;
-    
-    KsuKpmCmd cmd = {
-        KPM_VERSION,
-        reinterpret_cast<uint64_t>(buf),
-        sizeof(buf),
-        reinterpret_cast<uint64_t>(&ret)
-    };
-    
+
+    KsuKpmCmd cmd = {KPM_VERSION, reinterpret_cast<uint64_t>(buf), sizeof(buf),
+                     reinterpret_cast<uint64_t>(&ret)};
+
     int ioctl_ret = ksuctl(KSU_IOCTL_KPM, &cmd);
     return (ioctl_ret >= 0 && ret >= 0);
 }
@@ -50,60 +46,47 @@ static bool is_kpm_supported() {
 int kpm_load_module(const std::string& path, const std::optional<std::string>& args) {
     int32_t ret = -1;
     const char* args_ptr = args ? args->c_str() : "";
-    
-    KsuKpmCmd cmd = {
-        KPM_LOAD,
-        reinterpret_cast<uint64_t>(path.c_str()),
-        reinterpret_cast<uint64_t>(args_ptr),
-        reinterpret_cast<uint64_t>(&ret)
-    };
-    
+
+    KsuKpmCmd cmd = {KPM_LOAD, reinterpret_cast<uint64_t>(path.c_str()),
+                     reinterpret_cast<uint64_t>(args_ptr), reinterpret_cast<uint64_t>(&ret)};
+
     int ioctl_ret = ksuctl(KSU_IOCTL_KPM, &cmd);
     if (ioctl_ret < 0 || ret < 0) {
         printf("Failed to load KPM module: %d\n", ret);
         return 1;
     }
-    
+
     printf("Loaded KPM module from %s\n", path.c_str());
     return 0;
 }
 
 int kpm_unload_module(const std::string& name) {
     int32_t ret = -1;
-    
-    KsuKpmCmd cmd = {
-        KPM_UNLOAD,
-        reinterpret_cast<uint64_t>(name.c_str()),
-        0,
-        reinterpret_cast<uint64_t>(&ret)
-    };
-    
+
+    KsuKpmCmd cmd = {KPM_UNLOAD, reinterpret_cast<uint64_t>(name.c_str()), 0,
+                     reinterpret_cast<uint64_t>(&ret)};
+
     int ioctl_ret = ksuctl(KSU_IOCTL_KPM, &cmd);
     if (ioctl_ret < 0 || ret < 0) {
         printf("Failed to unload KPM module: %d\n", ret);
         return 1;
     }
-    
+
     printf("Unloaded KPM module: %s\n", name.c_str());
     return 0;
 }
 
 int kpm_num() {
     int32_t ret = -1;
-    
-    KsuKpmCmd cmd = {
-        KPM_NUM,
-        0,
-        0,
-        reinterpret_cast<uint64_t>(&ret)
-    };
-    
+
+    KsuKpmCmd cmd = {KPM_NUM, 0, 0, reinterpret_cast<uint64_t>(&ret)};
+
     int ioctl_ret = ksuctl(KSU_IOCTL_KPM, &cmd);
     if (ioctl_ret < 0 || ret < 0) {
         printf("0\n");  // KPM not supported, return 0 modules
         return 0;
     }
-    
+
     printf("%d\n", ret);
     return 0;
 }
@@ -111,21 +94,17 @@ int kpm_num() {
 int kpm_list() {
     char buf[4096] = {0};
     int32_t ret = -1;
-    
-    KsuKpmCmd cmd = {
-        KPM_LIST,
-        reinterpret_cast<uint64_t>(buf),
-        sizeof(buf),
-        reinterpret_cast<uint64_t>(&ret)
-    };
-    
+
+    KsuKpmCmd cmd = {KPM_LIST, reinterpret_cast<uint64_t>(buf), sizeof(buf),
+                     reinterpret_cast<uint64_t>(&ret)};
+
     int ioctl_ret = ksuctl(KSU_IOCTL_KPM, &cmd);
     if (ioctl_ret < 0 || ret < 0) {
         // KPM not supported, output empty result
         printf("\n");
         return 0;
     }
-    
+
     printf("%s", buf);
     return 0;
 }
@@ -133,64 +112,52 @@ int kpm_list() {
 int kpm_info(const std::string& name) {
     char buf[1024] = {0};
     int32_t ret = -1;
-    
-    KsuKpmCmd cmd = {
-        KPM_INFO,
-        reinterpret_cast<uint64_t>(name.c_str()),
-        reinterpret_cast<uint64_t>(buf),
-        reinterpret_cast<uint64_t>(&ret)
-    };
-    
+
+    KsuKpmCmd cmd = {KPM_INFO, reinterpret_cast<uint64_t>(name.c_str()),
+                     reinterpret_cast<uint64_t>(buf), reinterpret_cast<uint64_t>(&ret)};
+
     int ioctl_ret = ksuctl(KSU_IOCTL_KPM, &cmd);
     if (ioctl_ret < 0 || ret < 0) {
         printf("Failed to get KPM module info: %d\n", ret);
         return 1;
     }
-    
+
     printf("%s\n", buf);
     return 0;
 }
 
 int kpm_control(const std::string& name, const std::string& args) {
     int32_t ret = -1;
-    
-    KsuKpmCmd cmd = {
-        KPM_CONTROL,
-        reinterpret_cast<uint64_t>(name.c_str()),
-        reinterpret_cast<uint64_t>(args.c_str()),
-        reinterpret_cast<uint64_t>(&ret)
-    };
-    
+
+    KsuKpmCmd cmd = {KPM_CONTROL, reinterpret_cast<uint64_t>(name.c_str()),
+                     reinterpret_cast<uint64_t>(args.c_str()), reinterpret_cast<uint64_t>(&ret)};
+
     int ioctl_ret = ksuctl(KSU_IOCTL_KPM, &cmd);
     if (ioctl_ret < 0 || ret < 0) {
         printf("Failed to send control command: %d\n", ret);
         return 1;
     }
-    
+
     return 0;
 }
 
 int kpm_version() {
     char buf[64] = {0};
     int32_t ret = -1;
-    
-    KsuKpmCmd cmd = {
-        KPM_VERSION,
-        reinterpret_cast<uint64_t>(buf),
-        sizeof(buf),
-        reinterpret_cast<uint64_t>(&ret)
-    };
-    
+
+    KsuKpmCmd cmd = {KPM_VERSION, reinterpret_cast<uint64_t>(buf), sizeof(buf),
+                     reinterpret_cast<uint64_t>(&ret)};
+
     int ioctl_ret = ksuctl(KSU_IOCTL_KPM, &cmd);
     if (ioctl_ret < 0 || ret < 0) {
         // KPM not supported
         printf("\n");
         return 0;
     }
-    
+
     // Trim and print
     size_t len = strlen(buf);
-    while (len > 0 && (buf[len-1] == '\n' || buf[len-1] == '\r')) {
+    while (len > 0 && (buf[len - 1] == '\n' || buf[len - 1] == '\r')) {
         buf[--len] = '\0';
     }
     printf("%s", buf);
@@ -201,25 +168,21 @@ int kpm_version() {
 static std::string kpm_check_version() {
     char buf[64] = {0};
     int32_t ret = -1;
-    
-    KsuKpmCmd cmd = {
-        KPM_VERSION,
-        reinterpret_cast<uint64_t>(buf),
-        sizeof(buf),
-        reinterpret_cast<uint64_t>(&ret)
-    };
-    
+
+    KsuKpmCmd cmd = {KPM_VERSION, reinterpret_cast<uint64_t>(buf), sizeof(buf),
+                     reinterpret_cast<uint64_t>(&ret)};
+
     int ioctl_ret = ksuctl(KSU_IOCTL_KPM, &cmd);
     if (ioctl_ret < 0 || ret < 0) {
         return "";
     }
-    
+
     // Trim
     size_t len = strlen(buf);
-    while (len > 0 && (buf[len-1] == '\n' || buf[len-1] == '\r' || buf[len-1] == ' ')) {
+    while (len > 0 && (buf[len - 1] == '\n' || buf[len - 1] == '\r' || buf[len - 1] == ' ')) {
         buf[--len] = '\0';
     }
-    
+
     return std::string(buf);
 }
 
@@ -233,12 +196,13 @@ static void kpm_ensure_dir() {
 static int kpm_load_all_modules() {
     DIR* dir = opendir(KPM_DIR);
     if (!dir) {
-        return 0; // Directory doesn't exist, nothing to load
+        return 0;  // Directory doesn't exist, nothing to load
     }
 
     struct dirent* entry;
     while ((entry = readdir(dir)) != nullptr) {
-        if (entry->d_name[0] == '.') continue;
+        if (entry->d_name[0] == '.')
+            continue;
 
         std::string name = entry->d_name;
         // Check if it's a .kpm file
@@ -275,4 +239,4 @@ int kpm_booted_load() {
     return kpm_load_all_modules();
 }
 
-} // namespace ksud
+}  // namespace ksud

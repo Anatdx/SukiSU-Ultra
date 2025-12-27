@@ -9,4 +9,4 @@ int metamodule_init();
 int metamodule_exec_stage_script(const std::string& stage, bool block);
 int metamodule_exec_mount_script();
 
-} // namespace ksud
+}  // namespace ksud

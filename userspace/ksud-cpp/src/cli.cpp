@@ -1,28 +1,28 @@
 #include "cli.hpp"
-#include "defs.hpp"
-#include "log.hpp"
-#include "utils.hpp"
-#include "core/ksucalls.hpp"
+#include "assets.hpp"
+#include "boot/boot_patch.hpp"
 #include "core/feature.hpp"
+#include "core/ksucalls.hpp"
 #include "core/susfs.hpp"
+#include "debug.hpp"
+#include "defs.hpp"
+#include "init_event.hpp"
+#include "kpm.hpp"
+#include "log.hpp"
 #include "module/module.hpp"
 #include "module/module_config.hpp"
-#include "boot/boot_patch.hpp"
 #include "profile/profile.hpp"
+#include "restorecon.hpp"
 #include "sepolicy/sepolicy.hpp"
 #include "su.hpp"
-#include "init_event.hpp"
 #include "umount.hpp"
-#include "debug.hpp"
-#include "kpm.hpp"
-#include "assets.hpp"
-#include "restorecon.hpp"
+#include "utils.hpp"
 
-#include <cstring>
-#include <cstdlib>
-#include <iostream>
-#include <algorithm>
 #include <unistd.h>
+#include <algorithm>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
 #include <vector>
 
 namespace ksud {
@@ -35,7 +35,8 @@ bool CliParser::parse(int argc, char* argv[]) {
     for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
 
-        if (arg.empty()) continue;
+        if (arg.empty())
+            continue;
 
         // Check if it's an option
         if (arg[0] == '-') {
@@ -515,17 +516,17 @@ int cli_run(int argc, char* argv[]) {
     std::string arg0 = argv[0];
     size_t last_slash = arg0.rfind('/');
     std::string basename = (last_slash != std::string::npos) ? arg0.substr(last_slash + 1) : arg0;
-    
+
     if (basename == "su") {
         return su_main(argc, argv);
     }
-    
+
     // If invoked as "sh", forward to busybox sh with all arguments
     // This handles the case where /system/bin/sh is a hardlink to ksud
     if (basename == "sh") {
         // Use busybox to handle shell operations
         const char* busybox = "/data/adb/ksu/bin/busybox";
-        
+
         // Build argv for busybox: busybox sh [original args...]
         std::vector<char*> new_argv;
         new_argv.push_back(const_cast<char*>("sh"));
@@ -533,10 +534,10 @@ int cli_run(int argc, char* argv[]) {
             new_argv.push_back(argv[i]);
         }
         new_argv.push_back(nullptr);
-        
+
         // Set ASH_STANDALONE to make busybox ash work properly
         setenv("ASH_STANDALONE", "1", 1);
-        
+
         execv(busybox, new_argv.data());
         // If busybox fails, try system sh as fallback
         execv("/system/bin/toybox", new_argv.data());
@@ -620,4 +621,4 @@ int cli_run(int argc, char* argv[]) {
     return 1;
 }
 
-} // namespace ksud
+}  // namespace ksud

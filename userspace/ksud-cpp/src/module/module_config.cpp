@@ -3,12 +3,12 @@
 #include "../log.hpp"
 #include "../utils.hpp"
 
-#include <unistd.h>
 #include <dirent.h>
-#include <fstream>
-#include <sstream>
-#include <map>
+#include <unistd.h>
 #include <cstdlib>
+#include <fstream>
+#include <map>
+#include <sstream>
 
 namespace ksud {
 
@@ -24,7 +24,8 @@ static std::string get_config_dir(const std::string& module_id) {
 static std::map<std::string, std::string> load_config(const std::string& path) {
     std::map<std::string, std::string> config;
     auto content = read_file(path);
-    if (!content) return config;
+    if (!content)
+        return config;
 
     std::istringstream iss(*content);
     std::string line;
@@ -42,7 +43,8 @@ static std::map<std::string, std::string> load_config(const std::string& path) {
 
 static bool save_config(const std::string& path, const std::map<std::string, std::string>& config) {
     std::ofstream ofs(path);
-    if (!ofs) return false;
+    if (!ofs)
+        return false;
 
     for (const auto& [key, value] : config) {
         ofs << key << "=" << value << "\n";
@@ -89,8 +91,7 @@ int module_config_handle(const std::vector<std::string>& args) {
 
         printf("Key '%s' not found\n", key.c_str());
         return 1;
-    }
-    else if (cmd == "set" && args.size() > 2) {
+    } else if (cmd == "set" && args.size() > 2) {
         const std::string& key = args[1];
         const std::string& value = args[2];
         bool is_temp = args.size() > 3 && (args[3] == "-t" || args[3] == "--temp");
@@ -105,8 +106,7 @@ int module_config_handle(const std::vector<std::string>& args) {
         }
 
         return 0;
-    }
-    else if (cmd == "list") {
+    } else if (cmd == "list") {
         auto persist_config = load_config(persist_path);
         auto temp_config = load_config(temp_path);
 
@@ -124,8 +124,7 @@ int module_config_handle(const std::vector<std::string>& args) {
         }
 
         return 0;
-    }
-    else if (cmd == "delete" && args.size() > 1) {
+    } else if (cmd == "delete" && args.size() > 1) {
         const std::string& key = args[1];
         bool is_temp = args.size() > 2 && (args[2] == "-t" || args[2] == "--temp");
 
@@ -139,8 +138,7 @@ int module_config_handle(const std::vector<std::string>& args) {
         }
 
         return 0;
-    }
-    else if (cmd == "clear") {
+    } else if (cmd == "clear") {
         bool is_temp = args.size() > 1 && (args[1] == "-t" || args[1] == "--temp");
 
         std::string path = is_temp ? temp_path : persist_path;
@@ -163,10 +161,13 @@ void clear_all_temp_configs() {
 
     struct dirent* entry;
     while ((entry = readdir(dir)) != nullptr) {
-        if (entry->d_name[0] == '.') continue;
-        if (entry->d_type != DT_DIR) continue;
+        if (entry->d_name[0] == '.')
+            continue;
+        if (entry->d_type != DT_DIR)
+            continue;
 
-        std::string temp_config = std::string(MODULE_CONFIG_DIR) + entry->d_name + "/" + TEMP_CONFIG_NAME;
+        std::string temp_config =
+            std::string(MODULE_CONFIG_DIR) + entry->d_name + "/" + TEMP_CONFIG_NAME;
         if (access(temp_config.c_str(), F_OK) == 0) {
             unlink(temp_config.c_str());
         }
@@ -175,4 +176,4 @@ void clear_all_temp_configs() {
     closedir(dir);
 }
 
-} // namespace ksud
+}  // namespace ksud

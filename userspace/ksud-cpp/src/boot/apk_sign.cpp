@@ -1,11 +1,11 @@
 #include "apk_sign.hpp"
 #include "../log.hpp"
 
-#include <fstream>
-#include <sstream>
-#include <iomanip>
 #include <cstdint>
 #include <cstring>
+#include <fstream>
+#include <iomanip>
+#include <sstream>
 #include <vector>
 
 // Simple SHA-1 implementation or use openssl if available
@@ -41,4 +41,4 @@ std::pair<uint32_t, std::string> get_apk_signature(const std::string& apk_path) 
     return {size, ss.str()};
 }
 
-} // namespace ksud
+}  // namespace ksud

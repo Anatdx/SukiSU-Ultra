@@ -6,4 +6,4 @@ namespace ksud {
 const char* VERSION_CODE = "12000";
 const char* VERSION_NAME = "1.2.0";
 
-} // namespace ksud
+}  // namespace ksud

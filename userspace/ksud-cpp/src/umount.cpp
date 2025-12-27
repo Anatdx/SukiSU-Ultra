@@ -19,13 +19,15 @@ struct UmountEntry {
 static std::vector<UmountEntry> load_umount_config() {
     std::vector<UmountEntry> entries;
     auto content = read_file(UMOUNT_CONFIG_PATH);
-    if (!content) return entries;
+    if (!content)
+        return entries;
 
     std::istringstream iss(*content);
     std::string line;
     while (std::getline(iss, line)) {
         line = trim(line);
-        if (line.empty() || line[0] == '#') continue;
+        if (line.empty() || line[0] == '#')
+            continue;
 
         UmountEntry entry;
         size_t space = line.find(' ');
@@ -44,7 +46,8 @@ static std::vector<UmountEntry> load_umount_config() {
 
 static bool save_umount_entries(const std::vector<UmountEntry>& entries) {
     std::ofstream ofs(UMOUNT_CONFIG_PATH);
-    if (!ofs) return false;
+    if (!ofs)
+        return false;
 
     ofs << "# KernelSU umount configuration\n";
     for (const auto& entry : entries) {
@@ -56,17 +59,17 @@ static bool save_umount_entries(const std::vector<UmountEntry>& entries) {
 
 int umount_remove_entry(const std::string& mnt) {
     auto entries = load_umount_config();
-    
+
     auto it = std::remove_if(entries.begin(), entries.end(),
-        [&mnt](const UmountEntry& e) { return e.path == mnt; });
-    
+                             [&mnt](const UmountEntry& e) { return e.path == mnt; });
+
     if (it == entries.end()) {
         printf("Mount point %s not found in config\n", mnt.c_str());
         return 1;
     }
 
     entries.erase(it, entries.end());
-    
+
     if (!save_umount_entries(entries)) {
         LOGE("Failed to save umount config");
         return 1;
@@ -90,7 +93,8 @@ int umount_save_config() {
     std::string line;
     while (std::getline(iss, line)) {
         line = trim(line);
-        if (line.empty()) continue;
+        if (line.empty())
+            continue;
 
         UmountEntry entry;
         size_t space = line.find(' ');
@@ -115,7 +119,7 @@ int umount_save_config() {
 
 int umount_apply_config() {
     auto entries = load_umount_config();
-    
+
     for (const auto& entry : entries) {
         int ret = umount_list_add(entry.path, entry.flags);
         if (ret < 0) {
@@ -144,4 +148,4 @@ int umount_clear_config() {
     return 0;
 }
 
-} // namespace ksud
+}  // namespace ksud

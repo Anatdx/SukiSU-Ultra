@@ -1,9 +1,9 @@
 #pragma once
 
-#include <string>
-#include <optional>
 #include <filesystem>
 #include <functional>
+#include <optional>
+#include <string>
 
 namespace ksud {
 
@@ -11,7 +11,8 @@ namespace ksud {
 bool ensure_dir_exists(const std::string& path);
 bool ensure_clean_dir(const std::string& path);
 bool ensure_file_exists(const std::string& path);
-bool ensure_binary(const std::string& path, const uint8_t* data, size_t size, bool ignore_if_exist = false);
+bool ensure_binary(const std::string& path, const uint8_t* data, size_t size,
+                   bool ignore_if_exist = false);
 
 // Property utilities
 std::optional<std::string> getprop(const std::string& prop);
@@ -52,4 +53,4 @@ struct ExecResult {
 ExecResult exec_command(const std::vector<std::string>& args);
 int exec_command_async(const std::vector<std::string>& args);
 
-} // namespace ksud
+}  // namespace ksud

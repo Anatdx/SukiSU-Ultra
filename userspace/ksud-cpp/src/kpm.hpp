@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include <optional>
+#include <string>
 
 namespace ksud {
 
@@ -16,4 +16,4 @@ int kpm_version();
 // Load all KPM modules at boot time
 int kpm_booted_load();
 
-} // namespace ksud
+}  // namespace ksud

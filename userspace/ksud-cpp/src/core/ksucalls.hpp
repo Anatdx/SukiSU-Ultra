@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <utility>
-#include <optional>
 
 namespace ksud {
 
@@ -11,26 +11,26 @@ namespace ksud {
 // Note: size field is 0 to match kernel _IOC(..., 0) definitions
 #define _IOC(dir, type, nr, size) \
     (static_cast<uint32_t>(((dir) << 30) | ((type) << 8) | (nr) | ((size) << 16)))
-#define _IO(type, nr)       _IOC(0, type, nr, 0)
-#define _IOR(type, nr, sz)  _IOC(2, type, nr, 0)
-#define _IOW(type, nr, sz)  _IOC(1, type, nr, 0)
+#define _IO(type, nr) _IOC(0, type, nr, 0)
+#define _IOR(type, nr, sz) _IOC(2, type, nr, 0)
+#define _IOW(type, nr, sz) _IOC(1, type, nr, 0)
 #define _IOWR(type, nr, sz) _IOC(3, type, nr, 0)
 
 constexpr uint32_t K = 'K';
 
 // ioctl commands
-constexpr uint32_t KSU_IOCTL_GRANT_ROOT       = _IO(K, 1);
-constexpr uint32_t KSU_IOCTL_GET_INFO         = _IOR(K, 2, uint64_t);
-constexpr uint32_t KSU_IOCTL_REPORT_EVENT     = _IOW(K, 3, uint64_t);
-constexpr uint32_t KSU_IOCTL_SET_SEPOLICY     = _IOWR(K, 4, uint64_t);
-constexpr uint32_t KSU_IOCTL_CHECK_SAFEMODE   = _IOR(K, 5, uint64_t);
-constexpr uint32_t KSU_IOCTL_GET_FEATURE      = _IOWR(K, 13, uint64_t);
-constexpr uint32_t KSU_IOCTL_SET_FEATURE      = _IOW(K, 14, uint64_t);
-constexpr uint32_t KSU_IOCTL_GET_WRAPPER_FD   = _IOW(K, 15, uint64_t);
-constexpr uint32_t KSU_IOCTL_MANAGE_MARK      = _IOWR(K, 16, uint64_t);
-constexpr uint32_t KSU_IOCTL_NUKE_EXT4_SYSFS  = _IOW(K, 17, uint64_t);
-constexpr uint32_t KSU_IOCTL_ADD_TRY_UMOUNT   = _IOW(K, 18, uint64_t);
-constexpr uint32_t KSU_IOCTL_LIST_TRY_UMOUNT  = _IOWR(K, 200, uint64_t);
+constexpr uint32_t KSU_IOCTL_GRANT_ROOT = _IO(K, 1);
+constexpr uint32_t KSU_IOCTL_GET_INFO = _IOR(K, 2, uint64_t);
+constexpr uint32_t KSU_IOCTL_REPORT_EVENT = _IOW(K, 3, uint64_t);
+constexpr uint32_t KSU_IOCTL_SET_SEPOLICY = _IOWR(K, 4, uint64_t);
+constexpr uint32_t KSU_IOCTL_CHECK_SAFEMODE = _IOR(K, 5, uint64_t);
+constexpr uint32_t KSU_IOCTL_GET_FEATURE = _IOWR(K, 13, uint64_t);
+constexpr uint32_t KSU_IOCTL_SET_FEATURE = _IOW(K, 14, uint64_t);
+constexpr uint32_t KSU_IOCTL_GET_WRAPPER_FD = _IOW(K, 15, uint64_t);
+constexpr uint32_t KSU_IOCTL_MANAGE_MARK = _IOWR(K, 16, uint64_t);
+constexpr uint32_t KSU_IOCTL_NUKE_EXT4_SYSFS = _IOW(K, 17, uint64_t);
+constexpr uint32_t KSU_IOCTL_ADD_TRY_UMOUNT = _IOW(K, 18, uint64_t);
+constexpr uint32_t KSU_IOCTL_LIST_TRY_UMOUNT = _IOWR(K, 200, uint64_t);
 
 // Structures for ioctl - use natural C alignment (matching kernel and Rust repr(C))
 // Do NOT use #pragma pack(1) as it would misalign structures with the kernel!
@@ -126,4 +126,4 @@ int umount_list_add(const std::string& path, uint32_t flags);
 int umount_list_del(const std::string& path);
 std::optional<std::string> umount_list_list();
 
-} // namespace ksud
+}  // namespace ksud

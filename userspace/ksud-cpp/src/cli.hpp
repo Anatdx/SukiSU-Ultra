@@ -1,10 +1,10 @@
 #pragma once
 
-#include <string>
-#include <vector>
 #include <functional>
 #include <map>
 #include <optional>
+#include <string>
+#include <vector>
 
 namespace ksud {
 
@@ -39,4 +39,4 @@ private:
     std::string subcommand_;
 };
 
-} // namespace ksud
+}  // namespace ksud

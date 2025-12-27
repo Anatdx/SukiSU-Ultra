@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include <cstdarg>
+#include <string>
 
 namespace ksud {
 
@@ -28,4 +28,4 @@ void log_e(const char* fmt, ...);
 #define LOGW(...) ksud::log_w(__VA_ARGS__)
 #define LOGE(...) ksud::log_e(__VA_ARGS__)
 
-} // namespace ksud
+}  // namespace ksud

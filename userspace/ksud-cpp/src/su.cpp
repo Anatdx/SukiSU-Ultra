@@ -1,19 +1,19 @@
 #include "su.hpp"
 #include "core/ksucalls.hpp"
+#include "defs.hpp"
 #include "log.hpp"
 #include "utils.hpp"
-#include "defs.hpp"
 
-#include <unistd.h>
-#include <sys/wait.h>
+#include <getopt.h>
+#include <grp.h>
+#include <pwd.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include <cstdlib>
 #include <cstring>
-#include <vector>
 #include <string>
-#include <pwd.h>
-#include <grp.h>
-#include <getopt.h>
+#include <vector>
 
 namespace ksud {
 
@@ -86,56 +86,54 @@ int su_main(int argc, char* argv[]) {
     argc = new_argv.size() - 1;
     argv = new_argv.data();
 
-    static struct option long_options[] = {
-        {"command", required_argument, 0, 'c'},
-        {"help", no_argument, 0, 'h'},
-        {"login", no_argument, 0, 'l'},
-        {"preserve-environment", no_argument, 0, 'p'},
-        {"shell", required_argument, 0, 's'},
-        {"version", no_argument, 0, 'v'},
-        {"mount-master", no_argument, 0, 'M'},
-        {"group", required_argument, 0, 'g'},
-        {"supp-group", required_argument, 0, 'G'},
-        {0, 0, 0, 0}
-    };
+    static struct option long_options[] = {{"command", required_argument, 0, 'c'},
+                                           {"help", no_argument, 0, 'h'},
+                                           {"login", no_argument, 0, 'l'},
+                                           {"preserve-environment", no_argument, 0, 'p'},
+                                           {"shell", required_argument, 0, 's'},
+                                           {"version", no_argument, 0, 'v'},
+                                           {"mount-master", no_argument, 0, 'M'},
+                                           {"group", required_argument, 0, 'g'},
+                                           {"supp-group", required_argument, 0, 'G'},
+                                           {0, 0, 0, 0}};
 
     optind = 1;  // Reset getopt
     int opt;
     while ((opt = getopt_long(argc, argv, "c:hlps:vVMg:G:", long_options, nullptr)) != -1) {
         switch (opt) {
-            case 'c':
-                command = optarg;
-                break;
-            case 'h':
-                print_su_usage();
-                return 0;
-            case 'l':
-                is_login = true;
-                break;
-            case 'p':
-                preserve_env = true;
-                break;
-            case 's':
-                shell = optarg;
-                break;
-            case 'v':
-                printf("%s:KernelSU\n", VERSION_NAME);
-                return 0;
-            case 'V':
-                printf("%s\n", VERSION_CODE);
-                return 0;
-            case 'M':
-                mount_master = true;
-                break;
-            case 'g':
-                target_gid = static_cast<gid_t>(std::stoul(optarg));
-                gid_specified = true;
-                break;
-            case 'G':
-                groups.push_back(static_cast<gid_t>(std::stoul(optarg)));
-                break;
-            default:
-                break;
+        case 'c':
+            command = optarg;
+            break;
+        case 'h':
+            print_su_usage();
+            return 0;
+        case 'l':
+            is_login = true;
+            break;
+        case 'p':
+            preserve_env = true;
+            break;
+        case 's':
+            shell = optarg;
+            break;
+        case 'v':
+            printf("%s:KernelSU\n", VERSION_NAME);
+            return 0;
+        case 'V':
+            printf("%s\n", VERSION_CODE);
+            return 0;
+        case 'M':
+            mount_master = true;
+            break;
+        case 'g':
+            target_gid = static_cast<gid_t>(std::stoul(optarg));
+            gid_specified = true;
+            break;
+        case 'G':
+            groups.push_back(static_cast<gid_t>(std::stoul(optarg)));
+            break;
+        default:
+            break;
         }
     }
 
@@ -219,7 +217,7 @@ int su_main(int argc, char* argv[]) {
     // Build argv for shell (matching Rust behavior)
     // arg0 is "-" for login shell, otherwise the shell path itself
     std::string arg0 = is_login ? "-" : shell;
-    
+
     std::vector<const char*> shell_argv;
     shell_argv.push_back(arg0.c_str());
 
@@ -252,4 +250,4 @@ int grant_root_shell(bool global_mnt) {
     return root_shell();
 }
 
-} // namespace ksud
+}  // namespace ksud

@@ -1,14 +1,14 @@
 #include "ksucalls.hpp"
-#include "../log.hpp"
 #include "../defs.hpp"
+#include "../log.hpp"
 
-#include <cstring>
 #include <dirent.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/prctl.h>
 #include <sys/syscall.h>
+#include <unistd.h>
+#include <cstring>
 
 namespace ksud {
 
@@ -32,7 +32,8 @@ struct PrctlGetFdCmd {
 
 static int scan_driver_fd() {
     DIR* dir = opendir("/proc/self/fd");
-    if (!dir) return -1;
+    if (!dir)
+        return -1;
 
     int found_fd = -1;
     struct dirent* entry;
@@ -40,7 +41,8 @@ static int scan_driver_fd() {
     char target[256];
 
     while ((entry = readdir(dir)) != nullptr) {
-        if (entry->d_name[0] == '.') continue;
+        if (entry->d_name[0] == '.')
+            continue;
 
         int fd_num = atoi(entry->d_name);
         snprintf(link_path, sizeof(link_path), "/proc/self/fd/%d", fd_num);
@@ -233,4 +235,4 @@ std::optional<std::string> umount_list_list() {
     return std::string(buffer);
 }
 
-} // namespace ksud
+}  // namespace ksud

@@ -1,28 +1,28 @@
 #include "boot_patch.hpp"
+#include "../assets.hpp"
 #include "../defs.hpp"
 #include "../log.hpp"
 #include "../utils.hpp"
-#include "../assets.hpp"
 
 #include <dirent.h>
+#include <fcntl.h>
 #include <sys/stat.h>
-#include <fstream>
+#include <unistd.h>
 #include <cstring>
 #include <ctime>
-#include <unistd.h>
-#include <fcntl.h>
-#include <regex>
 #include <filesystem>
+#include <fstream>
+#include <regex>
 
 namespace fs = std::filesystem;
 
 namespace ksud {
 
 // SuperKey magic marker (must match kernel's SUPERKEY_MAGIC)
-constexpr uint64_t SUPERKEY_MAGIC = 0x5355504552; // "SUPER" in hex
+constexpr uint64_t SUPERKEY_MAGIC = 0x5355504552;  // "SUPER" in hex
 
 // SuperKey flags bit definitions
-constexpr uint64_t SUPERKEY_FLAG_SIGNATURE_BYPASS = 1; // bit 0: disable signature verification
+constexpr uint64_t SUPERKEY_FLAG_SIGNATURE_BYPASS = 1;  // bit 0: disable signature verification
 
 // LKM Priority magic marker (must match kernel's LKM_PRIORITY_MAGIC)
 // "LKMPRIO" in hex (little-endian)
@@ -38,7 +38,8 @@ static uint64_t hash_superkey(const std::string& key) {
 }
 
 // Inject superkey hash and flags into LKM file
-static bool inject_superkey_to_lkm(const std::string& lkm_path, const std::string& superkey, bool signature_bypass) {
+static bool inject_superkey_to_lkm(const std::string& lkm_path, const std::string& superkey,
+                                   bool signature_bypass) {
     uint64_t hash = hash_superkey(superkey);
     uint64_t flags = signature_bypass ? SUPERKEY_FLAG_SIGNATURE_BYPASS : 0;
     printf("- SuperKey hash: 0x%016llx\n", (unsigned long long)hash);
@@ -140,7 +141,7 @@ static bool inject_lkm_priority_to_lkm(const std::string& lkm_path, bool enabled
 }
 
 // Execute magiskboot cpio command
-static bool do_cpio_cmd(const std::string& magiskboot, const std::string& workdir, 
+static bool do_cpio_cmd(const std::string& magiskboot, const std::string& workdir,
                         const std::string& cpio_path, const std::string& cmd) {
     auto result = exec_command({magiskboot, "cpio", cpio_path, cmd});
     if (result.exit_code != 0) {
@@ -151,7 +152,7 @@ static bool do_cpio_cmd(const std::string& magiskboot, const std::string& workdi
 }
 
 // Check if boot image is patched by Magisk
-static bool is_magisk_patched(const std::string& magiskboot, const std::string& workdir, 
+static bool is_magisk_patched(const std::string& magiskboot, const std::string& workdir,
                               const std::string& cpio_path) {
     auto result = exec_command({magiskboot, "cpio", cpio_path, "test"});
     // 0: stock, 1: magisk
@@ -159,7 +160,7 @@ static bool is_magisk_patched(const std::string& magiskboot, const std::string& 
 }
 
 // Check if boot image is patched by KernelSU
-static bool is_kernelsu_patched(const std::string& magiskboot, const std::string& workdir, 
+static bool is_kernelsu_patched(const std::string& magiskboot, const std::string& workdir,
                                 const std::string& cpio_path) {
     auto result = exec_command({magiskboot, "cpio", cpio_path, "exists kernelsu.ko"});
     return result.exit_code == 0;
@@ -184,7 +185,7 @@ static std::string find_magiskboot(const std::string& specified_path, const std:
             LOGE("Failed to prepare magiskboot from %s", specified_path.c_str());
             return "";
         }
-        
+
         if (access(specified_path.c_str(), X_OK) == 0) {
             return specified_path;
         }
@@ -266,7 +267,7 @@ static bool do_backup(const std::string& magiskboot, const std::string& workdir,
     printf("- Backup stock boot image\n");
 
     std::string target = std::string(KSU_BACKUP_DIR) + filename;
-    
+
     // Copy image to backup location
     std::ifstream src(image, std::ios::binary);
     std::ofstream dst(target, std::ios::binary);
@@ -283,7 +284,7 @@ static bool do_backup(const std::string& magiskboot, const std::string& workdir,
     write_file(sha1_file, sha1);
 
     // Add backup info to ramdisk
-    if (!do_cpio_cmd(magiskboot, workdir, cpio_path, 
+    if (!do_cpio_cmd(magiskboot, workdir, cpio_path,
                      "add 0755 " + std::string(BACKUP_FILENAME) + " " + sha1_file)) {
         return false;
     }
@@ -300,8 +301,9 @@ static void clean_backup(const std::string& current_sha1) {
 
     try {
         for (const auto& entry : fs::directory_iterator(KSU_BACKUP_DIR)) {
-            if (!entry.is_regular_file()) continue;
-            
+            if (!entry.is_regular_file())
+                continue;
+
             std::string name = entry.path().filename().string();
             if (name != backup_name && starts_with(name, KSU_BACKUP_FILE_PREFIX)) {
                 if (fs::remove(entry.path())) {
@@ -316,38 +318,43 @@ static void clean_backup(const std::string& current_sha1) {
 
 // Parse boot patch arguments
 struct BootPatchArgs {
-    std::string boot_image;      // -b, --boot
-    std::string kernel;          // -k, --kernel
-    std::string module;          // -m, --module (LKM path)
-    std::string init;            // -i, --init
-    std::string superkey;        // -s, --superkey
-    bool signature_bypass = false; // --signature-bypass
-    bool lkm_priority = true;    // --lkm-priority
-    bool ota = false;            // -u, --ota
-    bool flash = false;          // -f, --flash
-    std::string out;             // -o, --out
-    std::string magiskboot;      // --magiskboot
-    std::string kmi;             // --kmi
-    std::string partition;       // --partition
-    std::string out_name;        // --out-name
+    std::string boot_image;         // -b, --boot
+    std::string kernel;             // -k, --kernel
+    std::string module;             // -m, --module (LKM path)
+    std::string init;               // -i, --init
+    std::string superkey;           // -s, --superkey
+    bool signature_bypass = false;  // --signature-bypass
+    bool lkm_priority = true;       // --lkm-priority
+    bool ota = false;               // -u, --ota
+    bool flash = false;             // -f, --flash
+    std::string out;                // -o, --out
+    std::string magiskboot;         // --magiskboot
+    std::string kmi;                // --kmi
+    std::string partition;          // --partition
+    std::string out_name;           // --out-name
 };
 
 static BootPatchArgs parse_boot_patch_args(const std::vector<std::string>& args) {
     BootPatchArgs result;
-    
+
     for (size_t i = 0; i < args.size(); i++) {
         const std::string& arg = args[i];
-        
+
         if (arg == "-b" || arg == "--boot") {
-            if (i + 1 < args.size()) result.boot_image = args[++i];
+            if (i + 1 < args.size())
+                result.boot_image = args[++i];
         } else if (arg == "-k" || arg == "--kernel") {
-            if (i + 1 < args.size()) result.kernel = args[++i];
+            if (i + 1 < args.size())
+                result.kernel = args[++i];
         } else if (arg == "-m" || arg == "--module") {
-            if (i + 1 < args.size()) result.module = args[++i];
+            if (i + 1 < args.size())
+                result.module = args[++i];
         } else if (arg == "-i" || arg == "--init") {
-            if (i + 1 < args.size()) result.init = args[++i];
+            if (i + 1 < args.size())
+                result.init = args[++i];
         } else if (arg == "-s" || arg == "--superkey") {
-            if (i + 1 < args.size()) result.superkey = args[++i];
+            if (i + 1 < args.size())
+                result.superkey = args[++i];
         } else if (arg == "--signature-bypass") {
             result.signature_bypass = true;
         } else if (arg == "--lkm-priority") {
@@ -362,24 +369,29 @@ static BootPatchArgs parse_boot_patch_args(const std::vector<std::string>& args)
         } else if (arg == "-f" || arg == "--flash") {
             result.flash = true;
         } else if (arg == "-o" || arg == "--out") {
-            if (i + 1 < args.size()) result.out = args[++i];
+            if (i + 1 < args.size())
+                result.out = args[++i];
         } else if (arg == "--magiskboot") {
-            if (i + 1 < args.size()) result.magiskboot = args[++i];
+            if (i + 1 < args.size())
+                result.magiskboot = args[++i];
         } else if (arg == "--kmi") {
-            if (i + 1 < args.size()) result.kmi = args[++i];
+            if (i + 1 < args.size())
+                result.kmi = args[++i];
         } else if (arg == "--partition") {
-            if (i + 1 < args.size()) result.partition = args[++i];
+            if (i + 1 < args.size())
+                result.partition = args[++i];
         } else if (arg == "--out-name") {
-            if (i + 1 < args.size()) result.out_name = args[++i];
+            if (i + 1 < args.size())
+                result.out_name = args[++i];
         }
     }
-    
+
     return result;
 }
 
 int boot_patch(const std::vector<std::string>& args) {
     auto parsed = parse_boot_patch_args(args);
-    
+
     printf("\n");
     printf("__   __ _   _  _  __ ___  ____   _   _ \n");
     printf("\\ \\ / /| | | || |/ /|_ _|/ ___| | | | |\n");
@@ -387,7 +399,7 @@ int boot_patch(const std::vector<std::string>& args) {
     printf("  | |  | |_| || . \\  | |  ___) || |_| |\n");
     printf("  |_|   \\___/ |_|\\_\\|___||____/  \\___/ \n");
     printf("\n");
-    
+
     // Create temp working directory
     char tmpdir_template[] = "/data/local/tmp/KernelSU_XXXXXX";
     char* tmpdir = mkdtemp(tmpdir_template);
@@ -396,13 +408,13 @@ int boot_patch(const std::vector<std::string>& args) {
         return 1;
     }
     std::string workdir = tmpdir;
-    
+
     // Cleanup function
     auto cleanup = [&workdir]() {
         std::string cmd = "rm -rf " + workdir;
         system(cmd.c_str());
     };
-    
+
     // Find magiskboot
     std::string magiskboot = find_magiskboot(parsed.magiskboot, workdir);
     if (magiskboot.empty()) {
@@ -410,7 +422,7 @@ int boot_patch(const std::vector<std::string>& args) {
         return 1;
     }
     printf("- Using magiskboot: %s\n", magiskboot.c_str());
-    
+
     // Get or detect KMI
     std::string kmi = parsed.kmi;
     if (kmi.empty()) {
@@ -424,12 +436,12 @@ int boot_patch(const std::vector<std::string>& args) {
     if (!kmi.empty()) {
         printf("- KMI: %s\n", kmi.c_str());
     }
-    
+
     // Determine boot image path
     std::string bootimage;
     std::string bootdevice;
     bool patch_file = !parsed.boot_image.empty();
-    
+
     if (patch_file) {
         bootimage = parsed.boot_image;
         if (access(bootimage.c_str(), R_OK) != 0) {
@@ -441,20 +453,21 @@ int boot_patch(const std::vector<std::string>& args) {
         // Auto-detect boot partition
         std::string slot = get_slot_suffix(parsed.ota);
         std::string partition_name;
-        
+
         // Determine if we're in replace kernel mode (when --kernel is specified)
         bool is_replace_kernel = !parsed.kernel.empty();
-        
+
         if (!parsed.partition.empty()) {
             // User specified partition name (e.g., "init_boot" or "boot")
-            partition_name = choose_boot_partition(kmi, parsed.ota, &parsed.partition, is_replace_kernel);
+            partition_name =
+                choose_boot_partition(kmi, parsed.ota, &parsed.partition, is_replace_kernel);
         } else {
             // Auto-detect: choose_boot_partition returns full path with slot
             partition_name = choose_boot_partition(kmi, parsed.ota, nullptr, is_replace_kernel);
         }
-        
+
         printf("- Bootdevice: %s\n", partition_name.c_str());
-        
+
         bootimage = workdir + "/boot.img";
         if (!dd(partition_name, bootimage)) {
             LOGE("Failed to read boot image from %s", partition_name.c_str());
@@ -463,11 +476,11 @@ int boot_patch(const std::vector<std::string>& args) {
         }
         bootdevice = partition_name;
     }
-    
+
     // Prepare LKM module
     printf("- Preparing assets\n");
     std::string kmod_file = workdir + "/kernelsu.ko";
-    
+
     if (!parsed.module.empty()) {
         // Use specified module
         std::ifstream src(parsed.module, std::ios::binary);
@@ -482,20 +495,17 @@ int boot_patch(const std::vector<std::string>& args) {
         // Try to extract LKM from embedded assets first
         std::string kmi_lkm_name = kmi + "_kernelsu.ko";
         printf("- KMI: %s\n", kmi.c_str());
-        
+
         if (copy_asset_to_file(kmi_lkm_name, kmod_file)) {
             printf("- Using embedded LKM: %s\n", kmi_lkm_name.c_str());
         } else {
             // Fallback: try to find LKM from known locations
             std::vector<std::string> search_paths = {
-                std::string(BINARY_DIR) + kmi_lkm_name,
-                std::string(BINARY_DIR) + "kernelsu.ko",
-                std::string(WORKING_DIR) + kmi_lkm_name,
-                std::string(WORKING_DIR) + "kernelsu.ko",
-                "/data/local/tmp/" + kmi_lkm_name,
-                "/data/local/tmp/kernelsu.ko",
+                std::string(BINARY_DIR) + kmi_lkm_name,  std::string(BINARY_DIR) + "kernelsu.ko",
+                std::string(WORKING_DIR) + kmi_lkm_name, std::string(WORKING_DIR) + "kernelsu.ko",
+                "/data/local/tmp/" + kmi_lkm_name,       "/data/local/tmp/kernelsu.ko",
             };
-            
+
             bool found = false;
             for (const auto& path : search_paths) {
                 if (access(path.c_str(), R_OK) == 0) {
@@ -509,11 +519,11 @@ int boot_patch(const std::vector<std::string>& args) {
                     }
                 }
             }
-            
+
             if (!found) {
                 // List available KMIs from embedded assets
                 auto supported = list_supported_kmi();
-                
+
                 printf("\n");
                 printf("! No LKM module found for KMI: %s\n", kmi.c_str());
                 printf("!\n");
@@ -535,7 +545,7 @@ int boot_patch(const std::vector<std::string>& args) {
             }
         }
     }
-    
+
     // Inject SuperKey if specified
     if (!parsed.superkey.empty()) {
         printf("- Injecting SuperKey into LKM\n");
@@ -543,11 +553,11 @@ int boot_patch(const std::vector<std::string>& args) {
     } else if (parsed.signature_bypass) {
         printf("- Warning: signature_bypass requires superkey to be set, ignoring\n");
     }
-    
+
     // Inject LKM priority setting
     printf("- Configuring LKM priority\n");
     inject_lkm_priority_to_lkm(kmod_file, parsed.lkm_priority);
-    
+
     // Prepare init if specified
     std::string init_file = workdir + "/init";
     if (!parsed.init.empty()) {
@@ -580,7 +590,7 @@ int boot_patch(const std::vector<std::string>& args) {
         }
     }
     chmod(init_file.c_str(), 0755);
-    
+
     // Unpack boot image
     printf("- Unpacking boot image\n");
     auto unpack_result = exec_command({magiskboot, "unpack", bootimage});
@@ -589,39 +599,37 @@ int boot_patch(const std::vector<std::string>& args) {
         cleanup();
         return 1;
     }
-    
+
     // Find ramdisk
     std::string ramdisk;
-    std::vector<std::string> ramdisk_candidates = {
-        workdir + "/ramdisk.cpio",
-        workdir + "/vendor_ramdisk/init_boot.cpio",
-        workdir + "/vendor_ramdisk/ramdisk.cpio"
-    };
-    
+    std::vector<std::string> ramdisk_candidates = {workdir + "/ramdisk.cpio",
+                                                   workdir + "/vendor_ramdisk/init_boot.cpio",
+                                                   workdir + "/vendor_ramdisk/ramdisk.cpio"};
+
     for (const auto& candidate : ramdisk_candidates) {
         if (access(candidate.c_str(), R_OK) == 0) {
             ramdisk = candidate;
             break;
         }
     }
-    
+
     if (ramdisk.empty()) {
         printf("- No ramdisk found, creating default\n");
         ramdisk = workdir + "/ramdisk.cpio";
         // Create empty ramdisk
         exec_command({magiskboot, "cpio", ramdisk, "mkdir 0755 ."});
     }
-    
+
     // Check for Magisk
     if (is_magisk_patched(magiskboot, workdir, ramdisk)) {
         LOGE("Cannot work with Magisk patched image");
         cleanup();
         return 1;
     }
-    
+
     printf("- Adding KernelSU LKM\n");
     bool already_patched = is_kernelsu_patched(magiskboot, workdir, ramdisk);
-    
+
     if (!already_patched) {
         // Backup init if it exists
         auto init_exists = exec_command({magiskboot, "cpio", ramdisk, "exists init"});
@@ -629,23 +637,23 @@ int boot_patch(const std::vector<std::string>& args) {
             do_cpio_cmd(magiskboot, workdir, ramdisk, "mv init init.real");
         }
     }
-    
+
     // Add init and kernelsu.ko
     // Change to workdir for cpio operations
     char orig_dir[PATH_MAX];
     getcwd(orig_dir, sizeof(orig_dir));
     chdir(workdir.c_str());
-    
+
     do_cpio_cmd(magiskboot, workdir, ramdisk, "add 0755 init init");
     do_cpio_cmd(magiskboot, workdir, ramdisk, "add 0755 kernelsu.ko kernelsu.ko");
-    
+
     // Backup if flashing and not already patched
     if (!already_patched && parsed.flash) {
         if (!do_backup(magiskboot, workdir, ramdisk, bootimage)) {
             printf("- Warning: Backup stock image failed\n");
         }
     }
-    
+
     // Repack boot image
     printf("- Repacking boot image\n");
     auto repack_result = exec_command({magiskboot, "repack", bootimage});
@@ -655,9 +663,9 @@ int boot_patch(const std::vector<std::string>& args) {
         cleanup();
         return 1;
     }
-    
+
     std::string new_boot = workdir + "/new-boot.img";
-    
+
     // Output patched image
     if (patch_file) {
         std::string output_dir = parsed.out.empty() ? "." : parsed.out;
@@ -669,9 +677,9 @@ int boot_patch(const std::vector<std::string>& args) {
             strftime(time_str, sizeof(time_str), "%Y%m%d_%H%M%S", tm_info);
             name = std::string("kernelsu_patched_") + time_str + ".img";
         }
-        
+
         std::string output_image = output_dir + "/" + name;
-        
+
         std::ifstream src(new_boot, std::ios::binary);
         std::ofstream dst(output_image, std::ios::binary);
         if (!src || !dst) {
@@ -681,11 +689,11 @@ int boot_patch(const std::vector<std::string>& args) {
             return 1;
         }
         dst << src.rdbuf();
-        
+
         printf("- Output file is written to\n");
         printf("- %s\n", output_image.c_str());
     }
-    
+
     // Flash if requested
     if (parsed.flash && !bootdevice.empty()) {
         printf("- Flashing new boot image\n");
@@ -696,45 +704,48 @@ int boot_patch(const std::vector<std::string>& args) {
             return 1;
         }
     }
-    
+
     chdir(orig_dir);
     cleanup();
-    
+
     printf("- Done!\n");
     return 0;
 }
 
 // Parse boot restore arguments
 struct BootRestoreArgs {
-    std::string boot_image;      // -b, --boot
-    bool flash = false;          // -f, --flash
-    std::string magiskboot;      // --magiskboot
-    std::string out_name;        // --out-name
+    std::string boot_image;  // -b, --boot
+    bool flash = false;      // -f, --flash
+    std::string magiskboot;  // --magiskboot
+    std::string out_name;    // --out-name
 };
 
 static BootRestoreArgs parse_boot_restore_args(const std::vector<std::string>& args) {
     BootRestoreArgs result;
-    
+
     for (size_t i = 0; i < args.size(); i++) {
         const std::string& arg = args[i];
-        
+
         if (arg == "-b" || arg == "--boot") {
-            if (i + 1 < args.size()) result.boot_image = args[++i];
+            if (i + 1 < args.size())
+                result.boot_image = args[++i];
         } else if (arg == "-f" || arg == "--flash") {
             result.flash = true;
         } else if (arg == "--magiskboot") {
-            if (i + 1 < args.size()) result.magiskboot = args[++i];
+            if (i + 1 < args.size())
+                result.magiskboot = args[++i];
         } else if (arg == "--out-name") {
-            if (i + 1 < args.size()) result.out_name = args[++i];
+            if (i + 1 < args.size())
+                result.out_name = args[++i];
         }
     }
-    
+
     return result;
 }
 
 int boot_restore(const std::vector<std::string>& args) {
     auto parsed = parse_boot_restore_args(args);
-    
+
     // Create temp working directory
     char tmpdir_template[] = "/data/local/tmp/KernelSU_XXXXXX";
     char* tmpdir = mkdtemp(tmpdir_template);
@@ -743,26 +754,26 @@ int boot_restore(const std::vector<std::string>& args) {
         return 1;
     }
     std::string workdir = tmpdir;
-    
+
     auto cleanup = [&workdir]() {
         std::string cmd = "rm -rf " + workdir;
         system(cmd.c_str());
     };
-    
+
     // Find magiskboot
     std::string magiskboot = find_magiskboot(parsed.magiskboot, workdir);
     if (magiskboot.empty()) {
         cleanup();
         return 1;
     }
-    
+
     // Get KMI for partition detection
     std::string kmi = get_current_kmi();
-    
+
     // Determine boot image path
     std::string bootimage;
     std::string bootdevice;
-    
+
     if (!parsed.boot_image.empty()) {
         bootimage = parsed.boot_image;
         if (access(bootimage.c_str(), R_OK) != 0) {
@@ -774,7 +785,7 @@ int boot_restore(const std::vector<std::string>& args) {
         // Auto-detect boot partition (restore doesn't replace kernel)
         std::string partition_name = choose_boot_partition(kmi, false, nullptr, false);
         printf("- Bootdevice: %s\n", partition_name.c_str());
-        
+
         bootimage = workdir + "/boot.img";
         if (!dd(partition_name, bootimage)) {
             LOGE("Failed to read boot image");
@@ -783,7 +794,7 @@ int boot_restore(const std::vector<std::string>& args) {
         }
         bootdevice = partition_name;
     }
-    
+
     // Unpack boot image
     printf("- Unpacking boot image\n");
     auto unpack_result = exec_command({magiskboot, "unpack", bootimage});
@@ -792,50 +803,50 @@ int boot_restore(const std::vector<std::string>& args) {
         cleanup();
         return 1;
     }
-    
+
     // Find ramdisk
     std::string ramdisk;
-    std::vector<std::string> ramdisk_candidates = {
-        workdir + "/ramdisk.cpio",
-        workdir + "/vendor_ramdisk/init_boot.cpio",
-        workdir + "/vendor_ramdisk/ramdisk.cpio"
-    };
-    
+    std::vector<std::string> ramdisk_candidates = {workdir + "/ramdisk.cpio",
+                                                   workdir + "/vendor_ramdisk/init_boot.cpio",
+                                                   workdir + "/vendor_ramdisk/ramdisk.cpio"};
+
     for (const auto& candidate : ramdisk_candidates) {
         if (access(candidate.c_str(), R_OK) == 0) {
             ramdisk = candidate;
             break;
         }
     }
-    
+
     if (ramdisk.empty()) {
         LOGE("No compatible ramdisk found");
         cleanup();
         return 1;
     }
-    
+
     // Check if patched by KernelSU
     if (!is_kernelsu_patched(magiskboot, workdir, ramdisk)) {
         LOGE("Boot image is not patched by KernelSU");
         cleanup();
         return 1;
     }
-    
+
     std::string new_boot;
     bool from_backup = false;
-    
+
     // Try to find backup
-    auto backup_exists = exec_command({magiskboot, "cpio", ramdisk, "exists " + std::string(BACKUP_FILENAME)});
+    auto backup_exists =
+        exec_command({magiskboot, "cpio", ramdisk, "exists " + std::string(BACKUP_FILENAME)});
     if (backup_exists.exit_code == 0) {
         // Extract backup sha1
         std::string backup_file = workdir + "/" + BACKUP_FILENAME;
-        exec_command({magiskboot, "cpio", ramdisk, "extract " + std::string(BACKUP_FILENAME) + " " + backup_file});
-        
+        exec_command({magiskboot, "cpio", ramdisk,
+                      "extract " + std::string(BACKUP_FILENAME) + " " + backup_file});
+
         auto sha_content = read_file(backup_file);
         if (sha_content) {
             std::string sha = trim(*sha_content);
             std::string backup_path = std::string(KSU_BACKUP_DIR) + KSU_BACKUP_FILE_PREFIX + sha;
-            
+
             if (access(backup_path.c_str(), R_OK) == 0) {
                 new_boot = backup_path;
                 from_backup = true;
@@ -847,18 +858,18 @@ int boot_restore(const std::vector<std::string>& args) {
     } else {
         printf("- Backup info is absent!\n");
     }
-    
+
     // If no backup, manually remove KernelSU
     if (!from_backup) {
         // Remove kernelsu.ko
         do_cpio_cmd(magiskboot, workdir, ramdisk, "rm kernelsu.ko");
-        
+
         // Restore init if init.real exists
         auto init_real_exists = exec_command({magiskboot, "cpio", ramdisk, "exists init.real"});
         if (init_real_exists.exit_code == 0) {
             do_cpio_cmd(magiskboot, workdir, ramdisk, "mv init.real init");
         }
-        
+
         // Repack
         printf("- Repacking boot image\n");
         auto repack_result = exec_command({magiskboot, "repack", bootimage});
@@ -869,7 +880,7 @@ int boot_restore(const std::vector<std::string>& args) {
         }
         new_boot = workdir + "/new-boot.img";
     }
-    
+
     // Output restored image
     if (!parsed.boot_image.empty()) {
         std::string name = parsed.out_name;
@@ -880,9 +891,9 @@ int boot_restore(const std::vector<std::string>& args) {
             strftime(time_str, sizeof(time_str), "%Y%m%d_%H%M%S", tm_info);
             name = std::string("kernelsu_restore_") + time_str + ".img";
         }
-        
+
         std::string output_image = "./" + name;
-        
+
         std::ifstream src(new_boot, std::ios::binary);
         std::ofstream dst(output_image, std::ios::binary);
         if (!src || !dst) {
@@ -891,11 +902,11 @@ int boot_restore(const std::vector<std::string>& args) {
             return 1;
         }
         dst << src.rdbuf();
-        
+
         printf("- Output file is written to\n");
         printf("- %s\n", output_image.c_str());
     }
-    
+
     // Flash if requested
     if (parsed.flash && !bootdevice.empty()) {
         if (from_backup) {
@@ -909,7 +920,7 @@ int boot_restore(const std::vector<std::string>& args) {
             return 1;
         }
     }
-    
+
     cleanup();
     printf("- Done!\n");
     return 0;
@@ -929,19 +940,23 @@ std::string get_current_kmi() {
 
     std::string line = *version;
     size_t start = line.find("Linux version ");
-    if (start == std::string::npos) return "";
+    if (start == std::string::npos)
+        return "";
 
     start += 14;
     size_t end = line.find(' ', start);
-    if (end == std::string::npos) end = line.length();
+    if (end == std::string::npos)
+        end = line.length();
 
     std::string full_version = line.substr(start, end - start);
 
     // Extract major.minor
     size_t dot1 = full_version.find('.');
-    if (dot1 == std::string::npos) return "";
+    if (dot1 == std::string::npos)
+        return "";
     size_t dot2 = full_version.find('.', dot1 + 1);
-    if (dot2 == std::string::npos) dot2 = full_version.length();
+    if (dot2 == std::string::npos)
+        dot2 = full_version.length();
 
     std::string major_minor = full_version.substr(0, dot2);
 
@@ -950,7 +965,8 @@ std::string get_current_kmi() {
     if (android_pos != std::string::npos) {
         size_t ver_start = android_pos + 8;
         size_t ver_end = full_version.find('-', ver_start);
-        if (ver_end == std::string::npos) ver_end = full_version.length();
+        if (ver_end == std::string::npos)
+            ver_end = full_version.length();
 
         std::string android_ver = full_version.substr(ver_start, ver_end - ver_start);
         return "android" + android_ver + "-" + major_minor;
@@ -996,8 +1012,10 @@ std::string get_slot_suffix(bool ota) {
 
     if (ota) {
         // Toggle to other slot
-        if (*suffix == "_a") return "_b";
-        if (*suffix == "_b") return "_a";
+        if (*suffix == "_a")
+            return "_b";
+        if (*suffix == "_b")
+            return "_a";
     }
 
     return *suffix;
@@ -1009,11 +1027,13 @@ int boot_info_slot_suffix(bool ota) {
     return 0;
 }
 
-std::string choose_boot_partition(const std::string& kmi, bool ota, const std::string* override_partition, bool is_replace_kernel) {
+std::string choose_boot_partition(const std::string& kmi, bool ota,
+                                  const std::string* override_partition, bool is_replace_kernel) {
     // If specific partition is specified, use it
     if (override_partition && !override_partition->empty()) {
         // Validate partition name
-        if (*override_partition == "boot" || *override_partition == "init_boot" || *override_partition == "vendor_boot") {
+        if (*override_partition == "boot" || *override_partition == "init_boot" ||
+            *override_partition == "vendor_boot") {
             std::string slot = get_slot_suffix(ota);
             return "/dev/block/by-name/" + *override_partition + slot;
         }
@@ -1021,15 +1041,15 @@ std::string choose_boot_partition(const std::string& kmi, bool ota, const std::s
     }
 
     std::string slot = get_slot_suffix(ota);
-    
+
     // Android 12 GKI doesn't have init_boot
     bool skip_init_boot = kmi.find("android12-") == 0;
-    
+
     // Check if init_boot exists
     std::string init_boot = "/dev/block/by-name/init_boot" + slot;
     struct stat st;
     bool init_boot_exist = (stat(init_boot.c_str(), &st) == 0);
-    
+
     // Use init_boot if:
     // - Not replacing kernel (LKM mode)
     // - init_boot partition exists
@@ -1046,15 +1066,15 @@ std::string choose_boot_partition(const std::string& kmi, bool ota, const std::s
 // Used by boot-info default-partition command for manager
 std::string get_default_partition_name(const std::string& kmi, bool is_replace_kernel) {
     std::string slot = get_slot_suffix(false);
-    
+
     // Android 12 GKI doesn't have init_boot
     bool skip_init_boot = kmi.find("android12-") == 0;
-    
+
     // Check if init_boot exists
     std::string init_boot = "/dev/block/by-name/init_boot" + slot;
     struct stat st;
     bool init_boot_exist = (stat(init_boot.c_str(), &st) == 0);
-    
+
     // Use init_boot if:
     // - Not replacing kernel (LKM mode)
     // - init_boot partition exists
@@ -1078,9 +1098,9 @@ int boot_info_available_partitions() {
     // Return base partition names (without slot suffix) like Rust version
     // Manager will add slot suffix based on user's choice
     std::string slot = get_slot_suffix(false);
-    
+
     const char* candidates[] = {"boot", "init_boot", "vendor_boot"};
-    
+
     for (const char* name : candidates) {
         std::string full_path = std::string("/dev/block/by-name/") + name + slot;
         struct stat st;
@@ -1092,4 +1112,4 @@ int boot_info_available_partitions() {
     return 0;
 }
 
-} // namespace ksud
+}  // namespace ksud

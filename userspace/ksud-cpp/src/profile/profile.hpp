@@ -14,4 +14,4 @@ int profile_list_templates();
 // Apply all profile sepolicies
 int apply_profile_sepolies();
 
-} // namespace ksud
+}  // namespace ksud

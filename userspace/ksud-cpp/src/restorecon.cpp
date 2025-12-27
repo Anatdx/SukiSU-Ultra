@@ -1,14 +1,13 @@
 #include "restorecon.hpp"
 #include "log.hpp"
 
-#include <cstring>
 #include <sys/xattr.h>
+#include <cstring>
 
 namespace ksud {
 
 int lsetfilecon(const std::string& path, const std::string& context) {
-    int ret = lsetxattr(path.c_str(), "security.selinux", 
-                        context.c_str(), context.length() + 1, 0);
+    int ret = lsetxattr(path.c_str(), "security.selinux", context.c_str(), context.length() + 1, 0);
     if (ret < 0) {
         LOGW("Failed to set SELinux context on %s: %s", path.c_str(), strerror(errno));
         return -1;
@@ -22,4 +21,4 @@ int restorecon(const std::string& path, bool recursive) {
     return lsetfilecon(path, ADB_CON);
 }
 
-} // namespace ksud
+}  // namespace ksud

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string>
 #include <cstdint>
 #include <map>
+#include <string>
 
 namespace ksud {
 
@@ -22,4 +22,4 @@ void apply_config(const std::map<uint32_t, uint64_t>& features);
 // Initialize features at boot, respecting module-managed features
 int init_features();
 
-} // namespace ksud
+}  // namespace ksud

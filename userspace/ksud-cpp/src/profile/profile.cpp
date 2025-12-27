@@ -3,8 +3,8 @@
 #include "../log.hpp"
 #include "../utils.hpp"
 
-#include <unistd.h>
 #include <dirent.h>
+#include <unistd.h>
 #include <fstream>
 
 namespace ksud {
@@ -73,7 +73,8 @@ int profile_list_templates() {
 
     struct dirent* entry;
     while ((entry = readdir(dir)) != nullptr) {
-        if (entry->d_name[0] == '.') continue;
+        if (entry->d_name[0] == '.')
+            continue;
         printf("%s\n", entry->d_name);
     }
 
@@ -83,15 +84,18 @@ int profile_list_templates() {
 
 int apply_profile_sepolies() {
     DIR* dir = opendir(PROFILE_SELINUX_DIR);
-    if (!dir) return 0;
+    if (!dir)
+        return 0;
 
     struct dirent* entry;
     while ((entry = readdir(dir)) != nullptr) {
-        if (entry->d_name[0] == '.') continue;
+        if (entry->d_name[0] == '.')
+            continue;
 
         std::string path = std::string(PROFILE_SELINUX_DIR) + entry->d_name;
         auto content = read_file(path);
-        if (!content) continue;
+        if (!content)
+            continue;
 
         // TODO: Apply sepolicy via ksucalls
         LOGD("Apply sepolicy for %s", entry->d_name);
@@ -101,4 +105,4 @@ int apply_profile_sepolies() {
     return 0;
 }
 
-} // namespace ksud
+}  // namespace ksud

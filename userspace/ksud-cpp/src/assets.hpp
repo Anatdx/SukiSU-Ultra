@@ -1,9 +1,9 @@
 #pragma once
 
-#include <string>
-#include <vector>
 #include <cstdint>
 #include <fstream>
+#include <string>
+#include <vector>
 
 namespace ksud {
 
@@ -25,4 +25,4 @@ int ensure_binaries(bool ignore_if_exist);
 // Get the full module installation script (installer.sh + install_module call)
 const char* get_install_module_script();
 
-} // namespace ksud
+}  // namespace ksud

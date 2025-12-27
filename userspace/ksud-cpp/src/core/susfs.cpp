@@ -32,14 +32,13 @@ struct SusfsFeatures {
 std::string susfs_get_version() {
     SusfsVersion cmd{};
     cmd.err = ERR_CMD_NOT_SUPPORTED;
-    
-    long ret = syscall(SYS_reboot, KSU_INSTALL_MAGIC1, SUSFS_MAGIC, 
-                       CMD_SUSFS_SHOW_VERSION, &cmd);
-    
+
+    long ret = syscall(SYS_reboot, KSU_INSTALL_MAGIC1, SUSFS_MAGIC, CMD_SUSFS_SHOW_VERSION, &cmd);
+
     if (ret < 0) {
         return "unsupport";
     }
-    
+
     // Find null terminator
     size_t len = strnlen(cmd.susfs_version, SUSFS_MAX_VERSION_BUFSIZE);
     return std::string(cmd.susfs_version, len);
@@ -57,16 +56,16 @@ std::string susfs_get_status() {
 std::string susfs_get_features() {
     SusfsFeatures cmd{};
     cmd.err = ERR_CMD_NOT_SUPPORTED;
-    
-    long ret = syscall(SYS_reboot, KSU_INSTALL_MAGIC1, SUSFS_MAGIC,
-                       CMD_SUSFS_SHOW_ENABLED_FEATURES, &cmd);
-    
+
+    long ret =
+        syscall(SYS_reboot, KSU_INSTALL_MAGIC1, SUSFS_MAGIC, CMD_SUSFS_SHOW_ENABLED_FEATURES, &cmd);
+
     if (ret < 0) {
         return "None";
     }
-    
+
     size_t len = strnlen(cmd.enabled_features, SUSFS_ENABLED_FEATURES_SIZE);
     return std::string(cmd.enabled_features, len);
 }
 
-} // namespace ksud
+}  // namespace ksud

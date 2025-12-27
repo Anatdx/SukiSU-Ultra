@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include <cstdint>
+#include <string>
 
 namespace ksud {
 
@@ -84,4 +84,4 @@ constexpr uint8_t UMOUNT_WIPE = 0;
 constexpr uint8_t UMOUNT_ADD = 1;
 constexpr uint8_t UMOUNT_DEL = 2;
 
-} // namespace ksud
+}  // namespace ksud
