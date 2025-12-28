@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 极限体积优化
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffunction-sections -fdata-sections -fvisibility=hidden")
-set(CMAKE_CXX_FLAGS_RELEASE "-Os -DNDEBUG -flto")
+set(CMAKE_CXX_FLAGS_RELEASE "-Oz -DNDEBUG -flto")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections -Wl,--strip-all -flto")
 
 # Generate embedded assets
@@ -63,6 +63,8 @@ add_executable(ksud ${SOURCES})
 if(NOT ANDROID)
     target_link_libraries(ksud PRIVATE pthread)
 endif()
+
+target_link_libraries(ksud PRIVATE z)
 
 # 安装
 install(TARGETS ksud DESTINATION bin)

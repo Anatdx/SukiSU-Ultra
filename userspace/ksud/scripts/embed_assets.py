@@ -6,6 +6,7 @@ Similar to xxd -i but generates a more usable format.
 
 import os
 import sys
+import zlib
 from pathlib import Path
 
 # Path to installer.sh relative to this script
@@ -20,17 +21,21 @@ def to_c_identifier(name: str) -> str:
         result = '_' + result
     return result
 
-def generate_asset_array(filepath: Path) -> tuple[str, str, int]:
+def generate_asset_array(filepath: Path) -> tuple[str, str, int, int]:
     """Generate C array for a single file."""
     name = to_c_identifier(filepath.name)
     
     with open(filepath, 'rb') as f:
         data = f.read()
     
-    # Generate hex array
-    hex_data = ', '.join(f'0x{b:02x}' for b in data)
+    original_size = len(data)
+    compressed_data = zlib.compress(data, level=9)
+    compressed_size = len(compressed_data)
     
-    return name, hex_data, len(data)
+    # Generate hex array
+    hex_data = ', '.join(f'0x{b:02x}' for b in compressed_data)
+    
+    return name, hex_data, compressed_size, original_size
 
 def main():
     if len(sys.argv) < 3:
@@ -60,6 +65,8 @@ def main():
 #include <sys/stat.h>
 #include <cerrno>
 #include <unistd.h>
+#include <vector>
+#include <zlib.h>
 
 namespace ksud {
 
@@ -95,7 +102,7 @@ const char* get_install_module_script() {
     # Generate arrays for each asset
     asset_infos = []
     for filepath in assets:
-        name, hex_data, size = generate_asset_array(filepath)
+        name, hex_data, size, original_size = generate_asset_array(filepath)
         output += f'// Asset: {filepath.name}\n'
         output += f'static const unsigned char asset_{name}[] = {{\n'
         
@@ -105,9 +112,10 @@ const char* get_install_module_script() {
             output += '    ' + ', '.join(bytes_list[i:i+16]) + ',\n'
         
         output += f'}};\n'
-        output += f'static const size_t asset_{name}_size = {size};\n\n'
+        output += f'static const size_t asset_{name}_size = {size};\n'
+        output += f'static const size_t asset_{name}_original_size = {original_size};\n\n'
         
-        asset_infos.append((filepath.name, name, size))
+        asset_infos.append((filepath.name, name, size, original_size))
     
     # Generate asset registry
     output += '''
@@ -115,15 +123,16 @@ struct AssetEntry {
     const char* name;
     const unsigned char* data;
     size_t size;
+    size_t original_size;
 };
 
 static const AssetEntry asset_registry[] = {
 '''
     
-    for filename, name, size in asset_infos:
-        output += f'    {{"{filename}", asset_{name}, asset_{name}_size}},\n'
+    for filename, name, size, original_size in asset_infos:
+        output += f'    {{"{filename}", asset_{name}, asset_{name}_size, asset_{name}_original_size}},\n'
     
-    output += '''    {nullptr, nullptr, 0}  // sentinel
+    output += '''    {nullptr, nullptr, 0, 0}  // sentinel
 };
 
 const std::vector<std::string>& list_assets() {
@@ -150,22 +159,37 @@ bool get_asset(const std::string& name, const uint8_t*& data, size_t& size) {
 }
 
 bool copy_asset_to_file(const std::string& name, const std::string& dest_path) {
-    const uint8_t* data;
-    size_t size;
-    if (!get_asset(name, data, size)) {
+    const AssetEntry* entry = nullptr;
+    for (const auto* e = asset_registry; e->name != nullptr; ++e) {
+        if (name == e->name) {
+            entry = e;
+            break;
+        }
+    }
+    
+    if (!entry) {
         LOGE("Asset not found: %s", name.c_str());
         return false;
     }
     
-    // Remove existing file first (like Rust version)
+    // Remove existing file first
     unlink(dest_path.c_str());
+    
+    // Decompress
+    std::vector<uint8_t> buffer(entry->original_size);
+    uLongf destLen = entry->original_size;
+    int ret = uncompress(buffer.data(), &destLen, entry->data, entry->size);
+    if (ret != Z_OK) {
+        LOGE("Decompression failed for %s: %d", name.c_str(), ret);
+        return false;
+    }
     
     std::ofstream ofs(dest_path, std::ios::binary);
     if (!ofs) {
         LOGE("Failed to open file for writing: %s (errno=%d: %s)", dest_path.c_str(), errno, strerror(errno));
         return false;
     }
-    ofs.write(reinterpret_cast<const char*>(data), size);
+    ofs.write(reinterpret_cast<const char*>(buffer.data()), destLen);
     if (!ofs.good()) {
         LOGE("Failed to write asset %s to %s", name.c_str(), dest_path.c_str());
         return false;
@@ -226,8 +250,8 @@ int ensure_binaries(bool ignore_if_exist) {
         f.write(output)
     
     print(f"Generated {output_file} with {len(assets)} assets")
-    for filename, name, size in asset_infos:
-        print(f"  - {filename}: {size} bytes")
+    for filename, name, size, original_size in asset_infos:
+        print(f"  - {filename}: {size} bytes (original: {original_size})")
 
 if __name__ == '__main__':
     main()
