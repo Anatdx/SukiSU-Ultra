@@ -11,6 +11,7 @@
 #include <cstring>
 #include <fstream>
 #include <sstream>
+#include <vector>
 #ifdef __ANDROID__
 #include <sys/system_properties.h>
 #endif

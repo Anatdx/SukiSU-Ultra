@@ -4,11 +4,10 @@ project(ksud VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 静态链接
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
-
-# 优化选项 (strip 由外部工具完成，不使用 -s 避免 clang 警告)
-set(CMAKE_CXX_FLAGS_RELEASE "-Os -DNDEBUG")
+# 极限体积优化
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffunction-sections -fdata-sections -fvisibility=hidden")
+set(CMAKE_CXX_FLAGS_RELEASE "-Os -DNDEBUG -flto")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections -Wl,--strip-all -flto")
 
 # Generate embedded assets
 set(ASSETS_DIR ${CMAKE_SOURCE_DIR}/assets)
