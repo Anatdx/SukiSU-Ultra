@@ -6,8 +6,8 @@
 #include <linux/module.h>
 #include <linux/version.h> /* LINUX_VERSION_CODE, KERNEL_VERSION macros */
 
-#ifdef CONFIG_KSU_SUSFS
-#include <linux/susfs.h>
+#ifdef CONFIG_KSU_HYMOFS
+#include <linux/hymofs.h>
 #endif
 
 #include "allowlist.h"
@@ -15,7 +15,7 @@
 #include "klog.h" // IWYU pragma: keep
 #include "ksu.h"
 #include "throne_tracker.h"
-#ifndef CONFIG_KSU_SUSFS
+#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS)
 #include "syscall_hook_manager.h"
 #endif
 #include "ksu.h"
@@ -87,7 +87,7 @@ int __init kernelsu_init(void)
 	ksu_supercalls_init();
 
 	sukisu_custom_config_init();
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	ksu_syscall_hook_manager_init();
 #endif
 	ksu_setuid_hook_init();
@@ -97,11 +97,11 @@ int __init kernelsu_init(void)
 
 	ksu_throne_tracker_init();
 
-#ifdef CONFIG_KSU_SUSFS
-	susfs_init();
+#ifdef CONFIG_KSU_HYMOFS
+	hymofs_init();
 #endif
 
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	ksu_ksud_init();
 #endif
 
@@ -152,7 +152,7 @@ int ksu_yield(void)
 	ksu_observer_exit();
 	ksu_throne_tracker_exit();
 
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	ksu_ksud_exit();
 	ksu_syscall_hook_manager_exit();
 #endif
@@ -176,7 +176,11 @@ void kernelsu_exit(void)
 
 	ksu_throne_tracker_exit();
 
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#ifdef CONFIG_KSU_HYMOFS
+	hymofs_exit();
+#endif
+
+#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	ksu_ksud_exit();
 	ksu_syscall_hook_manager_exit();
 #endif

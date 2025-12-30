@@ -51,10 +51,6 @@ static const struct ksu_feature_handler kernel_umount_handler = {
     .set_handler = kernel_umount_feature_set,
 };
 
-#ifdef CONFIG_KSU_SUSFS
-extern bool susfs_is_log_enabled;
-#endif // #ifdef CONFIG_KSU_SUSFS
-
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0) ||                           \
     defined(KSU_HAS_PATH_UMOUNT)
 extern int path_umount(struct path *path, int flags);
@@ -144,7 +140,7 @@ int ksu_handle_umount(uid_t old_uid, uid_t new_uid)
 		return 0;
 	}
 
-#ifndef CONFIG_KSU_SUSFS
+#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS)
 	if (!ksu_cred) {
 		return 0;
 	}
@@ -175,7 +171,7 @@ int ksu_handle_umount(uid_t old_uid, uid_t new_uid)
 			current->pid);
 		return 0;
 	}
-#endif // #ifndef CONFIG_KSU_SUSFS
+#endif // #if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS)
 
 	// umount the target mnt
 	pr_info("handle umount for uid: %d, pid: %d\n", new_uid, current->pid);

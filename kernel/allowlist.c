@@ -25,9 +25,9 @@
 #include "ksud.h"
 #include "manager.h"
 #include "selinux/selinux.h"
-#ifndef CONFIG_KSU_SUSFS
+#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS)
 #include "syscall_hook_manager.h"
-#endif // #ifndef CONFIG_KSU_SUSFS
+#endif // #if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS)
 
 #define FILE_MAGIC 0x7f4b5355 // ' KSU', u32
 #define FILE_FORMAT_VERSION 3 // u32
@@ -279,7 +279,7 @@ out:
 
 	if (persist) {
 		persistent_allow_list();
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 		// FIXME: use a new flag
 		ksu_mark_running_process();
 #endif
@@ -324,6 +324,9 @@ bool __ksu_is_allow_uid_for_current(uid_t uid)
 	}
 	return __ksu_is_allow_uid(uid);
 }
+#if defined(CONFIG_KSU_MANUAL_HOOK) || defined(CONFIG_KSU_HYMOFS)
+EXPORT_SYMBOL(__ksu_is_allow_uid_for_current);
+#endif
 
 bool ksu_uid_should_umount(uid_t uid)
 {

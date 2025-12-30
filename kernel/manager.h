@@ -24,7 +24,7 @@ static inline bool ksu_is_manager_uid_valid(void)
 #endif
 }
 
-#ifndef CONFIG_KSU_SUSFS
+#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS)
 static inline bool is_manager(void)
 {
 #ifdef CONFIG_KSU_SUPERKEY
@@ -59,7 +59,7 @@ static inline uid_t ksu_get_manager_uid(void)
 	return ksu_manager_uid;
 }
 
-#ifndef CONFIG_KSU_SUSFS
+#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS)
 static inline void ksu_set_manager_uid(uid_t uid)
 {
 	ksu_manager_uid = uid;
