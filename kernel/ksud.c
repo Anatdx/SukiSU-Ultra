@@ -76,6 +76,8 @@ static struct work_struct stop_input_hook_work;
 bool ksu_vfs_read_hook __read_mostly = true;
 bool ksu_execveat_hook __read_mostly = true;
 bool ksu_input_hook __read_mostly = true;
+EXPORT_SYMBOL(ksu_vfs_read_hook);
+EXPORT_SYMBOL(ksu_input_hook);
 #endif
 
 u32 ksu_file_sid;
@@ -500,6 +502,9 @@ int ksu_handle_sys_read(unsigned int fd, char __user **buf_ptr,
 	fput(file);
 	return result;
 }
+#if defined(CONFIG_KSU_MANUAL_HOOK)
+EXPORT_SYMBOL(ksu_handle_sys_read);
+#endif
 
 static unsigned int volumedown_pressed_count = 0;
 
@@ -530,6 +535,9 @@ int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code,
 
 	return 0;
 }
+#if defined(CONFIG_KSU_MANUAL_HOOK)
+EXPORT_SYMBOL(ksu_handle_input_handle_event);
+#endif
 
 bool ksu_is_safe_mode()
 {

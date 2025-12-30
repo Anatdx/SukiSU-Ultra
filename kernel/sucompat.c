@@ -259,6 +259,12 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
 }
 #endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
 
+#if defined(CONFIG_KSU_MANUAL_HOOK)
+EXPORT_SYMBOL(ksu_handle_execveat_sucompat);
+EXPORT_SYMBOL(ksu_handle_faccessat);
+EXPORT_SYMBOL(ksu_handle_stat);
+#endif
+
 // dead code: devpts handling
 int __maybe_unused ksu_handle_devpts(struct inode *inode)
 {

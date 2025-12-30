@@ -1,1 +1,8 @@
 manager
+userspace/*/build/
+*.o
+*.o.d
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
