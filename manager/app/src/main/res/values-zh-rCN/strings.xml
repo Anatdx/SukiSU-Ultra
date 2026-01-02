@@ -747,4 +747,20 @@
     <string name="hymofs_status_module_too_old">模块版本过低，不兼容当前内核</string>
     <string name="hymofs_builtin_mount">内置挂载</string>
     <string name="hymofs_builtin_mount_desc">使用内置的 hymo 挂载而非外部元模块。如果您想使用其他元模块，请禁用此选项。</string>
+    <string name="hymofs_verbose">详细日志</string>
+    <string name="hymofs_verbose_desc">启用详细的守护进程日志</string>
+    <string name="hymofs_force_ext4">强制 EXT4</string>
+    <string name="hymofs_force_ext4_desc">始终使用 EXT4 镜像而非 tmpfs</string>
+    <string name="hymofs_disable_umount">禁用卸载</string>
+    <string name="hymofs_disable_umount_desc">进程隔离时不卸载文件系统</string>
+    <string name="hymofs_kernel_debug">内核调试</string>
+    <string name="hymofs_kernel_debug_desc">启用 HymoFS 内核调试日志</string>
+    <string name="hymofs_stealth">隐身模式</string>
+    <string name="hymofs_stealth_desc">隐藏挂载痕迹并重新排序挂载 ID</string>
+    <string name="hymofs_avc_spoof">AVC 日志欺骗</string>
+    <string name="hymofs_avc_spoof_desc">伪造 SELinux AVC 拒绝日志</string>
+    <string name="hymofs_enable_nuke">启用 Nuke</string>
+    <string name="hymofs_enable_nuke_desc">允许清除 ext4 sysfs 条目</string>
+    <string name="hymofs_ignore_protocol">忽略协议不匹配</string>
+    <string name="hymofs_ignore_protocol_desc">即使内核/用户空间版本不匹配也继续运行</string>
 </resources>

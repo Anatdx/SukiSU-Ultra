@@ -743,8 +743,8 @@ private fun SettingsTab(
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 
                 SettingSwitch(
-                    title = "Verbose Logging",
-                    subtitle = "Enable detailed daemon logs",
+                    title = stringResource(R.string.hymofs_verbose),
+                    subtitle = stringResource(R.string.hymofs_verbose_desc),
                     checked = config.verbose,
                     onCheckedChange = {
                         updateAndSave(config.copy(verbose = it))
@@ -754,8 +754,8 @@ private fun SettingsTab(
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 
                 SettingSwitch(
-                    title = "Force EXT4",
-                    subtitle = "Always use EXT4 image instead of tmpfs",
+                    title = stringResource(R.string.hymofs_force_ext4),
+                    subtitle = stringResource(R.string.hymofs_force_ext4_desc),
                     checked = config.forceExt4,
                     onCheckedChange = {
                         updateAndSave(config.copy(forceExt4 = it))
@@ -765,84 +765,13 @@ private fun SettingsTab(
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 
                 SettingSwitch(
-                    title = "Disable Umount",
-                    subtitle = "Don't unmount on process isolation",
+                    title = stringResource(R.string.hymofs_disable_umount),
+                    subtitle = stringResource(R.string.hymofs_disable_umount_desc),
                     checked = config.disableUmount,
                     onCheckedChange = {
                         updateAndSave(config.copy(disableUmount = it))
                     }
                 )
-            }
-        }
-        
-        // HymoFS Settings (only if available)
-        if (hymofsStatus == HymoFSStatus.AVAILABLE) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "HymoFS Kernel",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
-                    
-                    SettingSwitch(
-                        title = "Kernel Debug",
-                        subtitle = "Enable HymoFS kernel debug logging",
-                        checked = config.enableKernelDebug,
-                        onCheckedChange = {
-                            onSetDebug(it)
-                            updateAndSave(config.copy(enableKernelDebug = it))
-                        }
-                    )
-                    
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                    
-                    SettingSwitch(
-                        title = "Stealth Mode",
-                        subtitle = "Hide mount traces and reorder mount IDs",
-                        checked = config.enableStealth,
-                        onCheckedChange = {
-                            onSetStealth(it)
-                            updateAndSave(config.copy(enableStealth = it))
-                        }
-                    )
-                    
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                    
-                    SettingSwitch(
-                        title = "AVC Log Spoofing",
-                        subtitle = "Spoof SELinux AVC deny logs",
-                        checked = config.avcSpoof,
-                        onCheckedChange = {
-                            updateAndSave(config.copy(avcSpoof = it))
-                        }
-                    )
-                    
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                    
-                    SettingSwitch(
-                        title = "Enable Nuke",
-                        subtitle = "Allow nuking ext4 sysfs entries",
-                        checked = config.enableNuke,
-                        onCheckedChange = {
-                            updateAndSave(config.copy(enableNuke = it))
-                        }
-                    )
-                    
-                    Spacer(modifier = Modifier.height(12.dp))
-                    
-                    OutlinedButton(
-                        onClick = onFixMounts,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Filled.Build, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Fix Mount IDs")
-                    }
-                }
             }
         }
         
@@ -858,14 +787,79 @@ private fun SettingsTab(
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
                 
+                val hymofsAvailable = hymofsStatus == HymoFSStatus.AVAILABLE
+                
                 SettingSwitch(
-                    title = "Ignore Protocol Mismatch",
-                    subtitle = "Continue even if kernel/userspace versions don't match",
+                    title = stringResource(R.string.hymofs_kernel_debug),
+                    subtitle = stringResource(R.string.hymofs_kernel_debug_desc),
+                    checked = config.enableKernelDebug,
+                    enabled = hymofsAvailable,
+                    onCheckedChange = {
+                        onSetDebug(it)
+                        updateAndSave(config.copy(enableKernelDebug = it))
+                    }
+                )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                SettingSwitch(
+                    title = stringResource(R.string.hymofs_stealth),
+                    subtitle = stringResource(R.string.hymofs_stealth_desc),
+                    checked = config.enableStealth,
+                    enabled = hymofsAvailable,
+                    onCheckedChange = {
+                        onSetStealth(it)
+                        updateAndSave(config.copy(enableStealth = it))
+                    }
+                )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                SettingSwitch(
+                    title = stringResource(R.string.hymofs_avc_spoof),
+                    subtitle = stringResource(R.string.hymofs_avc_spoof_desc),
+                    checked = config.avcSpoof,
+                    enabled = hymofsAvailable,
+                    onCheckedChange = {
+                        updateAndSave(config.copy(avcSpoof = it))
+                    }
+                )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                SettingSwitch(
+                    title = stringResource(R.string.hymofs_enable_nuke),
+                    subtitle = stringResource(R.string.hymofs_enable_nuke_desc),
+                    checked = config.enableNuke,
+                    enabled = hymofsAvailable,
+                    onCheckedChange = {
+                        updateAndSave(config.copy(enableNuke = it))
+                    }
+                )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                SettingSwitch(
+                    title = stringResource(R.string.hymofs_ignore_protocol),
+                    subtitle = stringResource(R.string.hymofs_ignore_protocol_desc),
                     checked = config.ignoreProtocolMismatch,
                     onCheckedChange = {
                         updateAndSave(config.copy(ignoreProtocolMismatch = it))
                     }
                 )
+                
+                if (hymofsAvailable) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    OutlinedButton(
+                        onClick = onFixMounts,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Filled.Build, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Fix Mount IDs")
+                    }
+                }
             }
         }
     }
@@ -876,7 +870,8 @@ private fun SettingSwitch(
     title: String,
     subtitle: String,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
+    enabled: Boolean = true
 ) {
     Row(
         modifier = Modifier
@@ -888,17 +883,19 @@ private fun SettingSwitch(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (enabled) Color.Unspecified else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             )
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 1f else 0.5f)
             )
         }
         Switch(
             checked = checked,
-            onCheckedChange = onCheckedChange
+            onCheckedChange = onCheckedChange,
+            enabled = enabled
         )
     }
 }

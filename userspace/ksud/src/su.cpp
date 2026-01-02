@@ -33,6 +33,7 @@ static void print_su_usage() {
     printf("  -M, -mm, --mount-master  force run in the global mount namespace\n");
     printf("  -g, --group GROUP        specify the primary group\n");
     printf("  -G, --supp-group GROUP   specify a supplementary group\n");
+    printf("  -W, --no-wrapper         don't use ksu fd wrapper\n");
 }
 
 static void set_identity(uid_t uid, gid_t gid, const std::vector<gid_t>& groups) {
@@ -41,6 +42,21 @@ static void set_identity(uid_t uid, gid_t gid, const std::vector<gid_t>& groups)
     }
     setresgid(gid, gid, gid);
     setresuid(uid, uid, uid);
+}
+
+static void wrap_tty(int fd) {
+    if (isatty(fd) != 1) {
+        return;
+    }
+    int new_fd = get_wrapped_fd(fd);
+    if (new_fd < 0) {
+        LOGW("Failed to get wrapped fd for %d", fd);
+        return;
+    }
+    if (dup2(new_fd, fd) == -1) {
+        LOGW("Failed to dup %d -> %d: %s", new_fd, fd, strerror(errno));
+    }
+    close(new_fd);
 }
 
 int su_main(int argc, char* argv[]) {
@@ -60,17 +76,30 @@ int su_main(int argc, char* argv[]) {
     bool is_login = false;
     bool preserve_env = false;
     bool mount_master = false;
+    bool use_fd_wrapper = true;
     uid_t target_uid = 0;
     gid_t target_gid = 0;
     bool gid_specified = false;
     std::vector<gid_t> groups;
 
     // Preprocess: replace -mm with -M, -cn with -z
+    // AND merge everything after -c into a single argument (matching Rust behavior)
     std::vector<std::string> args_vec;
     args_vec.push_back(argv[0]);
+    
+    int c_index = -1;
     for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
-        if (arg == "-mm") {
+        if (arg == "-c" || arg == "--command") {
+            c_index = static_cast<int>(args_vec.size());
+            args_vec.push_back(arg);
+        } else if (c_index >= 0 && static_cast<int>(args_vec.size()) == c_index + 1) {
+            // This is the first argument after -c, start collecting
+            args_vec.push_back(arg);
+        } else if (c_index >= 0 && static_cast<int>(args_vec.size()) == c_index + 2) {
+            // Append all remaining args to the command with spaces
+            args_vec.back() += " " + arg;
+        } else if (arg == "-mm") {
             args_vec.push_back("-M");
         } else if (arg == "-cn") {
             args_vec.push_back("-z");
@@ -97,11 +126,12 @@ int su_main(int argc, char* argv[]) {
                                            {"mount-master", no_argument, 0, 'M'},
                                            {"group", required_argument, 0, 'g'},
                                            {"supp-group", required_argument, 0, 'G'},
+                                           {"no-wrapper", no_argument, 0, 'W'},
                                            {0, 0, 0, 0}};
 
     optind = 1;  // Reset getopt
     int opt;
-    while ((opt = getopt_long(argc, argv, "c:hlps:vVMg:G:", long_options, nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, "c:hlps:vVMg:G:W", long_options, nullptr)) != -1) {
         switch (opt) {
         case 'c':
             command = optarg;
@@ -134,6 +164,9 @@ int su_main(int argc, char* argv[]) {
         case 'G':
             groups.push_back(static_cast<gid_t>(std::stoul(optarg)));
             break;
+        case 'W':
+            use_fd_wrapper = false;
+            break;
         default:
             break;
         }
@@ -158,8 +191,12 @@ int su_main(int argc, char* argv[]) {
             struct passwd* pw = getpwnam(user);
             if (pw) {
                 target_uid = pw->pw_uid;
+            } else {
+                // Invalid username, default to 0 (matching Rust behavior)
+                target_uid = 0;
             }
         }
+        optind++;
     }
 
     // If no gid specified, use first supplementary group or uid
@@ -176,6 +213,13 @@ int su_main(int argc, char* argv[]) {
         if (!switch_mnt_ns(1)) {
             LOGW("Failed to switch to global mount namespace");
         }
+    }
+
+    // Wrap tty fds if requested
+    if (use_fd_wrapper) {
+        wrap_tty(0);
+        wrap_tty(1);
+        wrap_tty(2);
     }
 
     // Switch cgroups

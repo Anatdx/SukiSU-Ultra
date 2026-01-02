@@ -752,5 +752,21 @@ Important Note:\n
     <string name="hymofs_status_module_too_old">Module version is too old for current kernel</string>
     <string name="hymofs_builtin_mount">Built-in Mount</string>
     <string name="hymofs_builtin_mount_desc">Use built-in hymo mount instead of external metamodule. Disable this if you want to use another metamodule.</string>
+    <string name="hymofs_verbose">Verbose Logging</string>
+    <string name="hymofs_verbose_desc">Enable detailed daemon logs</string>
+    <string name="hymofs_force_ext4">Force EXT4</string>
+    <string name="hymofs_force_ext4_desc">Always use EXT4 image instead of tmpfs</string>
+    <string name="hymofs_disable_umount">Disable Umount</string>
+    <string name="hymofs_disable_umount_desc">Don\'t unmount on process isolation</string>
+    <string name="hymofs_kernel_debug">Kernel Debug</string>
+    <string name="hymofs_kernel_debug_desc">Enable HymoFS kernel debug logging</string>
+    <string name="hymofs_stealth">Stealth Mode</string>
+    <string name="hymofs_stealth_desc">Hide mount traces and reorder mount IDs</string>
+    <string name="hymofs_avc_spoof">AVC Log Spoofing</string>
+    <string name="hymofs_avc_spoof_desc">Spoof SELinux AVC deny logs</string>
+    <string name="hymofs_enable_nuke">Enable Nuke</string>
+    <string name="hymofs_enable_nuke_desc">Allow nuking ext4 sysfs entries</string>
+    <string name="hymofs_ignore_protocol">Ignore Protocol Mismatch</string>
+    <string name="hymofs_ignore_protocol_desc">Continue even if kernel/userspace versions don\'t match</string>
 </resources>
 
