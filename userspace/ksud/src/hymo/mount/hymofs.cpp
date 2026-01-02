@@ -81,8 +81,6 @@ int HymoFS::get_protocol_version() {
   LOG_ERROR("get_protocol_version: Both fd and syscall modes failed");
   return -1;
 }
-  return ret;
-}
 
 HymoFSStatus HymoFS::check_status() {
   if (s_status_checked) {
