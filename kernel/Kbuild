@@ -5,7 +5,7 @@ kernelsu-objs += apk_sign.o
 kernelsu-objs += sucompat.o
 kernelsu-objs += superkey.o
 
-ifeq ($(CONFIG_KSU_SUSFS)$(CONFIG_KSU_MANUAL_HOOK)$(CONFIG_KSU_HYMOFS), nnn)
+ifeq ($(CONFIG_KSU_HYMOFS)$(CONFIG_KSU_MANUAL_HOOK), nn)
 kernelsu-objs += syscall_hook_manager.o
 kernelsu-objs += util.o
 endif
@@ -36,18 +36,15 @@ kernelsu-objs += selinux/selinux.o
 kernelsu-objs += selinux/sepolicy.o
 kernelsu-objs += selinux/rules.o
 
-# SuperKey 支持（始终启用）
+# SuperKey Support
+ifeq ($(CONFIG_KSU_SUPERKEY), y)
 ccflags-y += -DCONFIG_KSU_SUPERKEY
-
-# SuperKey 编译时配置 (GKI 模式)
-# 使用方法: make ... KSU_SUPERKEY="your_secret_key"
-ifdef KSU_SUPERKEY
 ccflags-y += -DKSU_SUPERKEY=\"$(KSU_SUPERKEY)\"
 endif
 
-# 禁用签名校验 (SuperKey Only 模式，GKI 模式)
-# 使用方法: make ... KSU_SIGNATURE_BYPASS=1
-# 启用后管理器只能通过 SuperKey 认证，不通过 APK 签名校验
+# Disable signature verification (SuperKey Only mode, GKI mode)
+# Usage: make ... KSU_SIGNATURE_BYPASS=1
+# When enabled, the manager can only be authenticated via SuperKey and APK signature verification is bypassed
 ifdef KSU_SIGNATURE_BYPASS
 ccflags-y += -DKSU_SIGNATURE_BYPASS
 endif
@@ -63,9 +60,9 @@ obj-$(CONFIG_KSU) += kernelsu.o
 
 obj-$(CONFIG_KPM) += kpm/
 
-REPO_OWNER := SukiSU-Ultra
-REPO_NAME := SukiSU-Ultra
-REPO_BRANCH := main
+REPO_OWNER := Anatdx
+REPO_NAME := YukiSU
+REPO_BRANCH := tmp-builtin
 KSU_VERSION_API := 1.0.0
 
 GIT_BIN := /usr/bin/env PATH="$$PATH":/usr/bin:/usr/local/bin git
@@ -124,16 +121,14 @@ $(info -- Supported Unofficial Manager: 5ec1cff (GKI) rsuntk (Non-GKI) ShirkNeko
 
 ifeq ($(CONFIG_KSU_MANUAL_HOOK), y)
 ccflags-y += -DKSU_MANUAL_HOOK
-$(info -- SukiSU: KSU_MANUAL_HOOK)
-else ifeq ($(CONFIG_KSU_SUSFS), y)
-ccflags-y += -DCONFIG_KSU_SUSFS
-$(info -- SukiSU: SUSFS_INLINE_HOOK)
+$(info -- YukiSU: KSU_MANUAL_HOOK)
 else ifeq ($(CONFIG_KSU_HYMOFS), y)
+ccflags-y += -DCONFIG_KSU_HYMOFS
 $(info -- YukiSU: HYMOFS_INLINE_HOOK)
 else
 ccflags-y += -DKSU_KPROBES_HOOK
 ccflags-y += -DKSU_TP_HOOK
-$(info -- SukiSU: KSU_TRACEPOINT_HOOK)
+$(info -- YukiSU: KSU_TRACEPOINT_HOOK)
 endif
 
 KERNEL_VERSION := $(VERSION).$(PATCHLEVEL)
@@ -224,17 +219,17 @@ endif
 
 ifdef KSU_MANAGER_PACKAGE
 ccflags-y += -DKSU_MANAGER_PACKAGE=\"$(KSU_MANAGER_PACKAGE)\"
-$(info -- SukiSU Manager package name: $(KSU_MANAGER_PACKAGE))
+$(info -- YukiSU Manager package name: $(KSU_MANAGER_PACKAGE))
 endif
 
-## For susfs stuff ##
-ifeq ($(shell test -e $(srctree)/fs/susfs.c; echo $$?),0)
-$(eval SUSFS_VERSION=$(shell cat $(srctree)/include/linux/susfs.h | grep -E '^#define SUSFS_VERSION' | cut -d' ' -f3 | sed 's/"//g'))
+## For hymofs stuff ##
+ifeq ($(shell test -e $(srctree)/fs/hymofs.c; echo $$?),0)
+$(eval HYMOFS_VERSION=$(shell cat $(srctree)/include/linux/hymofs.h | grep -E '^#define HYMOFS_VERSION' | cut -d' ' -f3 | sed 's/"//g'))
 $(info )
-$(info -- SUSFS_VERSION: $(SUSFS_VERSION))
+$(info -- HYMOFS_VERSION: $(HYMOFS_VERSION))
 else
-$(info -- You have not integrated susfs in your kernel yet.)
-$(info -- Read: https://gitlab.com/simonpunk/susfs4ksu)
+$(info -- You have not integrated hymofs in your kernel yet.)
+$(info -- Read: https://github.com/Anatdx/HymoFS)
 endif
 
 # Keep a new line here!! Because someone may append config

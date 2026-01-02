@@ -140,7 +140,7 @@ int ksu_handle_umount(uid_t old_uid, uid_t new_uid)
 		return 0;
 	}
 
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS)
+#ifndef CONFIG_KSU_HYMOFS
 	if (!ksu_cred) {
 		return 0;
 	}
@@ -171,7 +171,7 @@ int ksu_handle_umount(uid_t old_uid, uid_t new_uid)
 			current->pid);
 		return 0;
 	}
-#endif // #if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS)
+#endif // #ifndef CONFIG_KSU_HYMOFS
 
 	// umount the target mnt
 	pr_info("handle umount for uid: %d, pid: %d\n", new_uid, current->pid);

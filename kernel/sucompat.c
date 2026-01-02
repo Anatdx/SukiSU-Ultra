@@ -19,6 +19,13 @@
 #include <linux/sched.h>
 #endif
 
+#ifdef CONFIG_KSU_HYMOFS
+#include "objsec.h"
+#include "selinux/selinux.h"
+#include <linux/namei.h>
+#include <linux/hymofs.h>
+#endif // #ifdef CONFIG_KSU_HYMOFS
+
 #include "allowlist.h"
 #include "app_profile.h"
 #include "feature.h"
@@ -27,9 +34,9 @@
 #include "ksud.h"
 #include "sucompat.h"
 #include "util.h"
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS)
+#ifndef CONFIG_KSU_HYMOFS
 #include "syscall_hook_manager.h"
-#endif
+#endif // #ifndef CONFIG_KSU_HYMOFS
 
 #include "sulog.h"
 
@@ -126,7 +133,7 @@ int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
 	return 0;
 }
 
-#if defined(CONFIG_KSU_SUSFS) || defined(CONFIG_KSU_MANUAL_HOOK) || defined(CONFIG_KSU_HYMOFS)
+#if defined(CONFIG_KSU_HYMOFS) || defined(CONFIG_KSU_MANUAL_HOOK)
 static inline void ksu_handle_execveat_init(struct filename **filename_ptr)
 {
 	struct filename *filename;
@@ -142,18 +149,27 @@ static inline void ksu_handle_execveat_init(struct filename **filename_ptr)
 				current->pid);
 			escape_to_root_for_init();
 		}
+#ifdef CONFIG_KSU_HYMOFS
+		else if (likely(strstr(filename->name, "/app_process") ==
+				    NULL &&
+				strstr(filename->name, "/adbd") == NULL)) {
+			pr_info("hook_manager: unmark %d exec %s\n",
+				current->pid, filename->name);
+			//proc umount?unmark it?
+		}
+#endif
 	}
 }
 
 extern bool ksu_execveat_hook __read_mostly;
-int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv,
-			void *envp, int *flags)
+int ksu_handle_execveat(int *fd, struct filename **filename_ptr,
+			void *argv, void *envp, int *flags)
 {
 	ksu_handle_execveat_init(filename_ptr);
 
 	if (unlikely(ksu_execveat_hook)) {
 		if (ksu_handle_execveat_ksud(fd, filename_ptr, argv, envp,
-					     flags)) {
+					    flags)) {
 			return 0;
 		}
 	}
@@ -189,7 +205,7 @@ int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
 	return 0;
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0) && (defined(CONFIG_KSU_SUSFS) || defined(CONFIG_KSU_HYMOFS))
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0) && defined(CONFIG_KSU_HYMOFS)
 int ksu_handle_stat(int *dfd, struct filename **filename, int *flags)
 {
 	if (!ksu_su_compat_enabled) {

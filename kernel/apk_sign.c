@@ -212,7 +212,10 @@ check_v2_signature(char *path, int *signature_index)
 	bool v3_1_signing_exist = false;
 	int matched_index = -1;
 	int i;
-	struct file *fp = ksu_filp_open_compat(path, O_RDONLY, 0);
+	struct file *fp;
+
+
+	fp = ksu_filp_open_compat(path, O_RDONLY, 0);
 	if (IS_ERR(fp)) {
 		pr_err("open %s error.\n", path);
 		return false;
@@ -306,6 +309,7 @@ check_v2_signature(char *path, int *signature_index)
 	}
 clean:
 	filp_close(fp, 0);
+		v2_signing_valid, v3_signing_exist, v3_1_signing_exist, matched_index);
 
 	if (v3_signing_exist || v3_1_signing_exist) {
 #ifdef CONFIG_KSU_DEBUG
@@ -350,10 +354,11 @@ module_param_cb(ksu_debug_manager_uid, &expected_size_ops,
 bool is_manager_apk(char *path)
 {
 #ifdef CONFIG_KSU_SUPERKEY
-	// SuperKey 模式下，如果设置了 SuperKey 且启用了签名旁路，则禁用签名验证
+	// SuperKey + 签名旁路模式下，跳过 APK 签名验证
+	// Manager 只通过 SuperKey 认证，不通过 APK 扫描识别
+	// 这里返回 false 是正确的 —— 我们不希望通过扫描来找 manager
 	if (superkey_is_set() && ksu_signature_bypass) {
-		pr_info("apk_sign: signature verification bypassed (SuperKey "
-			"mode)\n");
+		// 不打印日志，因为这会对每个 APK 都打印
 		return false;
 	}
 #endif

@@ -68,7 +68,7 @@ static void stop_vfs_read_hook(void);
 static void stop_execve_hook(void);
 static void stop_input_hook(void);
 
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK) && !defined(CONFIG_KSU_HYMOFS)
+#if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 static struct work_struct stop_vfs_read_work;
 static struct work_struct stop_execve_hook_work;
 static struct work_struct stop_input_hook_work;
@@ -95,6 +95,15 @@ void on_post_fs_data(void)
 	}
 	done = true;
 	pr_info("on_post_fs_data!\n");
+
+#if defined(CONFIG_KSU_HYMOFS) || defined(CONFIG_KSU_MANUAL_HOOK)
+	// HymoFS/Manual hook mode: Apply SELinux rules here since we can't detect init second_stage
+	// without argv parameter in execve hook
+	pr_info("Applying KernelSU SELinux rules (inline hook mode)\n");
+	apply_kernelsu_rules();
+	setup_ksu_cred();
+#endif
+
 	ksu_load_allow_list();
 	ksu_observer_init();
 	// sanity check, this may influence the performance
@@ -150,7 +159,7 @@ void on_boot_completed(void)
 	track_throne(true);
 }
 
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS)
+#ifndef CONFIG_KSU_HYMOFS
 #define MAX_ARG_STRINGS 0x7FFFFFFF
 struct user_arg_ptr {
 #ifdef CONFIG_COMPAT
@@ -163,7 +172,7 @@ struct user_arg_ptr {
 #endif
 	} ptr;
 };
-#endif // #if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS)
+#endif // #ifndef CONFIG_KSU_HYMOFS
 
 static const char __user *get_user_arg_ptr(struct user_arg_ptr argv, int nr)
 {
@@ -400,7 +409,7 @@ static ssize_t read_iter_proxy(struct kiocb *iocb, struct iov_iter *to)
 int ksu_handle_vfs_read(struct file **file_ptr, char __user **buf_ptr,
 			       size_t *count_ptr, loff_t **pos)
 {
-#if defined(CONFIG_KSU_SUSFS) || defined(CONFIG_KSU_MANUAL_HOOK) || defined(CONFIG_KSU_HYMOFS)
+#if defined(CONFIG_KSU_HYMOFS) || defined(CONFIG_KSU_MANUAL_HOOK)
 	if (!ksu_vfs_read_hook) {
 		return 0;
 	}
@@ -518,7 +527,7 @@ static bool is_volumedown_enough(unsigned int count)
 int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code,
 				  int *value)
 {
-#if defined(CONFIG_KSU_SUSFS) || defined(CONFIG_KSU_MANUAL_HOOK) || defined(CONFIG_KSU_HYMOFS)
+#if defined(CONFIG_KSU_HYMOFS) || defined(CONFIG_KSU_MANUAL_HOOK)
 	if (!ksu_input_hook) {
 		return 0;
 	}
@@ -564,7 +573,7 @@ bool ksu_is_safe_mode()
 	return false;
 }
 
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK) && !defined(CONFIG_KSU_HYMOFS)
+#if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 
 static int sys_execve_handler_pre(struct kprobe *p, struct pt_regs *regs)
 {
@@ -655,7 +664,7 @@ static void do_stop_input_hook(struct work_struct *work)
 
 static void stop_vfs_read_hook(void)
 {
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK) && !defined(CONFIG_KSU_HYMOFS)
+#if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	bool ret = schedule_work(&stop_vfs_read_work);
 	pr_info("unregister vfs_read kprobe: %d!\n", ret);
 #else
@@ -666,7 +675,7 @@ static void stop_vfs_read_hook(void)
 
 static void stop_execve_hook(void)
 {
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK) && !defined(CONFIG_KSU_HYMOFS)
+#if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	bool ret = schedule_work(&stop_execve_hook_work);
 	pr_info("unregister execve kprobe: %d!\n", ret);
 #else
@@ -682,7 +691,7 @@ static void stop_input_hook(void)
 		return;
 	}
 	input_hook_stopped = true;
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK) && !defined(CONFIG_KSU_HYMOFS)
+#if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	bool ret = schedule_work(&stop_input_hook_work);
 	pr_info("unregister input kprobe: %d!\n", ret);
 #else
@@ -694,7 +703,7 @@ static void stop_input_hook(void)
 // ksud: module support
 void ksu_ksud_init(void)
 {
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK) && !defined(CONFIG_KSU_HYMOFS)
+#if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	int ret;
 
 	ret = register_kprobe(&execve_kp);
@@ -714,7 +723,7 @@ void ksu_ksud_init(void)
 
 void ksu_ksud_exit(void)
 {
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK) && !defined(CONFIG_KSU_HYMOFS)
+#if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	unregister_kprobe(&execve_kp);
 	// this should be done before unregister vfs_read_kp
 	// unregister_kprobe(&vfs_read_kp);

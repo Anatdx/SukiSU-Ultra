@@ -38,19 +38,19 @@ config KSU_MULTI_MANAGER_SUPPORT
 		Enable multi KernelSU manager support
 
 config KPM
-	  bool "Enable SukiSU KPM"
+	  bool "Enable YukiSU KPM"
 	  depends on KSU && 64BIT
 	  select KALLSYMS
 	  select KALLSYMS_ALL
 	  default n
 	  help
-		Enabling this option will activate the KPM feature of SukiSU.
+		Enabling this option will activate the KPM feature of YukiSU.
 		This option is suitable for scenarios where you need to force KPM to be enabled.
 		but it may affect system stability.
 
 config KSU_MANUAL_HOOK
 	bool "Hook KernelSU manually"
-	depends on KSU != m && !KSU_SUSFS
+	depends on KSU != m && !KSU_HYMOFS
 	help
 	  If enabled, Hook required KernelSU syscalls with manually-patched function.
 	  This can be used together with KSU_HYMOFS for complete functionality.
@@ -63,6 +63,5 @@ config KSU_MANUAL_HOOK_AUTO_SETUID_HOOK
 	  If turn off this option, you need checkout to kernel/sys.c 
 	  in SYSCALL_DEFINE3(setresuid, uid_t, ruid, uid_t, euid, uid_t, suid)
 	  add a ksu_handle_setresuid calls in there
-
 
 endmenu

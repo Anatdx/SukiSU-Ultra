@@ -23,32 +23,32 @@
 #include <linux/version.h>
 #include <linux/vmalloc.h>
 
-static int sukisu_is_su_allow_uid(uid_t uid)
+static int yukisu_is_su_allow_uid(uid_t uid)
 {
 	return ksu_is_allow_uid_for_current(uid) ? 1 : 0;
 }
 
-static int sukisu_get_ap_mod_exclude(uid_t uid)
+static int yukisu_get_ap_mod_exclude(uid_t uid)
 {
 	return 0; /* Not supported */
 }
 
-static int sukisu_is_uid_should_umount(uid_t uid)
+static int yukisu_is_uid_should_umount(uid_t uid)
 {
 	return ksu_uid_should_umount(uid) ? 1 : 0;
 }
 
-static int sukisu_is_current_uid_manager(void)
+static int yukisu_is_current_uid_manager(void)
 {
 	return is_manager();
 }
 
-static uid_t sukisu_get_manager_uid(void)
+static uid_t yukisu_get_manager_uid(void)
 {
 	return ksu_manager_uid;
 }
 
-static void sukisu_set_manager_uid(uid_t uid, int force)
+static void yukisu_set_manager_uid(uid_t uid, int force)
 {
 	if (force || ksu_manager_uid == -1)
 		ksu_manager_uid = uid;
@@ -59,20 +59,20 @@ struct CompactAddressSymbol {
 	void *addr;
 };
 
-unsigned long sukisu_compact_find_symbol(const char *name);
+unsigned long yukisu_compact_find_symbol(const char *name);
 
 static struct CompactAddressSymbol address_symbol[] = {
     {"kallsyms_lookup_name", &kallsyms_lookup_name},
-    {"compact_find_symbol", &sukisu_compact_find_symbol},
-    {"is_run_in_sukisu_ultra", (void *)1},
-    {"is_su_allow_uid", &sukisu_is_su_allow_uid},
-    {"get_ap_mod_exclude", &sukisu_get_ap_mod_exclude},
-    {"is_uid_should_umount", &sukisu_is_uid_should_umount},
-    {"is_current_uid_manager", &sukisu_is_current_uid_manager},
-    {"get_manager_uid", &sukisu_get_manager_uid},
-    {"sukisu_set_manager_uid", &sukisu_set_manager_uid}};
+    {"compact_find_symbol", &yukisu_compact_find_symbol},
+    {"is_run_in_yukisu_ultra", (void *)1},
+    {"is_su_allow_uid", &yukisu_is_su_allow_uid},
+    {"get_ap_mod_exclude", &yukisu_get_ap_mod_exclude},
+    {"is_uid_should_umount", &yukisu_is_uid_should_umount},
+    {"is_current_uid_manager", &yukisu_is_current_uid_manager},
+    {"get_manager_uid", &yukisu_get_manager_uid},
+    {"yukisu_set_manager_uid", &yukisu_set_manager_uid}};
 
-unsigned long sukisu_compact_find_symbol(const char *name)
+unsigned long yukisu_compact_find_symbol(const char *name)
 {
 	int i;
 	unsigned long addr;
@@ -92,4 +92,4 @@ unsigned long sukisu_compact_find_symbol(const char *name)
 
 	return 0;
 }
-EXPORT_SYMBOL(sukisu_compact_find_symbol);
+EXPORT_SYMBOL(yukisu_compact_find_symbol);

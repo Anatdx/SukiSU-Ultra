@@ -37,12 +37,28 @@
 #include "selinux/selinux.h"
 #include "setuid_hook.h"
 #include "supercalls.h"
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_MANUAL_HOOK) && !defined(CONFIG_KSU_HYMOFS)
+#if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 #include "syscall_hook_manager.h"
 #endif
 #include "kernel_compat.h"
 #include "kernel_umount.h"
 #include "sulog.h"
+
+#ifdef CONFIG_KSU_HYMOFS
+#include <linux/hymofs.h>
+/* HymoFS inline hook mode - helper functions */
+static inline bool is_zygote_isolated_service_uid(uid_t uid)
+{
+	uid %= 100000;
+	return (uid >= 99000 && uid < 100000);
+}
+
+static inline bool is_zygote_normal_app_uid(uid_t uid)
+{
+	uid %= 100000;
+	return (uid >= 10000 && uid < 19999);
+}
+#endif // #ifdef CONFIG_KSU_HYMOFS
 
 static bool ksu_enhanced_security_enabled = false;
 
@@ -78,6 +94,15 @@ static inline bool is_allow_su(void)
 
 extern void disable_seccomp(struct task_struct *tsk);
 
+/* task_work callback to install manager fd after returning to userspace */
+static void ksu_install_manager_fd_tw_func(struct callback_head *cb)
+{
+	ksu_install_fd();
+	kfree(cb);
+}
+
+#ifndef CONFIG_KSU_HYMOFS
+/* Manual hook version - KSU handles hiding via syscall hooks */
 int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid)
 { // (new_euid)
 	if (old_uid != new_uid)
@@ -113,23 +138,31 @@ int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid)
 		return 0;
 	}
 
-	// if on private space, see if its possibly the manager
-	if (new_uid > PER_USER_RANGE &&
-	    new_uid % PER_USER_RANGE == ksu_get_manager_uid()) {
-		ksu_set_manager_uid(new_uid);
-	}
-
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
-	if (ksu_get_manager_uid() == new_uid) {
-		pr_info("install fd for ksu manager(uid=%d)\n", new_uid);
-		ksu_install_fd();
+	// Check if this is manager app (using appid to handle multi-user)
+	if (likely(ksu_is_manager_appid_valid()) &&
+	    unlikely(ksu_get_manager_appid() == new_uid % PER_USER_RANGE)) {
+		struct callback_head *cb;
+
 		spin_lock_irq(&current->sighand->siglock);
 		ksu_seccomp_allow_cache(current->seccomp.filter, __NR_reboot);
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS) &&                    \
-    !defined(CONFIG_KSU_MANUAL_HOOK) // if tracepoint hook
+#if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+		// tracepoint hook mode
 		ksu_set_task_tracepoint_flag(current);
 #endif
 		spin_unlock_irq(&current->sighand->siglock);
+
+		// Use task_work to install fd after returning to userspace
+		// (tracepoint context disables preemption, cannot sleep)
+		pr_info("install fd for ksu manager(uid=%d)\n", new_uid);
+		cb = kzalloc(sizeof(*cb), GFP_ATOMIC);
+		if (!cb)
+			return 0;
+		cb->func = ksu_install_manager_fd_tw_func;
+		if (task_work_add(current, cb, TWA_RESUME)) {
+			kfree(cb);
+			pr_warn("install manager fd add task_work failed\n");
+		}
 		return 0;
 	}
 
@@ -141,13 +174,13 @@ int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid)
 						__NR_reboot);
 			spin_unlock_irq(&current->sighand->siglock);
 		}
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS) &&                    \
-    !defined(CONFIG_KSU_MANUAL_HOOK) // if tracepoint hook
+#if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+		// tracepoint hook mode
 		ksu_set_task_tracepoint_flag(current);
 #endif
 	}
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS) &&                    \
-    !defined(CONFIG_KSU_MANUAL_HOOK) // if tracepoint hook
+#if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+	// tracepoint hook mode
 	else {
 		ksu_clear_task_tracepoint_flag_if_needed(current);
 	}
@@ -174,6 +207,125 @@ int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid)
 
 	return 0;
 }
+#else
+/* HymoFS inline hook version - Mark processes at setuid time for efficient hiding */
+int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid)
+{
+	// if old process is root, ignore it.
+	if (old_uid != 0 && ksu_enhanced_security_enabled) {
+		// disallow any non-ksu domain escalation from non-root to root!
+		if (unlikely(euid == 0)) {
+			if (!is_ksu_domain()) {
+				pr_warn("find suspicious EoP: %d %s, from %d to %d\n",
+					current->pid, current->comm, old_uid, new_uid);
+				__force_sig(SIGKILL);
+				return 0;
+			}
+		}
+		// disallow appuid decrease if not allowed to su
+		if (is_appuid(old_uid)) {
+			if (euid < current_euid().val &&
+			    !ksu_is_allow_uid_for_current(old_uid)) {
+				pr_warn("find suspicious EoP: %d %s, from %d to %d\n",
+					current->pid, current->comm, old_uid, new_uid);
+				__force_sig(SIGKILL);
+				return 0;
+			}
+		}
+		return 0;
+	}
+
+	// We only interest in process spawned by zygote
+	if (!is_zygote(current_cred())) {
+		return 0;
+	}
+
+#if __SULOG_GATE
+	ksu_sulog_report_syscall(new_uid, NULL, "setuid", NULL);
+#endif
+
+	// Check if spawned process is isolated service first, force umount
+	if (is_zygote_isolated_service_uid(new_uid)) {
+		goto do_umount;
+	}
+
+	// Manager app - install fd and seccomp, MARK as privileged
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+	// Check if this is manager app (using appid to handle multi-user)
+	if (likely(ksu_is_manager_appid_valid()) &&
+	    unlikely(ksu_get_manager_appid() == new_uid % PER_USER_RANGE)) {
+		struct callback_head *cb;
+
+		spin_lock_irq(&current->sighand->siglock);
+		ksu_seccomp_allow_cache(current->seccomp.filter, __NR_reboot);
+		spin_unlock_irq(&current->sighand->siglock);
+#ifdef CONFIG_KSU_HYMOFS
+		// Manager is privileged - MARK so it can see KSU files
+		hymofs_set_proc_privileged();
+#endif
+		// Use task_work to install fd after returning to userspace
+		// (tracepoint context disables preemption, cannot sleep)
+		pr_info("install fd for ksu manager(uid=%d)\n", new_uid);
+		cb = kzalloc(sizeof(*cb), GFP_ATOMIC);
+		if (!cb)
+			return 0;
+		cb->func = ksu_install_manager_fd_tw_func;
+		if (task_work_add(current, cb, TWA_RESUME)) {
+			kfree(cb);
+			pr_warn("install manager fd add task_work failed\n");
+		}
+		return 0;
+	}
+
+	// Allowlist apps - seccomp cache, MARK as privileged, but continue to check umount
+	if (ksu_is_allow_uid_for_current(new_uid)) {
+		if (current->seccomp.mode == SECCOMP_MODE_FILTER &&
+		    current->seccomp.filter) {
+			spin_lock_irq(&current->sighand->siglock);
+			ksu_seccomp_allow_cache(current->seccomp.filter,
+						__NR_reboot);
+			spin_unlock_irq(&current->sighand->siglock);
+		}
+#ifdef CONFIG_KSU_HYMOFS
+		// Allowlist apps are privileged - MARK so they can see KSU files
+		hymofs_set_proc_privileged();
+#endif
+		// DON'T return here - continue to check if umount is needed
+	}
+
+#else  // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+	if (ksu_is_allow_uid_for_current(new_uid)) {
+		spin_lock_irq(&current->sighand->siglock);
+		disable_seccomp(current);
+		spin_unlock_irq(&current->sighand->siglock);
+
+		if (ksu_get_manager_uid() == new_uid) {
+			pr_info("install fd for ksu manager(uid=%d)\n", new_uid);
+			ksu_install_fd();
+		}
+#ifdef CONFIG_KSU_HYMOFS
+		// Privileged - MARK so it can see KSU files
+		hymofs_set_proc_privileged();
+#endif
+		return 0;
+	}
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+
+	// Check if spawned process is normal user app and needs to be umounted
+	if (likely(is_zygote_normal_app_uid(new_uid) &&
+		   ksu_uid_should_umount(new_uid))) {
+		goto do_umount;
+	}
+
+	return 0;
+
+do_umount:
+	// Handle kernel umount - this unmounts module mounts for non-privileged apps
+	ksu_handle_umount(old_uid, new_uid);
+	// HymoFS: No marking needed - default is already hidden
+	return 0;
+}
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 
 int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
 {

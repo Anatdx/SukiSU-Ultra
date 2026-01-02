@@ -15,8 +15,12 @@
 #include "klog.h" // IWYU pragma: keep
 #include "ksu.h"
 #include "throne_tracker.h"
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS)
+#ifndef CONFIG_KSU_HYMOFS
 #include "syscall_hook_manager.h"
+#else
+// HYMOFS mode still needs observer for packages.list monitoring
+extern int ksu_observer_init(void);
+extern void ksu_observer_exit(void);
 #endif
 #include "ksu.h"
 #include "ksud.h"
@@ -38,11 +42,11 @@ EXPORT_SYMBOL(ksu_initialized);
 #include "sulog.h"
 #include "throne_comm.h"
 
-void sukisu_custom_config_init(void)
+void yukisu_custom_config_init(void)
 {
 }
 
-void sukisu_custom_config_exit(void)
+void yukisu_custom_config_exit(void)
 {
 	ksu_uid_exit();
 	ksu_throne_comm_exit();
@@ -86,8 +90,8 @@ int __init kernelsu_init(void)
 
 	ksu_supercalls_init();
 
-	sukisu_custom_config_init();
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+	yukisu_custom_config_init();
+#if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	ksu_syscall_hook_manager_init();
 #endif
 	ksu_setuid_hook_init();
@@ -101,9 +105,8 @@ int __init kernelsu_init(void)
 	hymofs_init();
 #endif
 
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	ksu_ksud_init();
-#endif
 
 #ifdef MODULE
 #ifndef CONFIG_KSU_DEBUG
@@ -152,14 +155,14 @@ int ksu_yield(void)
 	ksu_observer_exit();
 	ksu_throne_tracker_exit();
 
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	ksu_ksud_exit();
 	ksu_syscall_hook_manager_exit();
 #endif
 
 	ksu_sucompat_exit();
 	ksu_setuid_hook_exit();
-	sukisu_custom_config_exit();
+	yukisu_custom_config_exit();
 	ksu_supercalls_exit();
 	ksu_feature_exit();
 
@@ -180,14 +183,14 @@ void kernelsu_exit(void)
 	hymofs_exit();
 #endif
 
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	ksu_ksud_exit();
 	ksu_syscall_hook_manager_exit();
 #endif
 	ksu_sucompat_exit();
 	ksu_setuid_hook_exit();
 
-	sukisu_custom_config_exit();
+	yukisu_custom_config_exit();
 
 	ksu_supercalls_exit();
 

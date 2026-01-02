@@ -17,6 +17,7 @@
 #include "throne_tracker.h"
 
 uid_t ksu_manager_uid = KSU_INVALID_UID;
+
 static uid_t locked_manager_uid = KSU_INVALID_UID;
 
 #define KSU_UID_LIST_PATH "/data/misc/user_uid/uid_list"
@@ -39,15 +40,18 @@ static int uid_from_um_list(struct list_head *uid_list)
 	char *next = NULL;
 	int cnt = 0;
 
+
 	fp = ksu_filp_open_compat(KSU_UID_LIST_PATH, O_RDONLY, 0);
-	if (IS_ERR(fp))
+	if (IS_ERR(fp)) {
 		return -ENOENT;
+	}
 
 	size = fp->f_inode->i_size;
 	if (size <= 0) {
 		filp_close(fp, NULL);
 		return -ENODATA;
 	}
+
 
 	buf = kzalloc(size + 1, GFP_ATOMIC);
 	if (!buf) {
@@ -104,6 +108,9 @@ static int uid_from_um_list(struct list_head *uid_list)
 		strscpy(d->package, pkg, KSU_MAX_PACKAGE_NAME);
 		list_add_tail(&d->list, uid_list);
 		++cnt;
+		// Log first few entries for debug
+		if (cnt <= 5) {
+		}
 	}
 
 	kfree(buf);
@@ -158,6 +165,8 @@ static void crown_manager(const char *apk, struct list_head *uid_data,
 {
 	char pkg[KSU_MAX_PACKAGE_NAME];
 	struct uid_data *np;
+
+
 	if (get_pkg_from_apk_path(pkg, apk) < 0) {
 		pr_err("Failed to get package name from apk path: %s\n", apk);
 		return;
@@ -461,6 +470,7 @@ void track_throne(bool prune_only)
 	int current_manager_uid = ksu_get_manager_uid() % 100000;
 	bool need_search = false;
 
+
 	// init uid list head
 	INIT_LIST_HEAD(&uid_list);
 
@@ -475,6 +485,7 @@ void track_throne(bool prune_only)
 
 		pr_warn("%s read failed, fallback to %s\n", KSU_UID_LIST_PATH,
 			SYSTEM_PACKAGES_LIST_PATH);
+	} else {
 	}
 
 	{
@@ -546,6 +557,8 @@ uid_ready:
 		}
 	}
 
+		manager_exist, locked_manager_uid);
+
 	if (!manager_exist && locked_manager_uid != KSU_INVALID_UID) {
 		pr_info("Manager APK removed, unlock previous UID: %d\n",
 			locked_manager_uid);
@@ -558,6 +571,7 @@ uid_ready:
 	if (need_search) {
 		pr_info("Searching for manager(s)...\n");
 		search_manager("/data/app", 2, &uid_list);
+			ksu_get_manager_uid());
 		pr_info("Manager search finished\n");
 	}
 

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 /*
- * SukiSU SuperKey Authentication
+ * YukiSU SuperKey Authentication
  *
  * APatch 风格的超级密码鉴权系统
  * 修补 boot 时设置密码，运行时比对

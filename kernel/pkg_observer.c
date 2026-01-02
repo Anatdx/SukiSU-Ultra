@@ -144,6 +144,12 @@ int ksu_observer_init(void)
 
 	ret = watch_one_dir(&g_watch);
 	pr_info("%s done.\n", __func__);
+
+	// Do initial manager scan after observer is ready
+	// This is needed because packages.list already exists at boot
+	pr_info("Triggering initial manager scan...\n");
+	track_throne(false);
+
 	return 0;
 }
 

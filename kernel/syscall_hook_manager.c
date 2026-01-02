@@ -297,7 +297,7 @@ int ksu_handle_init_mark_tracker(const char __user **filename_user)
 static void ksu_sys_enter_handler(void *data, struct pt_regs *regs, long id)
 {
 	if (unlikely(check_syscall_fastpath(id))) {
-#if !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS)
+#ifndef CONFIG_KSU_HYMOFS
 #ifdef KSU_TP_HOOK
 		if (ksu_su_compat_enabled) {
 			// Handle newfstatat
@@ -305,7 +305,15 @@ static void ksu_sys_enter_handler(void *data, struct pt_regs *regs, long id)
 				int *dfd = (int *)&PT_REGS_PARM1(regs);
 				int *flags =
 				    (int *)&PT_REGS_SYSCALL_PARM4(regs);
-				// use const char __user **
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0) && defined(CONFIG_KSU_HYMOFS)
+				// Kernel 6.1+ with HymoFS uses struct filename
+				// **
+				struct filename **filename_ptr =
+				    (struct filename **)&PT_REGS_PARM2(regs);
+				ksu_handle_stat(dfd, filename_ptr, flags);
+#else
+				// Older kernel or no HymoFS: use const char
+				// __user **
 				const char __user **filename_user =
 				    (const char __user **)&PT_REGS_PARM2(regs);
 				ksu_handle_stat(dfd, filename_user, flags);
@@ -355,7 +363,7 @@ static void ksu_sys_enter_handler(void *data, struct pt_regs *regs, long id)
 
 void ksu_syscall_hook_manager_init(void)
 {
-#if defined(CONFIG_KPROBES) && !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS)
+#if defined(CONFIG_KPROBES) && !defined(CONFIG_KSU_HYMOFS)
 	int ret;
 	pr_info("hook_manager: ksu_hook_manager_init called\n");
 
@@ -386,7 +394,7 @@ void ksu_syscall_hook_manager_init(void)
 
 void ksu_syscall_hook_manager_exit(void)
 {
-#if defined(CONFIG_KPROBES) && !defined(CONFIG_KSU_SUSFS) && !defined(CONFIG_KSU_HYMOFS)
+#if defined(CONFIG_KPROBES) && !defined(CONFIG_KSU_HYMOFS)
 	pr_info("hook_manager: ksu_hook_manager_exit called\n");
 #ifdef CONFIG_HAVE_SYSCALL_TRACEPOINTS
 	unregister_trace_sys_enter(ksu_sys_enter_handler, NULL);
