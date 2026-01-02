@@ -90,7 +90,7 @@ ifeq ($(KSU_GITHUB_VERSION_COMMIT),)
     KSU_VERSION := $(shell expr 10000 + $(KSU_LOCAL_VERSION) - 3135)
     $(info -- $(REPO_NAME) version (local .git): $(KSU_VERSION))
   else
-    KSU_VERSION := 10000
+    KSU_VERSION := 12000
     $(warning -- Could not fetch version online or via local .git! Using fallback version: $(KSU_VERSION))
   endif
 else
@@ -117,7 +117,7 @@ endif
 ccflags-y += -DKSU_VERSION=$(KSU_VERSION)
 ccflags-y += -DKSU_VERSION_FULL=\"$(KSU_VERSION_FULL)\"
 
-$(info -- Supported Unofficial Manager: 5ec1cff (GKI) rsuntk (Non-GKI) ShirkNeko udochina (GKI and non-GKI and KPM))
+$(info -- Yukisu does NOT support other managers!)
 
 ifeq ($(CONFIG_KSU_MANUAL_HOOK), y)
 ccflags-y += -DKSU_MANUAL_HOOK
