@@ -236,11 +236,12 @@ struct ksu_superkey_status_cmd {
 
 // Magic for SuperKey authentication via prctl (SECCOMP-safe)
 // prctl is not blocked by Android SECCOMP policy, unlike reboot
-#define KSU_PRCTL_SUPERKEY_AUTH 0xDEAD5555
+// NOTE: Avoid 0xDEAD/0xBEEF patterns - easily detected by root checkers
+#define KSU_PRCTL_SUPERKEY_AUTH 0x59554B49  // "YUKI" in hex
 // Magic for getting driver fd for already authenticated manager (SECCOMP-safe)
 // Usage: prctl(KSU_PRCTL_GET_FD, &fd_output, 0, 0, 0)
 // This allows ksud to get driver fd when launched from manager app
-#define KSU_PRCTL_GET_FD 0xDEAD5556
+#define KSU_PRCTL_GET_FD 0x59554B4A  // "YUKJ" in hex
 
 // Output structure for KSU_PRCTL_GET_FD
 struct ksu_prctl_get_fd_cmd {

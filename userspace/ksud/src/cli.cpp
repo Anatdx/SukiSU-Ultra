@@ -3,9 +3,9 @@
 #include "boot/boot_patch.hpp"
 #include "core/feature.hpp"
 #include "core/ksucalls.hpp"
-#include "core/susfs.hpp"
 #include "debug.hpp"
 #include "defs.hpp"
+#include "hymo/hymo_cli.hpp"
 #include "init_event.hpp"
 #include "kpm.hpp"
 #include "log.hpp"
@@ -138,8 +138,8 @@ static void print_usage() {
     printf("  umount         Manage umount paths\n");
     printf("  kernel         Kernel interface\n");
     printf("  debug          For developers\n");
+    printf("  hymo           HymoFS module manager\n");
 #ifdef __aarch64__
-    printf("  susfs          SUSFS status\n");
     printf("  kpm            KPM module manager\n");
 #endif
     printf("  help           Show this help\n");
@@ -440,32 +440,6 @@ static int cmd_boot_info(const std::vector<std::string>& args) {
 }
 
 #ifdef __aarch64__
-// SUSFS subcommand handlers
-static int cmd_susfs(const std::vector<std::string>& args) {
-    if (args.empty()) {
-        printf("USAGE: ksud susfs <SUBCOMMAND>\n\n");
-        printf("SUBCOMMANDS:\n");
-        printf("  status    Get SUSFS status\n");
-        printf("  version   Get SUSFS version\n");
-        printf("  features  Get enabled features\n");
-        return 1;
-    }
-
-    const std::string& subcmd = args[0];
-
-    if (subcmd == "status") {
-        printf("%s\n", susfs_get_status().c_str());
-    } else if (subcmd == "version") {
-        printf("%s\n", susfs_get_version().c_str());
-    } else if (subcmd == "features") {
-        printf("%s\n", susfs_get_features().c_str());
-    } else {
-        printf("Unknown susfs subcommand: %s\n", subcmd.c_str());
-        return 1;
-    }
-    return 0;
-}
-
 // KPM subcommand handlers
 static int cmd_kpm(const std::vector<std::string>& args) {
     if (args.empty()) {
@@ -608,9 +582,9 @@ int cli_run(int argc, char* argv[]) {
         return cmd_kernel(args);
     } else if (cmd == "debug") {
         return cmd_debug(args);
+    } else if (cmd == "hymo") {
+        return hymo::cmd_hymo(args);
 #ifdef __aarch64__
-    } else if (cmd == "susfs") {
-        return cmd_susfs(args);
     } else if (cmd == "kpm") {
         return cmd_kpm(args);
 #endif

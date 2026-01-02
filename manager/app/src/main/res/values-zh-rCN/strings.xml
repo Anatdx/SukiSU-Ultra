@@ -213,6 +213,7 @@
     <string name="color_pink">粉色</string>
     <string name="color_gray">高级灰</string>
     <string name="color_yellow">黄色</string>
+    <string name="color_trans_pride">Trans Pride</string>
     <string name="horizon_kernel">刷写 AnyKernel3 压缩包</string>
     <string name="horizon_kernel_summary">刷入 Anykernel3 内核</string>
     <string name="root_required">需要 root 权限</string>
@@ -728,4 +729,22 @@
     <string name="signature_bypass_desc">禁用 APK 签名验证。管理器将仅通过超级密钥认证来识别。</string>
     <string name="gki_priority_title">GKI 优先模式</string>
     <string name="gki_priority_desc">启用后，GKI 优先于 LKM。LKM 将不会触发 GKI 让位，两者独立运行。</string>
+
+    <!-- HymoFS Configuration -->
+    <string name="hymofs_title">HymoFS 配置</string>
+    <string name="hymofs_tab_status">状态</string>
+    <string name="hymofs_tab_modules">模块</string>
+    <string name="hymofs_tab_settings">设置</string>
+    <string name="hymofs_tab_rules">规则</string>
+    <string name="hymofs_tab_logs">日志</string>
+    <string name="hymofs_storage">存储</string>
+    <string name="hymofs_modules_count">模块数</string>
+    <string name="hymofs_system_info">系统信息</string>
+    <string name="hymofs_version">版本: %s</string>
+    <string name="hymofs_status_available">HymoFS 内核可用且正常运行</string>
+    <string name="hymofs_status_not_present">HymoFS 内核不存在</string>
+    <string name="hymofs_status_kernel_too_old">内核版本过低，不支持 HymoFS</string>
+    <string name="hymofs_status_module_too_old">模块版本过低，不兼容当前内核</string>
+    <string name="hymofs_builtin_mount">内置挂载</string>
+    <string name="hymofs_builtin_mount_desc">使用内置的 hymo 挂载而非外部元模块。如果您想使用其他元模块，请禁用此选项。</string>
 </resources>

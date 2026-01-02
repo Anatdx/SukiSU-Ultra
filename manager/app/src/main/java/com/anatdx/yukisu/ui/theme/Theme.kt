@@ -44,8 +44,9 @@ object ThemeConfig {
     var forceDarkMode by mutableStateOf<Boolean?>(null)
     var currentTheme by mutableStateOf<ThemeColors>(ThemeColors.Default)
     var useDynamicColor by mutableStateOf(false)
-
+    
     // 背景状态
+    var isTransPrideUnlocked by mutableStateOf(false)
     var backgroundImageLoaded by mutableStateOf(false)
     var isThemeChanging by mutableStateOf(false)
     var preventBackgroundRefresh by mutableStateOf(false)
@@ -138,6 +139,19 @@ object ThemeManager {
         val enabled = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .getBoolean("use_dynamic_color", Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
         ThemeConfig.useDynamicColor = enabled
+    }
+    
+    fun unlockTransPride(context: Context) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit {
+            putBoolean("trans_pride_unlocked", true)
+        }
+        ThemeConfig.isTransPrideUnlocked = true
+    }
+    
+    fun loadTransPrideState(context: Context) {
+        val unlocked = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getBoolean("trans_pride_unlocked", false)
+        ThemeConfig.isTransPrideUnlocked = unlocked
     }
 }
 
@@ -296,6 +310,7 @@ private fun ThemeInitializer(context: Context, systemIsDark: Boolean) {
             ThemeManager.loadThemeMode(context)
             ThemeManager.loadThemeColors(context)
             ThemeManager.loadDynamicColorState(context)
+            ThemeManager.loadTransPrideState(context)
             CardConfig.load(context)
 
             if (!ThemeConfig.backgroundImageLoaded && !ThemeConfig.preventBackgroundRefresh) {

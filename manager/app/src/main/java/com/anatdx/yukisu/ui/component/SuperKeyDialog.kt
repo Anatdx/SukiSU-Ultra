@@ -1,5 +1,6 @@
 package com.anatdx.yukisu.ui.component
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -15,6 +16,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -25,6 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.anatdx.yukisu.R
+import com.anatdx.yukisu.ui.theme.ThemeConfig
+import com.anatdx.yukisu.ui.theme.ThemeColors
+import com.anatdx.yukisu.ui.theme.ThemeManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -101,9 +106,22 @@ fun SuperKeyDialog(
 ) {
     if (state !is SuperKeyDialogState) return
     
+    val context = LocalContext.current
+    
     // 获取字符串资源
     val authFailedMessage = stringResource(id = R.string.superkey_auth_failed)
     val emptyKeyMessage = stringResource(id = R.string.superkey_input_hint)
+    
+    fun checkEasterEgg(input: String): Boolean {
+        if (input.equals("transright", ignoreCase = true) && !ThemeConfig.isTransPrideUnlocked) {
+            ThemeManager.unlockTransPride(context)
+            ThemeConfig.currentTheme = ThemeColors.TransPride
+            ThemeManager.saveThemeColors(context, "trans")
+            Toast.makeText(context, "🏳️‍⚧️ Trans Rights! ✨", Toast.LENGTH_LONG).show()
+            return true
+        }
+        return false
+    }
     
     if (state.isVisible) {
         var superKeyInput by remember { mutableStateOf("") }
@@ -179,9 +197,10 @@ fun SuperKeyDialog(
                     // Password input field
                     OutlinedTextField(
                         value = superKeyInput,
-                        onValueChange = { 
-                            superKeyInput = it
+                        onValueChange = { newValue ->
+                            superKeyInput = newValue
                             errorMessage = null
+                            checkEasterEgg(newValue)
                         },
                         modifier = Modifier
                             .fillMaxWidth()

@@ -4,9 +4,11 @@
 #include "log.hpp"
 #include "utils.hpp"
 
+#include <fcntl.h>
 #include <getopt.h>
 #include <grp.h>
 #include <pwd.h>
+#include <sched.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -242,12 +244,46 @@ int root_shell() {
     return su_main(1, argv);
 }
 
+// Simple grant_root for "debug su" command
+// This is a simplified version that just grants root and execs to sh
+// Used by manager app which may have SECCOMP restrictions
+// Mirrors Rust behavior: grant_root() then immediately exec("sh")
 int grant_root_shell(bool global_mnt) {
-    if (global_mnt) {
-        char* argv[] = {const_cast<char*>("su"), const_cast<char*>("-M"), nullptr};
-        return su_main(2, argv);
+    // Grant root first via kernel
+    if (grant_root() < 0) {
+        LOGE("Failed to grant root");
+        return 1;
     }
-    return root_shell();
+    
+    // Set UID/GID to 0
+    setgid(0);
+    setuid(0);
+    
+    // Switch to global mount namespace if requested
+    if (global_mnt) {
+        int fd = open("/proc/1/ns/mnt", O_RDONLY);
+        if (fd >= 0) {
+            setns(fd, CLONE_NEWNS);
+            close(fd);
+        }
+    }
+    
+    // Add /data/adb/ksu/bin to PATH
+    const char* old_path = getenv("PATH");
+    std::string new_path = "/data/adb/ksu/bin";
+    if (old_path && old_path[0]) {
+        new_path += ":";
+        new_path += old_path;
+    }
+    setenv("PATH", new_path.c_str(), 1);
+    
+    // Exec to sh immediately (matching Rust behavior)
+    // This avoids any complex operations that might trigger SECCOMP
+    char* shell_argv[] = {const_cast<char*>("sh"), nullptr};
+    execv("/system/bin/sh", shell_argv);
+    
+    LOGE("Failed to exec shell: %s", strerror(errno));
+    return 127;
 }
 
 }  // namespace ksud

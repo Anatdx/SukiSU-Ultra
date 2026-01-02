@@ -35,6 +35,11 @@ private fun getKsuDaemonPath(): String {
     return ksuApp.applicationInfo.nativeLibraryDir + File.separator + "libksud.so"
 }
 
+/**
+ * Public function to get ksud path for other modules
+ */
+fun getKsud(): String = getKsuDaemonPath()
+
 object KsuCli {
     var SHELL: Shell = createRootShell()
         private set

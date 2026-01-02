@@ -21,9 +21,10 @@ static GetInfoCmd g_info_cache = {0, 0};
 static bool g_info_cached = false;
 
 // Magic constants
+// NOTE: Avoid 0xDEAD/0xBEEF patterns - easily detected by root checkers
 constexpr uint32_t KSU_INSTALL_MAGIC1 = 0xDEADBEEF;
 constexpr uint32_t KSU_INSTALL_MAGIC2 = 0xCAFEBABE;
-constexpr int KSU_PRCTL_GET_FD = static_cast<int>(0xDEAD5556u);
+constexpr int KSU_PRCTL_GET_FD = static_cast<int>(0x59554B4Au);  // "YUKJ" in hex
 
 struct PrctlGetFdCmd {
     int32_t result;
