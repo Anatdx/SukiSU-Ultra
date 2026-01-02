@@ -768,5 +768,17 @@ Important Note:\n
     <string name="hymofs_enable_nuke_desc">Allow nuking ext4 sysfs entries</string>
     <string name="hymofs_ignore_protocol">Ignore Protocol Mismatch</string>
     <string name="hymofs_ignore_protocol_desc">Continue even if kernel/userspace versions don\'t match</string>
+    <string name="hymofs_moduledir">Module Directory</string>
+    <string name="hymofs_moduledir_desc">Base directory for modules (default: /data/adb/modules)</string>
+    <string name="hymofs_tempdir">Temporary Mount Point</string>
+    <string name="hymofs_tempdir_desc">Base path for temporary mounts (leave empty for auto)</string>
+    <string name="hymofs_mountsource">OverlayFS Mount Source</string>
+    <string name="hymofs_mountsource_desc">Name to use for overlayfs mount source (default: KSU)</string>
+    <string name="hymofs_logs_copy">Copy</string>
+    <string name="hymofs_logs_copy_success">Log copied to clipboard</string>
+    <string name="hymofs_logs_filter_all">All</string>
+    <string name="hymofs_logs_filter_info">Info</string>
+    <string name="hymofs_logs_filter_warn">Warn</string>
+    <string name="hymofs_logs_filter_error">Error</string>
 </resources>
 

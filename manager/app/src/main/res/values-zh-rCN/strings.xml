@@ -763,4 +763,16 @@
     <string name="hymofs_enable_nuke_desc">允许清除 ext4 sysfs 条目</string>
     <string name="hymofs_ignore_protocol">忽略协议不匹配</string>
     <string name="hymofs_ignore_protocol_desc">即使内核/用户空间版本不匹配也继续运行</string>
+    <string name="hymofs_moduledir">模块目录</string>
+    <string name="hymofs_moduledir_desc">模块的基础目录（默认：/data/adb/modules）</string>
+    <string name="hymofs_tempdir">临时挂载基点</string>
+    <string name="hymofs_tempdir_desc">临时挂载的基础路径（留空则自动选择）</string>
+    <string name="hymofs_mountsource">OverlayFS 挂载源名称</string>
+    <string name="hymofs_mountsource_desc">用于 overlayfs 挂载源的名称（默认：KSU）</string>
+    <string name="hymofs_logs_copy">复制</string>
+    <string name="hymofs_logs_copy_success">日志已复制到剪贴板</string>
+    <string name="hymofs_logs_filter_all">全部</string>
+    <string name="hymofs_logs_filter_info">信息</string>
+    <string name="hymofs_logs_filter_warn">警告</string>
+    <string name="hymofs_logs_filter_error">错误</string>
 </resources>

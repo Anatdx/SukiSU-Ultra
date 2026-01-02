@@ -1,8 +1,11 @@
 package com.anatdx.yukisu.ui.hymofs
 
 import android.annotation.SuppressLint
+import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,9 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ramcosta.composedestinations.annotation.Destination
@@ -28,6 +35,7 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.anatdx.yukisu.R
 import com.anatdx.yukisu.ui.hymofs.util.HymoFSManager
 import com.anatdx.yukisu.ui.hymofs.util.HymoFSManager.HymoFSStatus
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.launch
 
 /**
@@ -772,6 +780,50 @@ private fun SettingsTab(
                         updateAndSave(config.copy(disableUmount = it))
                     }
                 )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                // Module Directory Setting
+                var moduledir by remember { mutableStateOf(config.moduledir) }
+                SettingTextField(
+                    title = stringResource(R.string.hymofs_moduledir),
+                    subtitle = stringResource(R.string.hymofs_moduledir_desc),
+                    value = moduledir,
+                    onValueChange = { moduledir = it },
+                    onConfirm = {
+                        updateAndSave(config.copy(moduledir = moduledir))
+                    }
+                )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                // Temporary Mount Point Setting
+                var tempdir by remember { mutableStateOf(config.tempdir) }
+                SettingTextField(
+                    title = stringResource(R.string.hymofs_tempdir),
+                    subtitle = stringResource(R.string.hymofs_tempdir_desc),
+                    value = tempdir,
+                    onValueChange = { tempdir = it },
+                    onConfirm = {
+                        updateAndSave(config.copy(tempdir = tempdir))
+                    },
+                    placeholder = "Auto"
+                )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                // OverlayFS Mount Source Setting
+                var mountsource by remember { mutableStateOf(config.mountsource) }
+                SettingTextField(
+                    title = stringResource(R.string.hymofs_mountsource),
+                    subtitle = stringResource(R.string.hymofs_mountsource_desc),
+                    value = mountsource,
+                    onValueChange = { mountsource = it },
+                    onConfirm = {
+                        updateAndSave(config.copy(mountsource = mountsource))
+                    },
+                    placeholder = "KSU"
+                )
             }
         }
         
@@ -897,6 +949,82 @@ private fun SettingSwitch(
             onCheckedChange = onCheckedChange,
             enabled = enabled
         )
+    }
+}
+
+@Composable
+private fun SettingTextField(
+    title: String,
+    subtitle: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    enabled: Boolean = true,
+    placeholder: String = ""
+) {
+    var isEditing by remember { mutableStateOf(false) }
+    
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (enabled) Color.Unspecified else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 1f else 0.5f)
+                )
+            }
+            IconButton(
+                onClick = { isEditing = !isEditing },
+                enabled = enabled
+            ) {
+                Icon(
+                    imageVector = if (isEditing) Icons.Filled.Check else Icons.Filled.Edit,
+                    contentDescription = null
+                )
+            }
+        }
+        
+        if (isEditing) {
+            OutlinedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                placeholder = { if (placeholder.isNotEmpty()) Text(placeholder) },
+                singleLine = true,
+                enabled = enabled,
+                trailingIcon = {
+                    IconButton(onClick = {
+                        onConfirm()
+                        isEditing = false
+                    }) {
+                        Icon(Icons.Filled.Done, contentDescription = null)
+                    }
+                }
+            )
+        } else if (value.isNotEmpty()) {
+            Text(
+                text = value,
+                modifier = Modifier.padding(top = 4.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                fontFamily = FontFamily.Monospace,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
     }
 }
 
@@ -1078,6 +1206,14 @@ private fun RuleItem(rule: HymoFSManager.ActiveRule) {
 }
 
 // ==================== Logs Tab ====================
+
+enum class LogLevel(val displayNameRes: Int, val color: Color, val tag: String) {
+    ALL(R.string.hymofs_logs_filter_all, Color.Unspecified, ""),
+    INFO(R.string.hymofs_logs_filter_info, Color(0xFF4CAF50), "INFO"),
+    WARN(R.string.hymofs_logs_filter_warn, Color(0xFFFF9800), "WARN"),
+    ERROR(R.string.hymofs_logs_filter_error, Color(0xFFF44336), "ERROR")
+}
+
 @Composable
 private fun LogsTab(
     showKernelLog: Boolean,
@@ -1085,8 +1221,42 @@ private fun LogsTab(
     logContent: String,
     onRefreshLog: () -> Unit
 ) {
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    var selectedLogLevel by remember { mutableStateOf(LogLevel.ALL) }
+    
     LaunchedEffect(showKernelLog) {
         onRefreshLog()
+    }
+    
+    // Filter logs by level
+    val filteredLogContent = remember(logContent, selectedLogLevel) {
+        if (selectedLogLevel == LogLevel.ALL) {
+            logContent
+        } else {
+            logContent.lines()
+                .filter { line -> line.contains(selectedLogLevel.tag, ignoreCase = true) }
+                .joinToString("\n")
+        }
+    }
+    
+    // Parse and colorize logs
+    val annotatedLogContent = remember(filteredLogContent) {
+        buildAnnotatedString {
+            filteredLogContent.lines().forEach { line ->
+                val color = when {
+                    line.contains("ERROR", ignoreCase = true) -> LogLevel.ERROR.color
+                    line.contains("WARN", ignoreCase = true) -> LogLevel.WARN.color
+                    line.contains("INFO", ignoreCase = true) -> LogLevel.INFO.color
+                    else -> Color(0xFFD4D4D4)
+                }
+                withStyle(style = SpanStyle(color = color)) {
+                    append(line)
+                }
+                append("\n")
+            }
+        }
     }
     
     Column(
@@ -1094,13 +1264,15 @@ private fun LogsTab(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Toggle buttons
+        // Control buttons row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            // Log type toggles
             FilterChip(
                 selected = !showKernelLog,
                 onClick = { if (showKernelLog) onToggleLogType() },
@@ -1114,8 +1286,49 @@ private fun LogsTab(
             
             Spacer(modifier = Modifier.weight(1f))
             
+            // Copy button
+            IconButton(
+                onClick = {
+                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    val clip = android.content.ClipData.newPlainText("HymoFS Log", filteredLogContent)
+                    clipboard.setPrimaryClip(clip)
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(context.getString(R.string.hymofs_logs_copy_success))
+                    }
+                }
+            ) {
+                Icon(Icons.Filled.ContentCopy, contentDescription = stringResource(R.string.hymofs_logs_copy))
+            }
+            
+            // Refresh button
             IconButton(onClick = onRefreshLog) {
                 Icon(Icons.Filled.Refresh, contentDescription = "Refresh")
+            }
+        }
+        
+        // Log level filter chips
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(LogLevel.entries.size) { index ->
+                val level = LogLevel.entries[index]
+                FilterChip(
+                    selected = selectedLogLevel == level,
+                    onClick = { selectedLogLevel = level },
+                    label = { Text(stringResource(level.displayNameRes)) },
+                    leadingIcon = if (level != LogLevel.ALL) {
+                        {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .background(level.color, shape = RoundedCornerShape(4.dp))
+                            )
+                        }
+                    } else null
+                )
             }
         }
         
@@ -1129,19 +1342,27 @@ private fun LogsTab(
                 containerColor = Color(0xFF1E1E1E)
             )
         ) {
-            val scrollState = rememberScrollState()
-            
-            Text(
-                text = if (logContent.isEmpty()) "No logs available" else logContent,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(12.dp),
-                style = MaterialTheme.typography.bodySmall,
-                fontFamily = FontFamily.Monospace,
-                color = Color(0xFFD4D4D4),
-                fontSize = 11.sp
-            )
+            Box(modifier = Modifier.fillMaxSize()) {
+                val scrollState = rememberScrollState()
+                
+                Text(
+                    text = annotatedLogContent,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                        .padding(12.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 11.sp
+                )
+                
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
+                )
+            }
         }
     }
 }
