@@ -83,6 +83,25 @@ int cmd_hymo(const std::vector<std::string>& args) {
         return 0;
     }
     
+    if (subcmd == "status") {
+        HymoFSStatus status = HymoFS::check_status();
+        switch (status) {
+            case HymoFSStatus::Available:
+                printf("Available\n");
+                break;
+            case HymoFSStatus::NotPresent:
+                printf("NotPresent\n");
+                break;
+            case HymoFSStatus::KernelTooOld:
+                printf("KernelTooOld\n");
+                break;
+            case HymoFSStatus::ModuleTooOld:
+                printf("ModuleTooOld\n");
+                break;
+        }
+        return 0;
+    }
+    
     if (subcmd == "list") {
         if (HymoFS::is_available()) {
             std::string rules = HymoFS::get_active_rules();
