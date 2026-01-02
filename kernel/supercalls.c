@@ -1187,37 +1187,25 @@ static int ksu_handle_prctl_superkey(int option, unsigned long arg2)
 		    (struct ksu_prctl_get_fd_cmd __user *)arg2;
 		struct ksu_prctl_get_fd_cmd cmd;
 
-		pr_info("prctl get_fd request from uid %d, pid %d\n",
-			current_uid().val, current->pid);
-
-		// Check if caller is authenticated manager
+		// Security: Check if caller is authenticated manager
+		// IMPORTANT: Do NOT return -EPERM or any error that reveals KSU existence
+		// Just silently return 0 (let prctl pass through) to avoid side-channel
 		if (!is_manager()) {
-			pr_warn("prctl get_fd: not manager, uid=%d\n",
-				current_uid().val);
-			cmd.result = -EPERM;
-			cmd.fd = -1;
-			if (copy_to_user(cmd_user, &cmd, sizeof(cmd)))
-				return 0;
-			return 0;
+			return 0;  // Silent fail - don't reveal KSU exists
 		}
 
 		// Open driver fd for authenticated manager
 		cmd.fd = ksu_install_fd();
 		if (cmd.fd >= 0) {
 			cmd.result = 0;
-			pr_info("prctl get_fd: success, fd=%d for uid=%d\n",
-				cmd.fd, current_uid().val);
 		} else {
 			cmd.result = cmd.fd;
 			cmd.fd = -1;
-			pr_err("prctl get_fd: failed to open fd for uid=%d\n",
-			       current_uid().val);
 		}
 
 		if (copy_to_user(cmd_user, &cmd, sizeof(cmd))) {
 			// Failed to copy, must close the fd we just opened
 			if (cmd.fd >= 0) {
-				pr_err("prctl get_fd: copy_to_user failed, closing fd=%d\n", cmd.fd);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 				close_fd(cmd.fd);
 #else
@@ -1232,9 +1220,6 @@ static int ksu_handle_prctl_superkey(int option, unsigned long arg2)
 
 	if (option != KSU_PRCTL_SUPERKEY_AUTH)
 		return 0;
-
-	pr_info("prctl superkey auth request from uid %d, pid %d\n",
-		current_uid().val, current->pid);
 
 	tw = kzalloc(sizeof(*tw), GFP_ATOMIC);
 	if (!tw)

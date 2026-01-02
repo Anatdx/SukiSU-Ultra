@@ -44,7 +44,6 @@ set(SOURCES
     src/utils.cpp
     src/core/ksucalls.cpp
     src/core/feature.cpp
-    src/core/susfs.cpp
     src/module/module.cpp
     src/module/module_config.cpp
     src/module/metamodule.cpp
@@ -58,6 +57,20 @@ set(SOURCES
     src/restorecon.cpp
     src/debug.cpp
     src/kpm.cpp
+    # HymoFS module management
+    src/hymo/hymo_cli.cpp
+    src/hymo/hymo_utils.cpp
+    src/hymo/conf/config.cpp
+    src/hymo/core/executor.cpp
+    src/hymo/core/inventory.cpp
+    src/hymo/core/modules.cpp
+    src/hymo/core/planner.cpp
+    src/hymo/core/state.cpp
+    src/hymo/core/storage.cpp
+    src/hymo/core/sync.cpp
+    src/hymo/mount/hymofs.cpp
+    src/hymo/mount/magic.cpp
+    src/hymo/mount/overlay.cpp
     ${ASSETS_CPP}
 )
 

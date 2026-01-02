@@ -144,6 +144,7 @@ class MoreSettingsHandlers(
             ThemeColors.Pink -> "pink"
             ThemeColors.Gray -> "gray"
             ThemeColors.Yellow -> "yellow"
+            ThemeColors.TransPride -> "trans"
             else -> "default"
         })
         ThemeConfig.updateTheme(theme = theme)
