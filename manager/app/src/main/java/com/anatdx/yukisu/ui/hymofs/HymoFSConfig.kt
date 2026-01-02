@@ -709,8 +709,10 @@ private fun SettingsTab(
     builtinMountEnabled: Boolean,
     onBuiltinMountChanged: (Boolean) -> Unit
 ) {
-    var localConfig by remember(config) { mutableStateOf(config) }
-    var hasChanges by remember { mutableStateOf(false) }
+    // Helper to update config and save immediately
+    fun updateAndSave(newConfig: HymoFSManager.HymoConfig) {
+        onConfigChanged(newConfig)
+    }
     
     Column(
         modifier = Modifier
@@ -719,21 +721,6 @@ private fun SettingsTab(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Save button
-        if (hasChanges) {
-            Button(
-                onClick = {
-                    onConfigChanged(localConfig)
-                    hasChanges = false
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(Icons.Filled.Save, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Save Changes")
-            }
-        }
-        
         // General Settings
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -758,10 +745,9 @@ private fun SettingsTab(
                 SettingSwitch(
                     title = "Verbose Logging",
                     subtitle = "Enable detailed daemon logs",
-                    checked = localConfig.verbose,
+                    checked = config.verbose,
                     onCheckedChange = {
-                        localConfig = localConfig.copy(verbose = it)
-                        hasChanges = true
+                        updateAndSave(config.copy(verbose = it))
                     }
                 )
                 
@@ -770,10 +756,9 @@ private fun SettingsTab(
                 SettingSwitch(
                     title = "Force EXT4",
                     subtitle = "Always use EXT4 image instead of tmpfs",
-                    checked = localConfig.forceExt4,
+                    checked = config.forceExt4,
                     onCheckedChange = {
-                        localConfig = localConfig.copy(forceExt4 = it)
-                        hasChanges = true
+                        updateAndSave(config.copy(forceExt4 = it))
                     }
                 )
                 
@@ -782,10 +767,9 @@ private fun SettingsTab(
                 SettingSwitch(
                     title = "Disable Umount",
                     subtitle = "Don't unmount on process isolation",
-                    checked = localConfig.disableUmount,
+                    checked = config.disableUmount,
                     onCheckedChange = {
-                        localConfig = localConfig.copy(disableUmount = it)
-                        hasChanges = true
+                        updateAndSave(config.copy(disableUmount = it))
                     }
                 )
             }
@@ -807,11 +791,10 @@ private fun SettingsTab(
                     SettingSwitch(
                         title = "Kernel Debug",
                         subtitle = "Enable HymoFS kernel debug logging",
-                        checked = localConfig.enableKernelDebug,
+                        checked = config.enableKernelDebug,
                         onCheckedChange = {
-                            localConfig = localConfig.copy(enableKernelDebug = it)
                             onSetDebug(it)
-                            hasChanges = true
+                            updateAndSave(config.copy(enableKernelDebug = it))
                         }
                     )
                     
@@ -820,11 +803,10 @@ private fun SettingsTab(
                     SettingSwitch(
                         title = "Stealth Mode",
                         subtitle = "Hide mount traces and reorder mount IDs",
-                        checked = localConfig.enableStealth,
+                        checked = config.enableStealth,
                         onCheckedChange = {
-                            localConfig = localConfig.copy(enableStealth = it)
                             onSetStealth(it)
-                            hasChanges = true
+                            updateAndSave(config.copy(enableStealth = it))
                         }
                     )
                     
@@ -833,10 +815,9 @@ private fun SettingsTab(
                     SettingSwitch(
                         title = "AVC Log Spoofing",
                         subtitle = "Spoof SELinux AVC deny logs",
-                        checked = localConfig.avcSpoof,
+                        checked = config.avcSpoof,
                         onCheckedChange = {
-                            localConfig = localConfig.copy(avcSpoof = it)
-                            hasChanges = true
+                            updateAndSave(config.copy(avcSpoof = it))
                         }
                     )
                     
@@ -845,10 +826,9 @@ private fun SettingsTab(
                     SettingSwitch(
                         title = "Enable Nuke",
                         subtitle = "Allow nuking ext4 sysfs entries",
-                        checked = localConfig.enableNuke,
+                        checked = config.enableNuke,
                         onCheckedChange = {
-                            localConfig = localConfig.copy(enableNuke = it)
-                            hasChanges = true
+                            updateAndSave(config.copy(enableNuke = it))
                         }
                     )
                     
@@ -881,10 +861,9 @@ private fun SettingsTab(
                 SettingSwitch(
                     title = "Ignore Protocol Mismatch",
                     subtitle = "Continue even if kernel/userspace versions don't match",
-                    checked = localConfig.ignoreProtocolMismatch,
+                    checked = config.ignoreProtocolMismatch,
                     onCheckedChange = {
-                        localConfig = localConfig.copy(ignoreProtocolMismatch = it)
-                        hasChanges = true
+                        updateAndSave(config.copy(ignoreProtocolMismatch = it))
                     }
                 )
             }

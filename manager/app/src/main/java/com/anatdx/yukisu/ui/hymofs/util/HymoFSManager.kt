@@ -212,13 +212,17 @@ object HymoFSManager {
                 appendLine("enable_kernel_debug = ${config.enableKernelDebug}")
                 appendLine("enable_stealth = ${config.enableStealth}")
                 appendLine("avc_spoof = ${config.avcSpoof}")
-                appendLine("partitions = \"${config.partitions.joinToString(",")}\"")
+                if (config.partitions.isNotEmpty()) {
+                    appendLine("partitions = \"${config.partitions.joinToString(",")}\"")
+                }
             }
             
-            val escapedContent = content.replace("'", "'\\''")
+            // Use cat with heredoc to avoid quote escaping issues
             val result = Shell.cmd(
                 "mkdir -p '$HYMO_CONFIG_DIR'",
-                "printf '%s\\n' '$escapedContent' > '$HYMO_CONFIG_FILE'"
+                "cat > '$HYMO_CONFIG_FILE' << 'HYMO_CONFIG_EOF'",
+                content,
+                "HYMO_CONFIG_EOF"
             ).exec()
             result.isSuccess
         } catch (e: Exception) {

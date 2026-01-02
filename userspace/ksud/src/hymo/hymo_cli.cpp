@@ -169,7 +169,12 @@ int cmd_hymo(const std::vector<std::string>& args) {
         printf("  \"mountsource\": \"%s\",\n", config.mountsource.c_str());
         printf("  \"verbose\": %s,\n", config.verbose ? "true" : "false");
         printf("  \"force_ext4\": %s,\n", config.force_ext4 ? "true" : "false");
+        printf("  \"disable_umount\": %s,\n", config.disable_umount ? "true" : "false");
+        printf("  \"enable_nuke\": %s,\n", config.enable_nuke ? "true" : "false");
+        printf("  \"ignore_protocol_mismatch\": %s,\n", config.ignore_protocol_mismatch ? "true" : "false");
+        printf("  \"enable_kernel_debug\": %s,\n", config.enable_kernel_debug ? "true" : "false");
         printf("  \"enable_stealth\": %s,\n", config.enable_stealth ? "true" : "false");
+        printf("  \"avc_spoof\": %s,\n", config.avc_spoof ? "true" : "false");
         printf("  \"hymofs_available\": %s,\n", HymoFS::is_available() ? "true" : "false");
         printf("  \"hymofs_status\": %d,\n", (int)HymoFS::check_status());
         printf("  \"partitions\": [");
