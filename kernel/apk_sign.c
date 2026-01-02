@@ -309,7 +309,6 @@ check_v2_signature(char *path, int *signature_index)
 	}
 clean:
 	filp_close(fp, 0);
-		v2_signing_valid, v3_signing_exist, v3_1_signing_exist, matched_index);
 
 	if (v3_signing_exist || v3_1_signing_exist) {
 #ifdef CONFIG_KSU_DEBUG

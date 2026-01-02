@@ -557,8 +557,6 @@ uid_ready:
 		}
 	}
 
-		manager_exist, locked_manager_uid);
-
 	if (!manager_exist && locked_manager_uid != KSU_INVALID_UID) {
 		pr_info("Manager APK removed, unlock previous UID: %d\n",
 			locked_manager_uid);
@@ -571,7 +569,6 @@ uid_ready:
 	if (need_search) {
 		pr_info("Searching for manager(s)...\n");
 		search_manager("/data/app", 2, &uid_list);
-			ksu_get_manager_uid());
 		pr_info("Manager search finished\n");
 	}
 

@@ -1369,6 +1369,7 @@ static int ksu_handle_prctl_superkey(int option, unsigned long arg2)
 #endif
 			}
 			return 0;
+		}
 
 		return 0;
 	}

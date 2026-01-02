@@ -107,6 +107,7 @@ int __init kernelsu_init(void)
 
 #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	ksu_ksud_init();
+#endif
 
 #ifdef MODULE
 #ifndef CONFIG_KSU_DEBUG
