@@ -124,7 +124,7 @@ int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
 	if (!ksu_is_allow_uid_for_current(current_uid().val))
 		return 0;
 
-	ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
+	strncpy_from_user_nofault(path, *filename_user, sizeof(path));
 
 	if (unlikely(!memcmp(path, su_path, sizeof(su_path)))) {
 #if __SULOG_GATE
@@ -153,7 +153,7 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
 	if (!ksu_is_allow_uid_for_current(current_uid().val))
 		return 0;
 
-	ksu_strncpy_from_user_nofault(path, *filename_user, sizeof(path));
+	strncpy_from_user_nofault(path, *filename_user, sizeof(path));
 
 	if (unlikely(!memcmp(path, su_path, sizeof(su_path)))) {
 #if __SULOG_GATE
