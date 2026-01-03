@@ -18,8 +18,8 @@ namespace fs = std::filesystem;
 namespace ksud {
 
 // Work directory for AK3 flash operations
-static constexpr const char* AK3_WORK_DIR = "/data/local/tmp/ak3_flash";
-static constexpr const char* AK3_DONE_MARKER = "/data/local/tmp/ak3_flash/done";
+static constexpr const char* AK3_WORK_DIR = "/data/adb/ksu/tmp/ak3_flash";
+static constexpr const char* AK3_DONE_MARKER = "/data/adb/ksu/tmp/ak3_flash/done";
 
 /**
  * Check if device is A/B partitioned

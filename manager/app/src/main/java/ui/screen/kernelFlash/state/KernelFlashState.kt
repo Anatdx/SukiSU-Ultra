@@ -98,17 +98,32 @@ class HorizonKernelWorker(
             state.updateProgress(0.1f)
             state.updateStep(context.getString(R.string.horizon_copying_files))
 
-            // Copy zip file to accessible location
+            // Copy zip file to KSU temp directory (accessible by ksud)
             val fileName = DocumentFile.fromSingleUri(context, uri!!)?.name ?: "kernel.zip"
-            val zipPath = "/data/local/tmp/$fileName"
-
+            val tempDir = "/data/adb/ksu/tmp"
+            val zipPath = "$tempDir/$fileName"
+            
+            // Create temp dir and copy file with root
+            Shell.cmd("mkdir -p $tempDir").exec()
+            
+            // First copy to app's cache, then move with root
+            val cacheFile = File(context.cacheDir, fileName)
             context.contentResolver.openInputStream(uri!!)?.use { input ->
-                FileOutputStream(File(zipPath)).use { output ->
+                FileOutputStream(cacheFile).use { output ->
                     input.copyTo(output)
                 }
             }
-
-            if (!File(zipPath).exists()) {
+            
+            // Move to KSU tmp with proper permissions
+            val copyResult = Shell.cmd(
+                "cp '${cacheFile.absolutePath}' '$zipPath'",
+                "chmod 644 '$zipPath'"
+            ).exec()
+            
+            // Clean up cache file
+            cacheFile.delete()
+            
+            if (!copyResult.isSuccess) {
                 state.setError(context.getString(R.string.horizon_copy_failed))
                 return
             }
@@ -126,7 +141,7 @@ class HorizonKernelWorker(
             }
 
             // Save log to file
-            val logFile = "/data/local/tmp/ak3_flash.log"
+            val logFile = "/data/adb/ksu/tmp/ak3_flash.log"
             cmdBuilder.append(" --log \"$logFile\"")
 
             state.updateStep(context.getString(R.string.horizon_flashing))
@@ -179,7 +194,7 @@ class HorizonKernelWorker(
         } finally {
             // Cleanup temp file
             try {
-                Shell.cmd("rm -f /data/local/tmp/*.zip /data/local/tmp/ak3_flash.log").exec()
+                Shell.cmd("rm -rf /data/adb/ksu/tmp/ak3_flash /data/adb/ksu/tmp/*.zip /data/adb/ksu/tmp/ak3_flash.log").exec()
             } catch (_: Exception) {}
         }
     }
