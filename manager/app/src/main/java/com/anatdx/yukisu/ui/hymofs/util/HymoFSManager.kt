@@ -546,4 +546,53 @@ object HymoFSManager {
             false
         }
     }
+    
+    /**
+     * Scan for partition candidates in module directories
+     * Returns list of detected partition names that are mountpoints
+     */
+    suspend fun scanPartitionCandidates(moduleDir: String = MODULE_DIR): List<String> = withContext(Dispatchers.IO) {
+        try {
+            // Built-in standard partitions to ignore
+            val ignored = setOf(
+                "META-INF", "common", "system", "vendor", "product", "system_ext",
+                "odm", "oem", ".git", ".github", "lost+found"
+            )
+            
+            val candidates = mutableSetOf<String>()
+            val moduleDirFile = File(moduleDir)
+            
+            if (!moduleDirFile.exists() || !moduleDirFile.isDirectory) {
+                return@withContext emptyList()
+            }
+            
+            // Scan each module directory
+            moduleDirFile.listFiles()?.forEach { moduleFile ->
+                if (!moduleFile.isDirectory) return@forEach
+                
+                // Check subdirectories in each module
+                moduleFile.listFiles()?.forEach { subdir ->
+                    if (!subdir.isDirectory) return@forEach
+                    
+                    val name = subdir.name
+                    if (ignored.contains(name)) return@forEach
+                    
+                    // Check if it corresponds to a real mountpoint in root
+                    val rootPath = "/$name"
+                    val checkResult = Shell.cmd(
+                        "test -d '$rootPath' && mountpoint -q '$rootPath' && echo 'yes' || echo 'no'"
+                    ).exec()
+                    
+                    if (checkResult.isSuccess && checkResult.out.firstOrNull()?.trim() == "yes") {
+                        candidates.add(name)
+                    }
+                }
+            }
+            
+            candidates.sorted()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to scan partition candidates", e)
+            emptyList()
+        }
+    }
 }

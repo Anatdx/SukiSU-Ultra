@@ -775,4 +775,22 @@
     <string name="hymofs_logs_filter_info">信息</string>
     <string name="hymofs_logs_filter_warn">警告</string>
     <string name="hymofs_logs_filter_error">错误</string>
+    <string name="hymofs_partitions">活跃分区</string>
+    <string name="hymofs_partitions_desc">需要扫描模块修改的分区（逗号分隔）</string>
+    <string name="hymofs_partitions_scan">扫描分区</string>
+    <string name="hymofs_partitions_add">添加分区</string>
+    <string name="hymofs_partitions_placeholder">输入分区名称（例如：mi_ext, my_stock）</string>
+    <string name="hymofs_general">常规</string>
+    <string name="hymofs_advanced">高级</string>
+    <string name="hymofs_fix_mounts">修复挂载 ID</string>
+    <string name="hymofs_rules_clear_all">清除所有规则</string>
+    <string name="hymofs_rules_clear_confirm">确定要清除所有活动的 HymoFS 规则吗？此操作将立即生效。</string>
+    <string name="hymofs_rules_clear">清除</string>
+    <string name="hymofs_rules_cancel">取消</string>
+    <string name="hymofs_rules_not_available">HymoFS 内核不可用。规则页面需要 HymoFS 内核支持。</string>
+    <string name="hymofs_rules_refresh">刷新</string>
+    <string name="hymofs_rules_count">%d 条活动规则</string>
+    <string name="hymofs_rules_empty">没有活动规则</string>
+    <string name="hymofs_logs_daemon">守护进程日志</string>
+    <string name="hymofs_logs_kernel">内核日志</string>
 </resources>

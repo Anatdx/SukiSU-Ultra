@@ -78,7 +78,7 @@ private fun AboutCardContent() {
                     htmlString = stringResource(
                         id = R.string.about_source_code,
                         "<b><a href=\"https://github.com/Anatdx/YukiSU\">GitHub</a></b>",
-                        "<b><a href=\"https://t.me/hymo_chat\">Telegram</a></b>"
+                        "<b><a href=\"https://t.me/yukisu_chat\">Telegram</a></b>"
                     ),
                     linkStyles = TextLinkStyles(
                         style = SpanStyle(

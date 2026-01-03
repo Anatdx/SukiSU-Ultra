@@ -780,5 +780,23 @@ Important Note:\n
     <string name="hymofs_logs_filter_info">Info</string>
     <string name="hymofs_logs_filter_warn">Warn</string>
     <string name="hymofs_logs_filter_error">Error</string>
+    <string name="hymofs_partitions">Active Partitions</string>
+    <string name="hymofs_partitions_desc">Partitions to scan for module modifications (comma-separated)</string>
+    <string name="hymofs_partitions_scan">Scan Partitions</string>
+    <string name="hymofs_partitions_add">Add Partition</string>
+    <string name="hymofs_partitions_placeholder">Enter partition names (e.g., mi_ext, my_stock)</string>
+    <string name="hymofs_general">General</string>
+    <string name="hymofs_advanced">Advanced</string>
+    <string name="hymofs_fix_mounts">Fix Mount IDs</string>
+    <string name="hymofs_rules_clear_all">Clear All Rules</string>
+    <string name="hymofs_rules_clear_confirm">Are you sure you want to clear all active HymoFS rules? This will take effect immediately.</string>
+    <string name="hymofs_rules_clear">Clear</string>
+    <string name="hymofs_rules_cancel">Cancel</string>
+    <string name="hymofs_rules_not_available">HymoFS kernel not available. Rules tab requires HymoFS kernel support.</string>
+    <string name="hymofs_rules_refresh">Refresh</string>
+    <string name="hymofs_rules_count">%d active rules</string>
+    <string name="hymofs_rules_empty">No active rules</string>
+    <string name="hymofs_logs_daemon">Daemon Log</string>
+    <string name="hymofs_logs_kernel">Kernel Log</string>
 </resources>
 

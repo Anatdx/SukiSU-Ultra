@@ -3,6 +3,7 @@ package com.anatdx.yukisu.ui.hymofs
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -185,6 +186,7 @@ fun HymoFSConfigScreen(
                     HymoFSTab.SETTINGS -> SettingsTab(
                         config = config,
                         hymofsStatus = hymofsStatus,
+                        snackbarHostState = snackbarHostState,
                         onConfigChanged = { newConfig ->
                             coroutineScope.launch {
                                 if (HymoFSManager.saveConfig(newConfig)) {
@@ -720,6 +722,7 @@ private fun ModuleCard(
 private fun SettingsTab(
     config: HymoFSManager.HymoConfig,
     hymofsStatus: HymoFSStatus,
+    snackbarHostState: SnackbarHostState,
     onConfigChanged: (HymoFSManager.HymoConfig) -> Unit,
     onSetDebug: (Boolean) -> Unit,
     onSetStealth: (Boolean) -> Unit,
@@ -727,6 +730,8 @@ private fun SettingsTab(
     builtinMountEnabled: Boolean,
     onBuiltinMountChanged: (Boolean) -> Unit
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    
     // Helper to update config and save immediately
     fun updateAndSave(newConfig: HymoFSManager.HymoConfig) {
         onConfigChanged(newConfig)
@@ -748,7 +753,7 @@ private fun SettingsTab(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "General",
+                    text = stringResource(R.string.hymofs_general),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
@@ -836,6 +841,28 @@ private fun SettingsTab(
                     },
                     placeholder = "KSU"
                 )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                // Partitions Setting with chip input
+                PartitionsInput(
+                    partitions = config.partitions,
+                    onPartitionsChanged = { newPartitions ->
+                        updateAndSave(config.copy(partitions = newPartitions))
+                    },
+                    onScanPartitions = {
+                        coroutineScope.launch {
+                            val scanned = HymoFSManager.scanPartitionCandidates(config.moduledir)
+                            if (scanned.isNotEmpty()) {
+                                val merged = (config.partitions + scanned).distinct()
+                                updateAndSave(config.copy(partitions = merged))
+                                snackbarHostState.showSnackbar("Found ${scanned.size} partitions")
+                            } else {
+                                snackbarHostState.showSnackbar("No new partitions found")
+                            }
+                        }
+                    }
+                )
             }
         }
         
@@ -848,7 +875,7 @@ private fun SettingsTab(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Advanced",
+                    text = stringResource(R.string.hymofs_advanced),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
@@ -923,7 +950,7 @@ private fun SettingsTab(
                     ) {
                         Icon(Icons.Filled.Build, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Fix Mount IDs")
+                        Text(stringResource(R.string.hymofs_fix_mounts))
                     }
                 }
             }
@@ -1055,8 +1082,8 @@ private fun RulesTab(
     if (showClearDialog) {
         AlertDialog(
             onDismissRequest = { showClearDialog = false },
-            title = { Text("Clear All Rules") },
-            text = { Text("Are you sure you want to clear all active HymoFS rules? This will take effect immediately.") },
+            title = { Text(stringResource(R.string.hymofs_rules_clear_all)) },
+            text = { Text(stringResource(R.string.hymofs_rules_clear_confirm)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -1064,12 +1091,12 @@ private fun RulesTab(
                         onClearAll()
                     }
                 ) {
-                    Text("Clear", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.hymofs_rules_clear), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showClearDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.hymofs_rules_cancel))
                 }
             }
         )
@@ -1093,7 +1120,7 @@ private fun RulesTab(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(Icons.Filled.Info, contentDescription = null)
-                    Text("HymoFS kernel not available. Rules tab requires HymoFS kernel support.")
+                    Text(stringResource(R.string.hymofs_rules_not_available))
                 }
             }
             return
@@ -1112,7 +1139,7 @@ private fun RulesTab(
             ) {
                 Icon(Icons.Filled.Refresh, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Refresh")
+                Text(stringResource(R.string.hymofs_rules_refresh))
             }
             
             OutlinedButton(
@@ -1124,13 +1151,13 @@ private fun RulesTab(
             ) {
                 Icon(Icons.Filled.Delete, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Clear All")
+                Text(stringResource(R.string.hymofs_rules_clear_all))
             }
         }
         
         // Rules list
         Text(
-            text = "${activeRules.size} active rules",
+            text = stringResource(R.string.hymofs_rules_count, activeRules.size),
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -1151,7 +1178,7 @@ private fun RulesTab(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No active rules",
+                            text = stringResource(R.string.hymofs_rules_empty),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -1288,12 +1315,12 @@ private fun LogsTab(
             FilterChip(
                 selected = !showKernelLog,
                 onClick = { if (showKernelLog) onToggleLogType() },
-                label = { Text("Daemon Log") }
+                label = { Text(stringResource(R.string.hymofs_logs_daemon)) }
             )
             FilterChip(
                 selected = showKernelLog,
                 onClick = { if (!showKernelLog) onToggleLogType() },
-                label = { Text("Kernel Log") }
+                label = { Text(stringResource(R.string.hymofs_logs_kernel)) }
             )
             
             Spacer(modifier = Modifier.weight(1f))
@@ -1375,6 +1402,111 @@ private fun LogsTab(
                         .padding(16.dp)
                 )
             }
+        }
+    }
+}
+
+// ==================== Partitions Input Component ====================
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PartitionsInput(
+    partitions: List<String>,
+    onPartitionsChanged: (List<String>) -> Unit,
+    onScanPartitions: () -> Unit
+) {
+    var inputText by remember { mutableStateOf("") }
+    
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.hymofs_partitions),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = stringResource(R.string.hymofs_partitions_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            IconButton(onClick = onScanPartitions) {
+                Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.hymofs_partitions_scan))
+            }
+        }
+        
+        // Chips display with FlowRow for wrapping
+        if (partitions.isNotEmpty()) {
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                partitions.forEach { partition ->
+                    InputChip(
+                        selected = false,
+                        onClick = { },
+                        label = { Text(partition) },
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = "Remove",
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .clickable {
+                                        onPartitionsChanged(partitions - partition)
+                                    }
+                            )
+                        }
+                    )
+                }
+            }
+        }
+        
+        // Input field for adding new partitions
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = inputText,
+                onValueChange = { inputText = it },
+                modifier = Modifier.weight(1f),
+                placeholder = { Text(stringResource(R.string.hymofs_partitions_placeholder)) },
+                singleLine = true,
+                trailingIcon = {
+                    if (inputText.isNotEmpty()) {
+                        IconButton(
+                            onClick = {
+                                val newPartitions = inputText
+                                    .split(",", " ")
+                                    .map { it.trim() }
+                                    .filter { it.isNotEmpty() }
+                                
+                                if (newPartitions.isNotEmpty()) {
+                                    val merged = (partitions + newPartitions).distinct()
+                                    onPartitionsChanged(merged)
+                                    inputText = ""
+                                }
+                            }
+                        ) {
+                            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.hymofs_partitions_add))
+                        }
+                    }
+                }
+            )
         }
     }
 }
