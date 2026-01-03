@@ -19,7 +19,6 @@ namespace ksud {
 
 // Work directory for AK3 flash operations
 static constexpr const char* AK3_WORK_DIR = "/data/adb/ksu/tmp/ak3_flash";
-static constexpr const char* AK3_DONE_MARKER = "/data/adb/ksu/tmp/ak3_flash/done";
 
 /**
  * Check if device is A/B partitioned
@@ -356,16 +355,15 @@ Ak3FlashResult flash_ak3(const Ak3FlashConfig& config,
         log("Restored slot to: " + original_slot);
     }
     
-    // Check result
-    bool done_exists = fs::exists(AK3_DONE_MARKER);
+    // Check result - only check exit code, AK3 doesn't create done marker
+    int exit_code = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
     
-    if (WIFEXITED(status) && WEXITSTATUS(status) == 0 && done_exists) {
+    if (exit_code == 0) {
         progress(1.0f, "Flash complete!");
         log("Flash completed successfully");
         result.success = true;
         result.exit_code = 0;
     } else {
-        int exit_code = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
         result.error = "Flash failed (exit code: " + std::to_string(exit_code) + ")";
         result.exit_code = exit_code;
         log(result.error);
