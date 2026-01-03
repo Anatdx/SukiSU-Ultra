@@ -83,9 +83,6 @@ YukiSU/
 | d_path 反向查找 | ✅ | ❌ |
 | 配置接口 | /dev/hymo (fd) + reboot syscall | 专用 syscall |
 
-## 配合使用
-
-HymoFS 需要配合 `hymod` 用户态工具使用，该工具在 [HymoFS](https://github.com/xxx/HymoFS) 仓库中提供。
 
 ## 注意事项
 

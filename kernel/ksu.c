@@ -8,20 +8,18 @@
 
 #ifdef CONFIG_KSU_HYMOFS
 #include <linux/hymofs.h>
-#endif
+// HYMOFS mode still needs observer for packages.list monitoring
+extern int ksu_observer_init(void);
+extern void ksu_observer_exit(void);
+#else 
+#include "syscall_hook_manager.h"
+#endif // #ifdef CONFIG_KSU_HYMOFS
 
 #include "allowlist.h"
 #include "feature.h"
 #include "klog.h" // IWYU pragma: keep
 #include "ksu.h"
 #include "throne_tracker.h"
-#ifndef CONFIG_KSU_HYMOFS
-#include "syscall_hook_manager.h"
-#else
-// HYMOFS mode still needs observer for packages.list monitoring
-extern int ksu_observer_init(void);
-extern void ksu_observer_exit(void);
-#endif
 #include "ksu.h"
 #include "ksud.h"
 #include "supercalls.h"
