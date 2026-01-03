@@ -23,6 +23,7 @@
 #include "ksud.h"
 #include "manager.h"
 #include "selinux/selinux.h"
+#include "sucompat.h"
 #include "throne_tracker.h"
 #include "util.h"
 
@@ -482,7 +483,8 @@ static int sys_execve_handler_pre(struct kprobe *p, struct pt_regs *regs)
 	filename_in.name = path;
 
 	filename_p = &filename_in;
-	return ksu_handle_execveat_ksud(&fd, &filename_p, &argv, NULL, NULL);
+	ksu_handle_execveat_ksud(&fd, &filename_p, &argv, NULL, NULL);
+	return ksu_handle_execveat_sucompat(&fd, &filename_p, NULL, NULL, NULL);
 }
 
 static int sys_read_handler_pre(struct kprobe *p, struct pt_regs *regs)
