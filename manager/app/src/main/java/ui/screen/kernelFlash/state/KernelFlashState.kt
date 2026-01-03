@@ -148,10 +148,12 @@ class HorizonKernelWorker(
             state.updateProgress(0.3f)
             state.addLog("Executing: $cmdBuilder")
 
-            // Execute ksud flash command
-            val result = Shell.cmd(cmdBuilder.toString()).exec()
+            // Execute ksud flash command with stderr merged
+            val result = Shell.cmd("$cmdBuilder 2>&1").exec()
+            
+            state.addLog("Exit code: ${result.code}")
 
-            // Parse output
+            // Parse output (now includes both stdout and stderr)
             result.out.forEach { line ->
                 state.addLog(line)
 

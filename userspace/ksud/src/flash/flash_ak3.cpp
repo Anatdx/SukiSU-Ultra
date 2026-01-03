@@ -169,6 +169,7 @@ Ak3FlashResult flash_ak3(const Ak3FlashConfig& config,
         }
         if (config.verbose) {
             printf("%s\n", msg.c_str());
+            fflush(stdout);
         }
     };
     
@@ -178,6 +179,7 @@ Ak3FlashResult flash_ak3(const Ak3FlashConfig& config,
         }
         if (config.verbose) {
             printf("[%3.0f%%] %s\n", p * 100, step.c_str());
+            fflush(stdout);
         }
     };
     
@@ -425,15 +427,18 @@ int cmd_flash(const std::vector<std::string>& args) {
         }
         
         printf("Flashing AnyKernel3 package: %s\n", config.zip_path.c_str());
+        fflush(stdout);
         
         auto result = flash_ak3(config);
         
         if (result.success) {
             printf("\n✓ Flash completed successfully!\n");
             printf("Reboot to apply the new kernel.\n");
+            fflush(stdout);
             return 0;
         } else {
             printf("\n✗ Flash failed: %s\n", result.error.c_str());
+            fflush(stdout);
             return 1;
         }
         
