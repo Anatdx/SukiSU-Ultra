@@ -92,4 +92,20 @@ bool restorecon() {
     return success;
 }
 
+bool restorecon(const fs::path& path, bool recursive) {
+    if (!fs::exists(path)) {
+        LOGW("Path does not exist: %s", path.c_str());
+        return false;
+    }
+
+    // For /data/adb, use ADB context
+    const char* context = (path == "/data/adb") ? ADB_CON : SYSTEM_CON;
+
+    if (recursive && fs::is_directory(path)) {
+        return restore_syscon_if_unlabeled(path);
+    } else {
+        return lsetfilecon(path, context);
+    }
+}
+
 }  // namespace ksud

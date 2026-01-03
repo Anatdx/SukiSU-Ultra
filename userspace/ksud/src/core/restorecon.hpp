@@ -28,4 +28,7 @@ bool restore_syscon_if_unlabeled(const std::filesystem::path& dir);
 // Restore contexts for KSU files
 bool restorecon();
 
+// Restore contexts for a specific path
+bool restorecon(const std::filesystem::path& path, bool recursive = true);
+
 }  // namespace ksud
