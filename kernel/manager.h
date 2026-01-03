@@ -69,6 +69,12 @@ static inline void ksu_set_manager_uid(uid_t uid)
 	ksu_manager_uid = uid;
 }
 
+static inline void ksu_set_manager_appid(uid_t appid)
+{
+	// LKM: convert appid to full uid (use current user's uid)
+	ksu_manager_uid = current_uid().val / PER_USER_RANGE * PER_USER_RANGE + appid;
+}
+
 static inline void ksu_invalidate_manager_uid(void)
 {
 	ksu_manager_uid = KSU_INVALID_UID;
