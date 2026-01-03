@@ -188,6 +188,7 @@ int cmd_hymo(const std::vector<std::string>& args) {
         printf("  \"mountsource\": \"%s\",\n", config.mountsource.c_str());
         printf("  \"verbose\": %s,\n", config.verbose ? "true" : "false");
         printf("  \"force_ext4\": %s,\n", config.force_ext4 ? "true" : "false");
+        printf("  \"prefer_erofs\": %s,\n", config.prefer_erofs ? "true" : "false");
         printf("  \"disable_umount\": %s,\n", config.disable_umount ? "true" : "false");
         printf("  \"enable_nuke\": %s,\n", config.enable_nuke ? "true" : "false");
         printf("  \"ignore_protocol_mismatch\": %s,\n", config.ignore_protocol_mismatch ? "true" : "false");
@@ -606,11 +607,11 @@ static int cmd_mount() {
         try {
             // Setup storage with fallback
             try {
-                storage = setup_storage(MIRROR_DIR, img_path, config.force_ext4);
+                storage = setup_storage(MIRROR_DIR, img_path, config.force_ext4, config.prefer_erofs);
             } catch (const std::exception& e) {
                 if (config.force_ext4) {
                     LOG_WARN("Force Ext4 failed: " + std::string(e.what()) + ". Falling back to auto.");
-                    storage = setup_storage(MIRROR_DIR, img_path, false);
+                    storage = setup_storage(MIRROR_DIR, img_path, false, config.prefer_erofs);
                 } else {
                     throw;
                 }
@@ -741,7 +742,7 @@ static int cmd_mount() {
         fs::path mnt_base(FALLBACK_CONTENT_DIR);
         fs::path img_path = fs::path(BASE_DIR) / "modules.img";
 
-        storage = setup_storage(mnt_base, img_path, config.force_ext4);
+        storage = setup_storage(mnt_base, img_path, config.force_ext4, config.prefer_erofs);
 
         module_list = scan_modules(config.moduledir, config);
         LOG_INFO("Scanned " + std::to_string(module_list.size()) + " active modules.");

@@ -18,7 +18,7 @@ static bool try_setup_tmpfs(const fs::path &target) {
   LOG_DEBUG("Attempting Tmpfs mode...");
 
   if (!mount_tmpfs(target)) {
-    LOG_WARN("Tmpfs mount failed. Falling back to Image.");
+    LOG_WARN("Tmpfs mount failed. Falling back to next option.");
     return false;
   }
 
@@ -30,6 +30,76 @@ static bool try_setup_tmpfs(const fs::path &target) {
     umount2(target.c_str(), MNT_DETACH);
     return false;
   }
+}
+
+// Check if mkfs.erofs is available
+static bool is_erofs_available() {
+  return access("/system/bin/mkfs.erofs", X_OK) == 0 ||
+         access("/vendor/bin/mkfs.erofs", X_OK) == 0 ||
+         access("/sbin/mkfs.erofs", X_OK) == 0;
+}
+
+// Create EROFS image from modules directory
+static bool create_erofs_image(const fs::path &modules_dir, const fs::path &image_path) {
+  LOG_INFO("Creating EROFS image from " + modules_dir.string());
+
+  if (!fs::exists(modules_dir)) {
+    LOG_ERROR("Modules directory not found: " + modules_dir.string());
+    return false;
+  }
+
+  // Remove old image if exists
+  if (fs::exists(image_path)) {
+    fs::remove(image_path);
+  }
+
+  // mkfs.erofs -zlz4hc,9 modules.erofs /data/adb/modules
+  std::string cmd = "mkfs.erofs -zlz4hc,9 " + image_path.string() + " " + modules_dir.string() + " 2>&1";
+  
+  FILE *pipe = popen(cmd.c_str(), "r");
+  if (!pipe) {
+    LOG_ERROR("Failed to execute mkfs.erofs");
+    return false;
+  }
+
+  char buffer[256];
+  std::string output = "";
+  while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+    output += buffer;
+  }
+
+  int ret = pclose(pipe);
+  if (WEXITSTATUS(ret) != 0) {
+    LOG_ERROR("Failed to create EROFS image: " + output);
+    return false;
+  }
+
+  LOG_INFO("EROFS image created: " + output);
+  return true;
+}
+
+static bool try_setup_erofs(const fs::path &target, const fs::path &modules_dir, const fs::path &image_path) {
+  LOG_DEBUG("Attempting EROFS mode...");
+
+  if (!is_erofs_available()) {
+    LOG_WARN("mkfs.erofs not found, EROFS mode unavailable");
+    return false;
+  }
+
+  // Create EROFS image from modules directory
+  if (!create_erofs_image(modules_dir, image_path)) {
+    LOG_WARN("Failed to create EROFS image");
+    return false;
+  }
+
+  // Mount EROFS image
+  if (!mount_image(image_path, target)) {
+    LOG_WARN("Failed to mount EROFS image");
+    return false;
+  }
+
+  LOG_INFO("EROFS mode active (read-only, compressed)");
+  return true;
 }
 
 // FIX 1: Delayed permission repair, added standalone function
@@ -122,7 +192,7 @@ static std::string setup_ext4_image(const fs::path &target,
 }
 
 StorageHandle setup_storage(const fs::path &mnt_dir, const fs::path &image_path,
-                            bool force_ext4) {
+                            bool force_ext4, bool prefer_erofs) {
   LOG_DEBUG("Setting up storage at " + mnt_dir.string());
 
   // Clean up previous mounts
@@ -132,10 +202,36 @@ StorageHandle setup_storage(const fs::path &mnt_dir, const fs::path &image_path,
   ensure_dir_exists(mnt_dir);
 
   std::string mode;
-  if (!force_ext4 && try_setup_tmpfs(mnt_dir)) {
-    mode = "tmpfs";
-  } else {
+  
+  // Try different storage modes in order
+  if (force_ext4) {
+    // Force ext4 mode
     mode = setup_ext4_image(mnt_dir, image_path);
+  } else if (prefer_erofs) {
+    // Try: EROFS -> Ext4
+    fs::path erofs_image = image_path.parent_path() / "modules.erofs";
+    fs::path modules_dir = image_path.parent_path() / "modules";
+    
+    if (try_setup_erofs(mnt_dir, modules_dir, erofs_image)) {
+      mode = "erofs";
+    } else {
+      LOG_WARN("EROFS setup failed, falling back to ext4");
+      mode = setup_ext4_image(mnt_dir, image_path);
+    }
+  } else {
+    // Try: Tmpfs -> EROFS -> Ext4
+    if (try_setup_tmpfs(mnt_dir)) {
+      mode = "tmpfs";
+    } else {
+      fs::path erofs_image = image_path.parent_path() / "modules.erofs";
+      fs::path modules_dir = image_path.parent_path() / "modules";
+      
+      if (try_setup_erofs(mnt_dir, modules_dir, erofs_image)) {
+        mode = "erofs";
+      } else {
+        mode = setup_ext4_image(mnt_dir, image_path);
+      }
+    }
   }
 
   return StorageHandle{mnt_dir, mode};

@@ -94,6 +94,7 @@ object HymoFSManager {
         val verbose: Boolean = false,
         val partitions: List<String> = emptyList(),
         val forceExt4: Boolean = false,
+        val preferErofs: Boolean = false,
         val enableNuke: Boolean = false,
         val disableUmount: Boolean = false,
         val ignoreProtocolMismatch: Boolean = false,
@@ -174,6 +175,7 @@ object HymoFSManager {
                         (0 until arr.length()).map { arr.getString(it) }
                     } ?: emptyList(),
                     forceExt4 = json.optBoolean("force_ext4", false),
+                    preferErofs = json.optBoolean("prefer_erofs", false),
                     enableNuke = json.optBoolean("enable_nuke", false),
                     disableUmount = json.optBoolean("disable_umount", false),
                     ignoreProtocolMismatch = json.optBoolean("ignore_protocol_mismatch", false),
@@ -206,6 +208,7 @@ object HymoFSManager {
                 appendLine("mountsource = \"${config.mountsource}\"")
                 appendLine("verbose = ${config.verbose}")
                 appendLine("force_ext4 = ${config.forceExt4}")
+                appendLine("prefer_erofs = ${config.preferErofs}")
                 appendLine("disable_umount = ${config.disableUmount}")
                 appendLine("enable_nuke = ${config.enableNuke}")
                 appendLine("ignore_protocol_mismatch = ${config.ignoreProtocolMismatch}")

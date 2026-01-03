@@ -12,7 +12,7 @@
 #include "module/module.hpp"
 #include "module/module_config.hpp"
 #include "profile/profile.hpp"
-#include "restorecon.hpp"
+#include "core/restorecon.hpp"
 #include "sepolicy/sepolicy.hpp"
 #include "su.hpp"
 #include "umount.hpp"

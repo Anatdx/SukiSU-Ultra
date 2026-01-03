@@ -21,6 +21,7 @@ struct Config {
   std::string mountsource = "KSU";
   bool verbose = false;
   bool force_ext4 = false;
+  bool prefer_erofs = false;
   bool disable_umount = false;
   bool enable_nuke = true;
   bool ignore_protocol_mismatch = false;

@@ -756,6 +756,8 @@ Important Note:\n
     <string name="hymofs_verbose_desc">Enable detailed daemon logs</string>
     <string name="hymofs_force_ext4">Force EXT4</string>
     <string name="hymofs_force_ext4_desc">Always use EXT4 image instead of tmpfs</string>
+    <string name="hymofs_prefer_erofs">Prefer EROFS</string>
+    <string name="hymofs_prefer_erofs_desc">Use EROFS (read-only, compressed) if available</string>
     <string name="hymofs_disable_umount">Disable Umount</string>
     <string name="hymofs_disable_umount_desc">Don\'t unmount on process isolation</string>
     <string name="hymofs_kernel_debug">Kernel Debug</string>

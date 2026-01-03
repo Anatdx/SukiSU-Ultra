@@ -790,6 +790,17 @@ private fun SettingsTab(
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 
                 SettingSwitch(
+                    title = stringResource(R.string.hymofs_prefer_erofs),
+                    subtitle = stringResource(R.string.hymofs_prefer_erofs_desc),
+                    checked = config.preferErofs,
+                    onCheckedChange = {
+                        updateAndSave(config.copy(preferErofs = it))
+                    }
+                )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                SettingSwitch(
                     title = stringResource(R.string.hymofs_disable_umount),
                     subtitle = stringResource(R.string.hymofs_disable_umount_desc),
                     checked = config.disableUmount,

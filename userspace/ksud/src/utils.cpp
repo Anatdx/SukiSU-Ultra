@@ -2,6 +2,9 @@
 #include "defs.hpp"
 #include "log.hpp"
 #include "core/ksucalls.hpp"
+#include "core/restorecon.hpp"
+#include "core/assets.hpp"
+#include "boot/boot_patch.hpp"
 
 #include <dirent.h>
 #include <fcntl.h>
@@ -13,8 +16,12 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <filesystem>
 #ifdef __ANDROID__
 #include <sys/system_properties.h>
+#endif
+#ifdef USE_LIBZIP
+#include <zip.h>
 #endif
 
 namespace ksud {
@@ -401,8 +408,15 @@ int install(const std::optional<std::string>& magiskboot_path) {
 
     chmod(DAEMON_PATH, 0755);
 
-    // TODO: restorecon
-    // TODO: ensure_binaries
+    // Restore SELinux contexts
+    if (!restorecon()) {
+        LOGW("Failed to restore SELinux contexts");
+    }
+    
+    // Extract binary assets
+    if (!ensure_binaries(false)) {
+        LOGW("Failed to extract binary assets");
+    }
 
     // Create symlink
     if (!ensure_dir_exists(BINARY_DIR)) {
@@ -429,22 +443,42 @@ int install(const std::optional<std::string>& magiskboot_path) {
 }
 
 int uninstall(const std::optional<std::string>& magiskboot_path) {
-    // TODO: Implement full uninstall
-    printf("- Uninstall modules..\n");
-    // module::uninstall_all_modules();
-    // module::prune_modules();
+    // Uninstall modules
+    if (std::filesystem::exists(MODULE_DIR)) {
+        printf("- Uninstall modules..\n");
+        // Disable all modules
+        try {
+            for (const auto& entry : std::filesystem::directory_iterator(MODULE_DIR)) {
+                if (entry.is_directory()) {
+                    std::string disable_file = entry.path().string() + "/disable";
+                    std::ofstream(disable_file).close();
+                }
+            }
+        } catch (const std::exception& e) {
+            LOGW("Error disabling modules: %s", e.what());
+        }
+    }
 
     printf("- Removing directories..\n");
-    std::string cmd = "rm -rf " + std::string(WORKING_DIR);
-    system(cmd.c_str());
-    unlink(DAEMON_PATH);
-    cmd = "rm -rf " + std::string(MODULE_DIR);
-    system(cmd.c_str());
+    std::filesystem::remove_all(WORKING_DIR);
+    std::filesystem::remove(DAEMON_PATH);
+    std::filesystem::remove_all(MODULE_DIR);
 
     printf("- Restore boot image..\n");
-    // boot_patch::restore(...)
+    std::vector<std::string> restore_args;
+    if (magiskboot_path) {
+        restore_args.push_back("--magiskboot");
+        restore_args.push_back(*magiskboot_path);
+    }
+    restore_args.push_back("--flash");
+    
+    int ret = boot_restore(restore_args);
+    if (ret != 0) {
+        LOGE("Boot image restoration failed");
+        printf("Warning: Failed to restore boot image, you may need to manually restore\n");
+    }
 
-    printf("- Uninstall KernelSU manager..\n");
+    printf("- Uninstall YukiSU manager..\n");
     system("pm uninstall com.anatdx.yukisu");
 
     printf("- Rebooting in 5 seconds..\n");
@@ -455,8 +489,33 @@ int uninstall(const std::optional<std::string>& magiskboot_path) {
 }
 
 uint64_t get_zip_uncompressed_size(const std::string& zip_path) {
-    // TODO: Implement with minizip or libarchive
-    return 0;
+#ifdef USE_LIBZIP
+    zip_t* za = zip_open(zip_path.c_str(), ZIP_RDONLY, nullptr);
+    if (!za) {
+        LOGE("Failed to open ZIP: %s", zip_path.c_str());
+        return 0;
+    }
+    
+    uint64_t total = 0;
+    zip_int64_t num_entries = zip_get_num_entries(za, 0);
+    
+    for (zip_int64_t i = 0; i < num_entries; i++) {
+        zip_stat_t stat;
+        if (zip_stat_index(za, i, 0, &stat) == 0) {
+            total += stat.size;
+        }
+    }
+    
+    zip_close(za);
+    return total;
+#else
+    // Fallback: estimate based on file size * 2
+    std::ifstream ifs(zip_path, std::ios::binary | std::ios::ate);
+    if (!ifs) {
+        return 0;
+    }
+    return static_cast<uint64_t>(ifs.tellg()) * 2;
+#endif
 }
 
 }  // namespace ksud

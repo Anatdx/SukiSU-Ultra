@@ -44,6 +44,8 @@ set(SOURCES
     src/utils.cpp
     src/core/ksucalls.cpp
     src/core/feature.cpp
+    src/core/restorecon.cpp
+    src/core/assets.cpp
     src/module/module.cpp
     src/module/module_config.cpp
     src/module/metamodule.cpp
@@ -54,7 +56,6 @@ set(SOURCES
     src/su.cpp
     src/init_event.cpp
     src/umount.cpp
-    src/restorecon.cpp
     src/debug.cpp
     src/kpm.cpp
     # HymoFS module management
@@ -85,7 +86,15 @@ if(NOT ANDROID)
     target_link_libraries(ksud PRIVATE pthread)
 endif()
 
-target_link_libraries(ksud PRIVATE z)
+target_link_libraries(ksud PRIVATE z crypto)
+
+# Optional: libzip for ZIP utilities
+find_library(LIBZIP_LIB zip)
+if(LIBZIP_LIB)
+    target_link_libraries(ksud PRIVATE ${LIBZIP_LIB})
+    target_compile_definitions(ksud PRIVATE USE_LIBZIP)
+    message(STATUS "Using libzip: ${LIBZIP_LIB}")
+endif()
 
 # 安装
 install(TARGETS ksud DESTINATION bin)

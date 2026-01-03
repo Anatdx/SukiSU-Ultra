@@ -751,6 +751,8 @@
     <string name="hymofs_verbose_desc">启用详细的守护进程日志</string>
     <string name="hymofs_force_ext4">强制 EXT4</string>
     <string name="hymofs_force_ext4_desc">始终使用 EXT4 镜像而非 tmpfs</string>
+    <string name="hymofs_prefer_erofs">优先 EROFS</string>
+    <string name="hymofs_prefer_erofs_desc">优先使用 EROFS（只读压缩格式，节省内存）</string>
     <string name="hymofs_disable_umount">禁用卸载</string>
     <string name="hymofs_disable_umount_desc">进程隔离时不卸载文件系统</string>
     <string name="hymofs_kernel_debug">内核调试</string>

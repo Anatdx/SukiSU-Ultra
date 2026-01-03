@@ -9,7 +9,7 @@
 #include "module/module.hpp"
 #include "module/module_config.hpp"
 #include "profile/profile.hpp"
-#include "restorecon.hpp"
+#include "core/restorecon.hpp"
 #include "umount.hpp"
 #include "utils.hpp"
 
