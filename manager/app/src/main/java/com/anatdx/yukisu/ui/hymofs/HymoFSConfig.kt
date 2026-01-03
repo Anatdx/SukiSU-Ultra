@@ -35,6 +35,8 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.anatdx.yukisu.R
 import com.anatdx.yukisu.ui.hymofs.util.HymoFSManager
 import com.anatdx.yukisu.ui.hymofs.util.HymoFSManager.HymoFSStatus
+import com.anatdx.yukisu.ui.theme.getCardColors
+import com.anatdx.yukisu.ui.theme.getCardElevation
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.launch
 
@@ -343,7 +345,9 @@ private fun StatusTab(
         // Storage Card
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
+            colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
+            elevation = getCardElevation()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(
@@ -425,7 +429,9 @@ private fun StatusTab(
         // System Info Card
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
+            colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
+            elevation = getCardElevation()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -500,7 +506,9 @@ private fun StatCard(
 ) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(16.dp),
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
+        elevation = getCardElevation()
     ) {
         Column(
             modifier = Modifier
@@ -599,7 +607,9 @@ private fun ModuleCard(
     
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(16.dp),
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
+        elevation = getCardElevation()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -732,7 +742,9 @@ private fun SettingsTab(
         // General Settings
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
+            colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
+            elevation = getCardElevation()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -830,7 +842,9 @@ private fun SettingsTab(
         // Advanced Settings
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
+            colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
+            elevation = getCardElevation()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -1070,9 +1084,8 @@ private fun RulesTab(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
+                elevation = getCardElevation()
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -1153,9 +1166,8 @@ private fun RuleItem(rule: HymoFSManager.ActiveRule) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
+        elevation = getCardElevation()
     ) {
         Row(
             modifier = Modifier
