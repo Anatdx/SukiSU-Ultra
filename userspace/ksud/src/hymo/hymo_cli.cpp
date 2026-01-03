@@ -870,12 +870,6 @@ static int cmd_mount() {
         LOG_ERROR("Failed to save runtime state");
     }
 
-    // Update module description
-    update_module_description(
-        true, storage.mode, nuke_active, exec_result.overlay_module_ids.size(),
-        exec_result.magic_module_ids.size(), plan.hymofs_module_ids.size(),
-        warning_msg, hymofs_active);
-
     LOG_INFO("Hymo Mount Completed.");
     printf("Mount completed successfully.\n");
 
