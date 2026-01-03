@@ -321,7 +321,7 @@ private fun StatusTab(
                     )
                     Column {
                         Text(
-                            text = "HymoFS Kernel",
+                            text = stringResource(R.string.hymofs_kernel_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -336,7 +336,7 @@ private fun StatusTab(
                 if (hymofsStatus == HymoFSStatus.AVAILABLE) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Version: $version",
+                        text = stringResource(R.string.hymofs_version_label, version),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -424,7 +424,7 @@ private fun StatusTab(
                 value = if (hymofsStatus == HymoFSStatus.AVAILABLE)
                     systemInfo.hymofsModuleIds.size.toString()
                 else "❌",
-                label = "HymoFS"
+                label = stringResource(R.string.hymofs_stats_hymofs)
             )
         }
         
@@ -442,14 +442,14 @@ private fun StatusTab(
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
                 
-                InfoRow(label = "Kernel", value = systemInfo.kernel)
-                InfoRow(label = "SELinux", value = systemInfo.selinux)
-                InfoRow(label = "Mount Base", value = systemInfo.mountBase)
+                InfoRow(label = stringResource(R.string.hymofs_info_kernel), value = systemInfo.kernel)
+                InfoRow(label = stringResource(R.string.hymofs_info_selinux), value = systemInfo.selinux)
+                InfoRow(label = stringResource(R.string.hymofs_info_mount_base), value = systemInfo.mountBase)
                 
                 if (systemInfo.activeMounts.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Active Mounts:",
+                        text = stringResource(R.string.hymofs_info_active_mounts),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -462,7 +462,7 @@ private fun StatusTab(
                     }
                     if (systemInfo.activeMounts.size > 5) {
                         Text(
-                            text = "  ... and ${systemInfo.activeMounts.size - 5} more",
+                            text = stringResource(R.string.hymofs_info_more_mounts, systemInfo.activeMounts.size - 5),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -491,7 +491,7 @@ private fun StatusTab(
                         tint = Color(0xFFFF9800)
                     )
                     Text(
-                        text = systemInfo.mismatchMessage ?: "Protocol mismatch detected. Please update kernel or module.",
+                        text = systemInfo.mismatchMessage ?: stringResource(R.string.hymofs_mismatch_default),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

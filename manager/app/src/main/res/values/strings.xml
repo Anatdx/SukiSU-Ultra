@@ -798,5 +798,14 @@ Important Note:\n
     <string name="hymofs_rules_empty">No active rules</string>
     <string name="hymofs_logs_daemon">Daemon Log</string>
     <string name="hymofs_logs_kernel">Kernel Log</string>
+    <string name="hymofs_kernel_title">HymoFS Kernel</string>
+    <string name="hymofs_version_label">Version: %s</string>
+    <string name="hymofs_stats_hymofs">HymoFS</string>
+    <string name="hymofs_info_kernel">Kernel</string>
+    <string name="hymofs_info_selinux">SELinux</string>
+    <string name="hymofs_info_mount_base">Mount Base</string>
+    <string name="hymofs_info_active_mounts">Active Mounts:</string>
+    <string name="hymofs_info_more_mounts">... and %d more</string>
+    <string name="hymofs_mismatch_default">Protocol mismatch detected. Please update kernel or module.</string>
 </resources>
 
