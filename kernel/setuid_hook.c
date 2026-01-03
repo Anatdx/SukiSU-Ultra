@@ -67,7 +67,7 @@ int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid)
 					"to %d\n",
 					current->pid, current->comm, old_uid,
 					new_uid);
-				__force_sig(SIGKILL);
+				force_sig(SIGKILL);
 				return 0;
 			}
 		}
@@ -80,7 +80,7 @@ int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid)
 					"to %d\n",
 					current->pid, current->comm, old_uid,
 					new_uid);
-				__force_sig(SIGKILL);
+				force_sig(SIGKILL);
 				return 0;
 			}
 		}
