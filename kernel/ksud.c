@@ -5,16 +5,16 @@
 #include <linux/err.h>
 #include <linux/file.h>
 #include <linux/fs.h>
+#include <linux/rcupdate.h>
+#include <linux/slab.h>
+#include <linux/task_work.h>
+#include <linux/version.h>
 #include <linux/input-event-codes.h>
 #include <linux/kprobes.h>
 #include <linux/namei.h>
 #include <linux/printk.h>
-#include <linux/rcupdate.h>
-#include <linux/slab.h>
-#include <linux/task_work.h>
 #include <linux/types.h>
 #include <linux/uaccess.h>
-#include <linux/version.h>
 #include <linux/workqueue.h>
 
 #include "allowlist.h"
@@ -33,29 +33,28 @@ static const char KERNEL_SU_RC[] =
     "\n"
 
     "on post-fs-data\n"
-    "    start logd\n"
+    "	start logd\n"
     // We should wait for the post-fs-data finish
-    "    exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH " post-fs-data\n"
+    "	exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH " post-fs-data\n"
     "\n"
 
     "on nonencrypted\n"
-    "    exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH " services\n"
+    "	exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH " services\n"
     "\n"
 
     "on property:vold.decrypt=trigger_restart_framework\n"
-    "    exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH " services\n"
+    "	exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH " services\n"
     "\n"
 
     "on property:sys.boot_completed=1\n"
-    "    exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH
-    " boot-completed\n"
+    "	exec u:r:" KERNEL_SU_DOMAIN ":s0 root -- " KSUD_PATH " boot-completed\n"
     "\n"
 
     "\n";
 
-static void stop_vfs_read_hook();
-static void stop_execve_hook();
-static void stop_input_hook();
+static void stop_vfs_read_hook(void);
+static void stop_execve_hook(void);
+static void stop_input_hook(void);
 
 static struct work_struct stop_vfs_read_work;
 static struct work_struct stop_execve_hook_work;
@@ -84,14 +83,18 @@ extern void ext4_unregister_sysfs(struct super_block *sb);
 int nuke_ext4_sysfs(const char *mnt)
 {
 	struct path path;
-	int err = kern_path(mnt, 0, &path);
+	struct super_block *sb = NULL;
+	const char *name = NULL;
+	int err;
+
+	err = kern_path(mnt, 0, &path);
 	if (err) {
 		pr_err("nuke path err: %d\n", err);
 		return err;
 	}
 
-	struct super_block *sb = path.dentry->d_inode->i_sb;
-	const char *name = sb->s_type->name;
+	sb = path.dentry->d_inode->i_sb;
+	name = sb->s_type->name;
 	if (strcmp(name, "ext4") != 0) {
 		pr_info("nuke but module aren't mounted\n");
 		path_put(&path);
@@ -100,6 +103,7 @@ int nuke_ext4_sysfs(const char *mnt)
 
 	ext4_unregister_sysfs(sb);
 	path_put(&path);
+
 	return 0;
 }
 
@@ -226,8 +230,8 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 			const char __user *p = get_user_arg_ptr(*argv, 1);
 			if (p && !IS_ERR(p)) {
 				char first_arg[16];
-				strncpy_from_user_nofault(first_arg, p,
-							  sizeof(first_arg));
+				ksu_strncpy_from_user_nofault(
+				    first_arg, p, sizeof(first_arg));
 				pr_info("/system/bin/init first arg: %s\n",
 					first_arg);
 				if (!strcmp(first_arg, "second_stage")) {
@@ -275,7 +279,7 @@ static ssize_t read_proxy(struct file *file, char __user *buf, size_t count,
 	bool first_read = file->f_pos == 0;
 	ssize_t ret = orig_read(file, buf, count, pos);
 	if (first_read) {
-		pr_info("read_proxy append %ld + %ld\n", ret,
+		pr_info("read_proxy append %zd + %zd\n", ret,
 			read_count_append);
 		ret += read_count_append;
 	}
@@ -287,7 +291,7 @@ static ssize_t read_iter_proxy(struct kiocb *iocb, struct iov_iter *to)
 	bool first_read = iocb->ki_pos == 0;
 	ssize_t ret = orig_read_iter(iocb, to);
 	if (first_read) {
-		pr_info("read_iter_proxy append %ld + %ld\n", ret,
+		pr_info("read_iter_proxy append %zd + %zd\n", ret,
 			read_count_append);
 		ret += read_count_append;
 	}
@@ -458,6 +462,8 @@ static int sys_execve_handler_pre(struct kprobe *p, struct pt_regs *regs)
 	unsigned long addr;
 	const char __user *fn;
 
+	int fd = AT_FDCWD;
+
 	if (!filename_user)
 		return 0;
 
@@ -476,8 +482,7 @@ static int sys_execve_handler_pre(struct kprobe *p, struct pt_regs *regs)
 	filename_in.name = path;
 
 	filename_p = &filename_in;
-	return ksu_handle_execveat_ksud(AT_FDCWD, &filename_p, &argv, NULL,
-					NULL);
+	return ksu_handle_execveat_ksud(&fd, &filename_p, &argv, NULL, NULL);
 }
 
 static int sys_read_handler_pre(struct kprobe *p, struct pt_regs *regs)
@@ -485,7 +490,7 @@ static int sys_read_handler_pre(struct kprobe *p, struct pt_regs *regs)
 	struct pt_regs *real_regs = PT_REAL_REGS(regs);
 	unsigned int fd = PT_REGS_PARM1(real_regs);
 	char __user **buf_ptr = (char __user **)&PT_REGS_PARM2(real_regs);
-	size_t count_ptr = (size_t *)&PT_REGS_PARM3(real_regs);
+	size_t *count_ptr = (size_t *)&PT_REGS_PARM3(real_regs);
 
 	return ksu_handle_sys_read(fd, buf_ptr, count_ptr);
 }
@@ -529,19 +534,19 @@ static void do_stop_input_hook(struct work_struct *work)
 	unregister_kprobe(&input_event_kp);
 }
 
-static void stop_vfs_read_hook()
+static void stop_vfs_read_hook(void)
 {
 	bool ret = schedule_work(&stop_vfs_read_work);
 	pr_info("unregister vfs_read kprobe: %d!\n", ret);
 }
 
-static void stop_execve_hook()
+static void stop_execve_hook(void)
 {
 	bool ret = schedule_work(&stop_execve_hook_work);
 	pr_info("unregister execve kprobe: %d!\n", ret);
 }
 
-static void stop_input_hook()
+static void stop_input_hook(void)
 {
 	static bool input_hook_stopped = false;
 	if (input_hook_stopped) {
@@ -553,7 +558,7 @@ static void stop_input_hook()
 }
 
 // ksud: module support
-void ksu_ksud_init()
+void ksu_ksud_init(void)
 {
 	int ret;
 
@@ -571,7 +576,7 @@ void ksu_ksud_init()
 	INIT_WORK(&stop_input_hook_work, do_stop_input_hook);
 }
 
-void ksu_ksud_exit()
+void ksu_ksud_exit(void)
 {
 	unregister_kprobe(&execve_kp);
 	// this should be done before unregister vfs_read_kp

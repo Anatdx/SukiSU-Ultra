@@ -1,12 +1,12 @@
-#include "seccomp_cache.h"
+#include <linux/version.h>
 #include "klog.h" // IWYU pragma: keep
+#include "seccomp_cache.h"
 #include <linux/filter.h>
 #include <linux/fs.h>
 #include <linux/nsproxy.h>
 #include <linux/sched/task.h>
 #include <linux/seccomp.h>
 #include <linux/uaccess.h>
-#include <linux/version.h>
 
 // Android backport this feature in 5.10.2
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 2)
@@ -65,5 +65,4 @@ void ksu_seccomp_allow_cache(struct seccomp_filter *filter, int nr)
 	}
 #endif
 }
-
 #endif

@@ -113,19 +113,19 @@ void escape_with_root_profile(void)
 	struct task_struct *p = current;
 	struct task_struct *t;
 
-	cred = prepare_creds();
-	if (!cred) {
-		pr_warn("prepare_creds failed!\n");
-		return;
-	}
-
-	if (cred->euid.val == 0) {
+	// Check early before allocating cred
+	if (current_euid().val == 0) {
 		pr_warn("Already root, don't escape!\n");
 #if __SULOG_GATE
 		ksu_sulog_report_su_grant(current_euid().val, NULL,
 					  "escape_to_root_failed");
 #endif
-		abort_creds(cred);
+		return;
+	}
+
+	cred = prepare_creds();
+	if (!cred) {
+		pr_warn("prepare_creds failed!\n");
 		return;
 	}
 

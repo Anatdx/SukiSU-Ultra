@@ -1,7 +1,8 @@
 #include <linux/compiler.h>
+#include <linux/version.h>
+#include <linux/sched/signal.h>
 #include <linux/printk.h>
 #include <linux/sched.h>
-#include <linux/sched/signal.h>
 #include <linux/seccomp.h>
 #include <linux/slab.h>
 #include <linux/string.h>
@@ -10,7 +11,6 @@
 #include <linux/types.h>
 #include <linux/uaccess.h>
 #include <linux/uidgid.h>
-#include <linux/version.h>
 
 #include "allowlist.h"
 #include "feature.h"
@@ -52,11 +52,9 @@ static void ksu_install_manager_fd_tw_func(struct callback_head *cb)
 	kfree(cb);
 }
 
-int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
-{
-	uid_t new_uid = ruid;
-	uid_t old_uid = current_uid().val;
-
+int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid)
+{ // (new_euid)
+	if (old_uid != new_uid)
 	pr_info("handle_setresuid from %d to %d\n", old_uid, new_uid);
 
 	// if old process is root, ignore it.
@@ -69,7 +67,7 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
 					"to %d\n",
 					current->pid, current->comm, old_uid,
 					new_uid);
-				force_sig(SIGKILL);
+				__force_sig(SIGKILL);
 				return 0;
 			}
 		}
@@ -82,21 +80,25 @@ int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
 					"to %d\n",
 					current->pid, current->comm, old_uid,
 					new_uid);
-				force_sig(SIGKILL);
+				__force_sig(SIGKILL);
 				return 0;
 			}
 		}
 		return 0;
 	}
 
-	if (ksu_get_manager_appid() == new_uid % PER_USER_RANGE) {
+	// Check if this is manager app (using appid to handle multi-user)
+	if (likely(ksu_is_manager_appid_valid()) &&
+	    unlikely(ksu_get_manager_appid() == new_uid % PER_USER_RANGE)) {
+		struct callback_head *cb;
+
 		spin_lock_irq(&current->sighand->siglock);
 		ksu_seccomp_allow_cache(current->seccomp.filter, __NR_reboot);
 		ksu_set_task_tracepoint_flag(current);
 		spin_unlock_irq(&current->sighand->siglock);
 
-		pr_info("install fd for manager: %d\n", new_uid);
-		struct callback_head *cb = kzalloc(sizeof(*cb), GFP_ATOMIC);
+		pr_info("install fd for ksu manager(uid=%d)\n", new_uid);
+		cb = kzalloc(sizeof(*cb), GFP_ATOMIC);
 		if (!cb)
 			return 0;
 		cb->func = ksu_install_manager_fd_tw_func;
@@ -137,7 +139,7 @@ void ksu_setuid_hook_init(void)
 
 void ksu_setuid_hook_exit(void)
 {
-	pr_info("ksu_core_exit\n");
+	pr_info("ksu_setuid_hook_exit\n");
 	ksu_kernel_umount_exit();
 	ksu_unregister_feature_handler(KSU_FEATURE_ENHANCED_SECURITY);
 }
