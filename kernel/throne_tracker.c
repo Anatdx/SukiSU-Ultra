@@ -434,7 +434,6 @@ void track_throne(bool prune_only)
 		pr_info("Manager search finished\n");
 	}
 
-prune:
 	// then prune the allowlist
 	ksu_prune_allowlist(is_uid_exist, &uid_list);
 out:
