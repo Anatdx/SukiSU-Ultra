@@ -9,10 +9,6 @@ namespace fs = std::filesystem;
 
 namespace ksud {
 
-const char* RESETPROP_PATH = BINARY_DIR "resetprop";
-const char* BUSYBOX_PATH = BINARY_DIR "busybox";
-const char* BOOTCTL_PATH = BINARY_DIR "bootctl";
-
 // Binary assets embedded in executable (would be populated by build system)
 // For now, this is a placeholder - in real implementation, use xxd or similar
 // to embed binaries as byte arrays
