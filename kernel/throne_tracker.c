@@ -285,7 +285,7 @@ void search_manager(const char *path, int depth, struct list_head *uid_data)
 			struct file *file;
 
 			if (!stop) {
-				file = ksu_filp_open_compat(
+				file = filp_open(
 				    pos->dirpath, O_RDONLY | O_NOFOLLOW, 0);
 				if (IS_ERR(file)) {
 					pr_err("Failed to open directory: %s, "
@@ -376,23 +376,7 @@ void track_throne(bool prune_only)
 	// init uid list head
 	INIT_LIST_HEAD(&uid_list);
 
-	if (ksu_uid_scanner_enabled) {
-		pr_info("Scanning %s directory..\n", KSU_UID_LIST_PATH);
-
-		if (uid_from_um_list(&uid_list) == 0) {
-			pr_info("Loaded UIDs from %s success\n",
-				KSU_UID_LIST_PATH);
-			goto uid_ready;
-		}
-
-		pr_warn("%s read failed, fallback to %s\n", KSU_UID_LIST_PATH,
-			SYSTEM_PACKAGES_LIST_PATH);
-	} else {
-	}
-
-	{
-		fp = ksu_filp_open_compat(SYSTEM_PACKAGES_LIST_PATH, O_RDONLY,
-					  0);
+	fp = filp_open(SYSTEM_PACKAGES_LIST_PATH, O_RDONLY, 0);
 		if (IS_ERR(fp)) {
 			pr_err("%s: open " SYSTEM_PACKAGES_LIST_PATH
 			       " failed: %ld\n",
@@ -401,9 +385,9 @@ void track_throne(bool prune_only)
 		}
 
 	for (;;) {
-			struct uid_data *data = NULL;
-			ssize_t count =
-			    ksu_kernel_read_compat(fp, &chr, sizeof(chr), &pos);
+		struct uid_data *data = NULL;
+		ssize_t count =
+		    kernel_read(fp, &chr, sizeof(chr), &pos);
 			const char *delim = " ";
 			char *package = NULL;
 			char *tmp = NULL;
@@ -415,24 +399,23 @@ void track_throne(bool prune_only)
 		if (chr != '\n')
 			continue;
 
-		count = ksu_kernel_read_compat(fp, buf, sizeof(buf),
-						       &line_start);
+		count = kernel_read(fp, buf, sizeof(buf), &line_start);
 		data = kzalloc(sizeof(struct uid_data), GFP_ATOMIC);
 		if (!data) {
 			filp_close(fp, 0);
 			goto out;
 		}
 
-			tmp = buf;
+		tmp = buf;
 
-			package = strsep(&tmp, delim);
-			uid = strsep(&tmp, delim);
+		package = strsep(&tmp, delim);
+		uid = strsep(&tmp, delim);
 		if (!uid || !package) {
 			pr_err("update_uid: package or uid is NULL!\n");
 			break;
 		}
 
-				if (kstrtou32(uid, 10, &res)) {
+		if (kstrtou32(uid, 10, &res)) {
 			pr_err("update_uid: uid parse err\n");
 			break;
 		}
@@ -444,29 +427,6 @@ void track_throne(bool prune_only)
 	}
 
 	filp_close(fp, 0);
-	}
-
-uid_ready:
-	if (prune_only)
-		goto prune;
-
-	// first, check if manager_uid exist!
-	list_for_each_entry(np, &uid_list, list)
-	{
-		if (np->uid == current_manager_uid) {
-			manager_exist = true;
-			break;
-		}
-	}
-
-	if (!manager_exist && locked_manager_uid != KSU_INVALID_UID) {
-		pr_info("Manager APK removed, unlock previous UID: %d\n",
-			locked_manager_uid);
-			ksu_invalidate_manager_uid();
-		locked_manager_uid = KSU_INVALID_UID;
-		}
-
-	need_search = !manager_exist;
 
 	if (need_search) {
 		pr_info("Searching for manager(s)...\n");

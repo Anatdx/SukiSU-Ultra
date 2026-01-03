@@ -167,8 +167,7 @@ static void sulog_process_queue(void)
 
 	old_cred = override_creds(ksu_cred);
 
-	fp = ksu_filp_open_compat(SULOG_PATH, O_WRONLY | O_CREAT | O_APPEND,
-				  0640);
+	fp = filp_open(SULOG_PATH, O_WRONLY | O_CREAT | O_APPEND, 0640);
 	if (IS_ERR(fp)) {
 		pr_err("sulog: failed to open log file: %ld\n", PTR_ERR(fp));
 		goto revert_creds_out;
@@ -182,8 +181,8 @@ static void sulog_process_queue(void)
 		pos = fp->f_inode->i_size;
 	}
 
-	list_for_each_entry(entry, &local_queue, list) ksu_kernel_write_compat(
-	    fp, entry->content, strlen(entry->content), &pos);
+	list_for_each_entry(entry, &local_queue, list)
+		kernel_write(fp, entry->content, strlen(entry->content), &pos);
 
 	vfs_fsync(fp, 0);
 	filp_close(fp, 0);
