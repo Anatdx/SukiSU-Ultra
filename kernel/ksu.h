@@ -20,7 +20,7 @@ int ksu_yield(void);  // Called by LKM to make GKI yield
 
 // YukiSU kernel su version full strings
 #ifndef KSU_VERSION_FULL
-#define KSU_VERSION_FULL "v3.x-00000000@unknown"
+#define KSU_VERSION_FULL "v1.x-00000000@unknown"
 #endif
 #define KSU_FULL_VERSION_STRING 255
 

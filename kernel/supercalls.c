@@ -15,6 +15,8 @@
 #ifdef CONFIG_KSU_HYMOFS
 #include <linux/namei.h>
 #include <linux/hymofs.h>
+#else
+#include "syscall_hook_manager.h"
 #endif // #ifdef CONFIG_KSU_HYMOFS
 
 #include "allowlist.h"
@@ -30,9 +32,6 @@
 #include "selinux/selinux.h"
 #include "sulog.h"
 #include "supercalls.h"
-#ifndef CONFIG_KSU_HYMOFS
-#include "syscall_hook_manager.h"
-#endif
 #include "throne_comm.h"
 
 #ifdef CONFIG_KSU_MANUAL_SU

@@ -62,7 +62,7 @@ obj-$(CONFIG_KPM) += kpm/
 
 REPO_OWNER := Anatdx
 REPO_NAME := YukiSU
-REPO_BRANCH := tmp-builtin
+REPO_BRANCH := hymofs
 KSU_VERSION_API := 1.0.0
 
 GIT_BIN := /usr/bin/env PATH="$$PATH":/usr/bin:/usr/local/bin git
