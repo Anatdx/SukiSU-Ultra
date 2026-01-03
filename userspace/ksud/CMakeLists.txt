@@ -79,6 +79,8 @@ set(SOURCES
     src/umount.cpp
     src/debug.cpp
     src/kpm.cpp
+    # Flash kernel packages
+    src/flash/flash_ak3.cpp
     # HymoFS module management
     src/hymo/hymo_cli.cpp
     src/hymo/hymo_utils.cpp

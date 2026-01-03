@@ -5,6 +5,7 @@
 #include "core/ksucalls.hpp"
 #include "debug.hpp"
 #include "defs.hpp"
+#include "flash/flash_ak3.hpp"
 #include "hymo/hymo_cli.hpp"
 #include "init_event.hpp"
 #include "kpm.hpp"
@@ -135,6 +136,7 @@ static void print_usage() {
     printf("  boot-patch     Patch boot image\n");
     printf("  boot-restore   Restore boot image\n");
     printf("  boot-info      Show boot information\n");
+    printf("  flash          Flash kernel packages (AK3)\n");
     printf("  umount         Manage umount paths\n");
     printf("  kernel         Kernel interface\n");
     printf("  debug          For developers\n");
@@ -584,6 +586,8 @@ int cli_run(int argc, char* argv[]) {
         return cmd_debug(args);
     } else if (cmd == "hymo") {
         return hymo::cmd_hymo(args);
+    } else if (cmd == "flash") {
+        return cmd_flash(args);
 #ifdef __aarch64__
     } else if (cmd == "kpm") {
         return cmd_kpm(args);
