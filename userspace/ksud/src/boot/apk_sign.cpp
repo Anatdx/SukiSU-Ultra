@@ -1,5 +1,6 @@
 #include "apk_sign.hpp"
 #include "../log.hpp"
+#include "picosha2.h"
 
 #include <cstdint>
 #include <cstring>
@@ -7,20 +8,13 @@
 #include <iomanip>
 #include <sstream>
 #include <vector>
-#include <openssl/sha.h>
 
 namespace ksud {
 
 static std::string sha256_digest(const uint8_t* data, size_t len) {
-    unsigned char hash[SHA256_DIGEST_LENGTH];
-    SHA256(data, len, hash);
-    
-    std::stringstream ss;
-    ss << std::hex << std::setfill('0');
-    for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
-        ss << std::setw(2) << static_cast<unsigned int>(hash[i]);
-    }
-    return ss.str();
+    std::vector<unsigned char> hash(picosha2::k_digest_size);
+    picosha2::hash256(data, data + len, hash.begin(), hash.end());
+    return picosha2::bytes_to_hex_string(hash.begin(), hash.end());
 }
 
 std::pair<uint32_t, std::string> get_apk_signature(const std::string& apk_path) {

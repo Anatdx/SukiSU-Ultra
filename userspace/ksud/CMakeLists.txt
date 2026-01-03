@@ -17,6 +17,27 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffunction-sections -fdata-sections -fvi
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld -Wl,--gc-sections -Wl,--strip-all -flto")
 set(CMAKE_CXX_FLAGS_RELEASE "-Oz -DNDEBUG -flto")
 
+# Fetch third-party dependencies
+include(FetchContent)
+
+# PicoSHA2 - SHA-256 implementation
+FetchContent_Declare(
+    picosha2
+    GIT_REPOSITORY https://github.com/okdshin/PicoSHA2.git
+    GIT_TAG v1.0.1
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(picosha2)
+
+# miniz - Lightweight ZIP library
+FetchContent_Declare(
+    miniz
+    GIT_REPOSITORY https://github.com/richgel999/miniz.git
+    GIT_TAG 3.0.2
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(miniz)
+
 # Generate embedded assets
 set(ASSETS_DIR ${CMAKE_SOURCE_DIR}/assets)
 set(GENERATED_DIR ${CMAKE_BINARY_DIR}/generated)
@@ -77,6 +98,8 @@ set(SOURCES
 
 # 头文件目录
 include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${picosha2_SOURCE_DIR})
+include_directories(${miniz_SOURCE_DIR})
 include_directories(${GENERATED_DIR})
 
 add_executable(ksud ${SOURCES})
@@ -86,15 +109,7 @@ if(NOT ANDROID)
     target_link_libraries(ksud PRIVATE pthread)
 endif()
 
-target_link_libraries(ksud PRIVATE z crypto)
-
-# Optional: libzip for ZIP utilities
-find_library(LIBZIP_LIB zip)
-if(LIBZIP_LIB)
-    target_link_libraries(ksud PRIVATE ${LIBZIP_LIB})
-    target_compile_definitions(ksud PRIVATE USE_LIBZIP)
-    message(STATUS "Using libzip: ${LIBZIP_LIB}")
-endif()
+target_link_libraries(ksud PRIVATE z miniz)
 
 # 安装
 install(TARGETS ksud DESTINATION bin)
