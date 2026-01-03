@@ -128,6 +128,13 @@ int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid)
 	return 0;
 }
 
+int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid)
+{
+	// we rely on the fact that zygote always call setresuid(3) with same
+	// uids
+	return ksu_handle_setuid(ruid, current_uid().val, euid);
+}
+
 void ksu_setuid_hook_init(void)
 {
 	ksu_kernel_umount_init();
