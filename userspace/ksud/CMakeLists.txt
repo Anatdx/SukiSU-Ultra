@@ -42,12 +42,23 @@ FetchContent_MakeAvailable(miniz)
 set(ASSETS_DIR ${CMAKE_SOURCE_DIR}/assets)
 set(GENERATED_DIR ${CMAKE_BINARY_DIR}/generated)
 set(ASSETS_CPP ${GENERATED_DIR}/assets_data.cpp)
+set(VERSION_CPP ${CMAKE_SOURCE_DIR}/src/defs.cpp)
 
 # Create generated directory
 file(MAKE_DIRECTORY ${GENERATED_DIR})
 
-# Run embed_assets.py to generate assets_data.cpp
+# Generate version file at configure time
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
+execute_process(
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/generate_version.py ${VERSION_CPP}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    RESULT_VARIABLE VERSION_RESULT
+)
+if(NOT VERSION_RESULT EQUAL 0)
+    message(WARNING "Failed to generate version file, using defaults")
+endif()
+
+# Run embed_assets.py to generate assets_data.cpp
 add_custom_command(
     OUTPUT ${ASSETS_CPP}
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/embed_assets.py 
