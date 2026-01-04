@@ -276,7 +276,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     InfoCard(
                         systemInfo = viewModel.systemInfo,
                         isSimpleMode = viewModel.isSimpleMode,
-                        isHideSusfsStatus = viewModel.isHideSusfsStatus,
                         isHideZygiskImplement = viewModel.isHideZygiskImplement,
                         isHideMetaModuleImplement = viewModel.isHideMetaModuleImplement,
                         showKpmInfo = viewModel.showKpmInfo,
@@ -808,7 +807,6 @@ fun DonateCard() {
 private fun InfoCard(
     systemInfo: HomeViewModel.SystemInfo,
     isSimpleMode: Boolean,
-    isHideSusfsStatus: Boolean,
     isHideZygiskImplement: Boolean,
     isHideMetaModuleImplement: Boolean,
     showKpmInfo: Boolean,
@@ -938,28 +936,8 @@ private fun InfoCard(
                     icon = Icons.Default.Archive
                 )
             }
-
-            if (!isSimpleMode && !isHideSusfsStatus &&
-                systemInfo.suSFSStatus == "Supported" &&
-                systemInfo.suSFSVersion.isNotEmpty()
-            ) {
-
-                val infoText = SuSFSInfoText(systemInfo)
-
-                InfoCardItem(
-                    stringResource(R.string.home_susfs_version),
-                    infoText,
-                    icon = Icons.Default.Storage
-                )
-            }
         }
     }
-}
-
-@SuppressLint("ComposableNaming")
-@Composable
-private fun SuSFSInfoText(systemInfo: HomeViewModel.SystemInfo): String = buildString {
-    append(systemInfo.suSFSVersion)
 }
 
 fun getManagerVersion(context: Context): Pair<String, Long> {
@@ -985,7 +963,7 @@ private fun StatusCardPreview() {
         StatusCard(
             HomeViewModel.SystemStatus(
                 isManager = true,
-                ksuVersion = 40000,
+                ksuVersion = 10000,
                 lkmMode = true,
                 kernelVersion = KernelVersion(5, 10, 101),
                 isRootAvailable = true

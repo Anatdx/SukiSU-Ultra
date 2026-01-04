@@ -45,10 +45,6 @@ class HomeViewModel : ViewModel() {
         val managerVersion: Pair<String, Long> = Pair("", 0L),
         val seLinuxStatus: String = "",
         val kpmVersion: String = "",
-        val suSFSStatus: String = "",
-        val suSFSVersion: String = "",
-        val suSFSVariant: String = "",
-        val suSFSFeatures: String = "",
         val superuserCount: Int = 0,
         val moduleCount: Int = 0,
         val kpmModuleCount: Int = 0,
@@ -73,8 +69,6 @@ class HomeViewModel : ViewModel() {
     var isHideVersion by mutableStateOf(false)
         private set
     var isHideOtherInfo by mutableStateOf(false)
-        private set
-    var isHideSusfsStatus by mutableStateOf(false)
         private set
     var isHideZygiskImplement by mutableStateOf(false)
         private set
@@ -107,7 +101,6 @@ class HomeViewModel : ViewModel() {
             isKernelSimpleMode = settingsPrefs.getBoolean("is_kernel_simple_mode", false)
             isHideVersion = settingsPrefs.getBoolean("is_hide_version", false)
             isHideOtherInfo = settingsPrefs.getBoolean("is_hide_other_info", false)
-            isHideSusfsStatus = settingsPrefs.getBoolean("is_hide_susfs_status", false)
             isHideLinkCard = settingsPrefs.getBoolean("is_hide_link_card", false)
             isHideZygiskImplement = settingsPrefs.getBoolean("is_hide_zygisk_Implement", false)
             isHideMetaModuleImplement = settingsPrefs.getBoolean("is_hide_meta_module_Implement", false)
@@ -226,19 +219,6 @@ class HomeViewModel : ViewModel() {
                         kpmModuleCount = moduleInfo.fourth,
                         zygiskImplement = moduleInfo.fifth,
                         metaModuleImplement = moduleInfo.sixth
-                    )
-                }
-
-                delay(100)
-
-                // 加载SuSFS信息
-                if (!isHideSusfsStatus) {
-                    val suSFSInfo = loadSuSFSInfo()
-                    systemInfo = systemInfo.copy(
-                        suSFSStatus = suSFSInfo.first,
-                        suSFSVersion = suSFSInfo.second,
-                        suSFSVariant = suSFSInfo.third,
-                        suSFSFeatures = suSFSInfo.fourth,
                     )
                 }
 
@@ -436,41 +416,6 @@ class HomeViewModel : ViewModel() {
         }
     }
 
-    private suspend fun loadSuSFSInfo(): Tuple4<String, String, String, String> {
-        return withContext(Dispatchers.IO) {
-            val suSFS = try {
-                if (getSuSFSStatus().equals("true", ignoreCase = true)) {
-                    "Supported"
-                } else {
-                    "Unsupported"
-                }
-            } catch (_: Exception) {
-                "Unknown"
-            }
-
-            if (suSFS != "Supported") {
-                return@withContext Tuple4(suSFS, "", "", "")
-            }
-
-            val suSFSVersion = try {
-                getSuSFSVersion()
-            } catch (_: Exception) {
-                ""
-            }
-
-            if (suSFSVersion.isEmpty()) {
-                return@withContext Tuple4(suSFS, "", "", "")
-            }
-
-            val suSFSFeatures = try {
-                getSuSFSFeatures()
-            } catch (_: Exception) {
-                ""
-            }
-
-            Tuple4(suSFS, suSFSVersion, "", suSFSFeatures)
-        }
-    }
 
     @SuppressLint("PrivateApi")
     private fun getDeviceModel(): String {

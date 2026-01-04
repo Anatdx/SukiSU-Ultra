@@ -287,15 +287,6 @@ private fun HideOptionsSettings(
 
     SwitchSettingItem(
         icon = Icons.Filled.VisibilityOff,
-        title = stringResource(R.string.hide_susfs_status),
-        summary = stringResource(R.string.hide_susfs_status_summary),
-        checked = state.isHideSusfsStatus,
-        onChange = handlers::handleHideSusfsStatusChange
-    )
-
-
-    SwitchSettingItem(
-        icon = Icons.Filled.VisibilityOff,
         title = stringResource(R.string.hide_zygisk_implement),
         summary = stringResource(R.string.hide_zygisk_implement_summary),
         checked = state.isHideZygiskImplement,

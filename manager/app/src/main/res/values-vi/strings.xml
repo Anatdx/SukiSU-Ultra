@@ -9,7 +9,6 @@
     <string name="home_unsupported">Không được hỗ trợ</string>
     <string name="home_unsupported_reason">Không phát hiện được Trình điều khiển YukiSU trên Kernel của bạn, Kernel sai?</string>
     <string name="home_kernel">Phiên bản Kernel</string>
-    <string name="home_susfs_version">Phiên bản SuSFS</string>
     <string name="home_manager_version">Phiên bản Trình quản lý</string>
     <string name="home_selinux_status">Trạng thái SELinux</string>
     <string name="selinux_status_disabled">Vô hiệu hoá</string>
@@ -186,8 +185,6 @@
     <string name="hide_kernel_kernelsu_version_summary">Ẩn thông tin phiên bản Kernel ở trang chủ</string>
     <string name="hide_other_info">Ẩn thông tin số lượng</string>
     <string name="hide_other_info_summary">Ẩn thông tin về số lượng ở các mục Superuser, Module và KPModule trên thanh điều hướng</string>
-    <string name="hide_susfs_status">Ẩn trạng thái SuSFS</string>
-    <string name="hide_susfs_status_summary">Ẩn thông tin trạng thái SuSFS ở trang chủ</string>
     <string name="hide_zygisk_implement">Ẩn trạng thái Zygisk</string>
     <string name="hide_zygisk_implement_summary">Ẩn thông tin triển khai Zygisk trên trang chủ</string>
     <string name="hide_meta_module_implement">Ẩn trạng thái Siêu Module</string>
@@ -296,9 +293,6 @@
     <string name="back">Trở lại</string>
     <string name="background_set_success">Đã cài đặt hình nền thành công</string>
     <string name="background_removed">Đã xóa hình nền tùy chỉnh</string>
-    <string name="icon_switch_title">Thay thế icon</string>
-    <string name="icon_switch_summary">Thay đổi icon YukiSU thành icon của KernelSU</string>
-    <string name="icon_switched">Đã thay đổi icon</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">Ẩn chức năng KPM</string>
     <string name="show_kpm_info_summary">Ẩn thông tin và chức năng của KPM ở trang chủ và thanh điều hướng</string>
@@ -365,222 +359,21 @@
     <string name="menu_options">Tuỳ chọn Menu</string>
     <string name="sort_options">Sắp xếp theo</string>
     <string name="app_categories">Lựa chọn loại ứng dụng</string>
-    <!-- SuSFS Configuration -->
-    <string name="susfs_config_title">Cấu hình SuSFS</string>
-    <string name="susfs_config_description">Mô tả cấu hình</string>
-    <string name="susfs_config_description_text">Tính năng này cho phép bạn tùy chỉnh giá trị SuSFS Uname và Giả mạo thời gian xây dựng. Nhập các giá trị bạn muốn đặt và nhấp vào \"Áp dụng\" để có hiệu lực</string>
-    <string name="susfs_uname_label">Giá trị Uname</string>
-    <string name="susfs_uname_placeholder">Vui lòng nhập giá trị Uname tùy chỉnh</string>
-    <string name="susfs_build_time_label">Giả mạo thời gian xây dựng</string>
-    <string name="susfs_build_time_placeholder">Vui lòng nhập giá trị giả mạo thời gian xây dựng</string>
-    <string name="susfs_current_value">Giá trị hiện tại: %s</string>
-    <string name="susfs_current_build_time">Thời gian xây dựng hiện tại: %s</string>
-    <string name="susfs_reset_to_default">Reset về Default</string>
-    <string name="susfs_apply">Áp dụng</string>
-    <!-- SuSFS Reset Confirmation -->
-    <string name="susfs_reset_confirm_title">Xác nhận Đặt lại</string>
-    <!-- SuSFS Toast Messages -->
-    <string name="susfs_binary_not_found">Không tìm thấy file ksu_susfs</string>
-    <string name="susfs_command_failed">Thực thi lệnh SuSFS thất bại</string>
-    <string name="susfs_command_error">Lỗi khi thực hiện lệnh SuSFS: %s</string>
-    <string name="susfs_uname_set_success" formatted="false">SuSFS Uname và Thời gian xây dựng được thiết lập thành công: %s, %s</string>
-    <!-- SuSFS Settings Item -->
-    <string name="susfs_config_setting_title">Cấu hình SuSFS</string>
-    <!-- 开机自启动相关 -->
-    <string name="susfs_autostart_title">Tự động khởi động</string>
-    <string name="susfs_autostart_description">Tự động áp dụng tất cả các cấu hình không phải mặc định khi khởi động lại</string>
-    <string name="susfs_autostart_requirement">Cấu hình cần được thêm vào để kích hoạt</string>
-    <string name="susfs_autostart_enable_failed">Kích hoạt tính năng tự động khởi động thất bại!</string>
-    <string name="susfs_autostart_disable_failed">Vô hiệu hoá tính năng tự động khởi động thất bại!</string>
-    <string name="susfs_autostart_error">Lỗi cấu hình tự động khởi động: %s</string>
-    <string name="susfs_no_config_to_autostart">Không có cấu hình nào có sẵn để tự động khởi động</string>
-    <!-- SuSFS Tab Titles -->
-    <string name="susfs_tab_basic_settings">Cài đặt cơ bản</string>
-    <string name="susfs_tab_sus_paths">Đường dẫn SuS</string>
-    <string name="susfs_tab_path_settings">Cài đặt Đường dẫn</string>
-    <string name="susfs_tab_enabled_features">Trạng thái tính năng</string>
-    <!-- SuSFS Path Management -->
-    <string name="susfs_add_sus_path">Thêm Đường dẫn SuS</string>
-    <string name="susfs_sus_path_added_success">Đường dẫn SuS đã được thêm thành công</string>
-    <string name="susfs_path_not_found_error">Lỗi không tìm thấy đường dẫn</string>
-    <string name="susfs_path_label">Đường dẫn</string>
-    <string name="susfs_path_placeholder">Ví dụ: /system/addon.d</string>
-    <string name="susfs_no_paths_configured">Không có Đường dẫn SuS nào được cấu hình</string>
-    <!-- SuSFS Reset Categories -->
-    <string name="susfs_reset_paths_title">Đặt lại Đường dẫn SuS</string>
-    <string name="susfs_reset_paths_message">Thao tác này sẽ xóa tất cả các cấu hình Đường dẫn SuS. Bạn có chắc chắn muốn tiếp tục không?</string>
-    <string name="susfs_reset_path_title">Reset Cài đặt Đường dẫn</string>
-    <!-- SuSFS Path Settings -->
-    <string name="susfs_android_data_path_label">Đường dẫn Android Data</string>
-    <string name="susfs_sdcard_path_label">Đường dẫn SD Card</string>
-    <string name="susfs_set_android_data_path">Đặt Đường dẫn Android Data</string>
-    <string name="susfs_set_sdcard_path">Đặt Đường dẫn SD Card</string>
-    <!-- SuSFS Enabled Features -->
-    <string name="susfs_enabled_features_description">Hiển thị trạng thái tính năng hiện tại của SuSFS</string>
-    <string name="susfs_no_features_found">Không tìm thấy thông tin trạng thái tính năng</string>
-    <string name="susfs_feature_enabled">Đã bật</string>
-    <string name="susfs_feature_disabled">Đã tắt</string>
-    <!-- Feature Labels -->
-    <string name="sus_path_feature_label">Hỗ trợ Đường dẫn SuS</string>
-    <string name="spoof_uname_feature_label">Hỗ trợ giả mạo Uname</string>
-    <string name="spoof_cmdline_feature_label">Giả mạo Cmdline/Bootconfig</string>
-    <string name="open_redirect_feature_label">Mở hỗ trợ chuyển hướng</string>
-    <string name="enable_log_feature_label">Hỗ trợ ghi nhật ký</string>
-    <string name="hide_symbols_feature_label">Ẩn biểu tượng KSU SuSFS</string>
-    <string name="sus_kstat_feature_label">Hỗ trợ SuS Kstat</string>
-    <string name="sus_map_feature_label">Hỗ trợ SuS Map</string>
-    <!-- 可切换状态 -->
-    <string name="susfs_feature_configurable">Nhấn để bật/tắt ghi nhật ký</string>
-    <string name="susfs_enable_log_label">Kích hoạt nhật ký SuSFS</string>
-    <string name="susfs_log_config_description">Bật hoặc tắt ghi nhật ký cho SuSFS</string>
-    <string name="susfs_log_config_title">Cấu hình ghi nhật ký SuSFS</string>
-    <string name="susfs_log_enabled">Bật ghi nhật ký SuSFS</string>
-    <string name="susfs_log_disabled">Tắt ghi nhật ký SuSFS</string>
-    <string name="module_update_json">JSON cập nhật</string>
-    <string name="module_update_json_copied">JSON URL cập nhật đã được sao chép vào clipboard</string>
-    <!-- Settings related strings -->
     <string name="show_more_module_info">Hiển thị \"JSON URLs\"</string>
     <string name="show_more_module_info_summary">Hiển thị thông tin đường dẫn cập nhật \"JSON URLs\" của module</string>
-    <string name="susfs_execution_location_label">Vị trí thực thi</string>
-    <string name="susfs_current_execution_location">Vị trí thực thi hiện tại: %s</string>
-    <string name="susfs_execution_location_service">Service</string>
-    <string name="susfs_execution_location_post_fs_data">Post-FS-Data</string>
-    <string name="susfs_execution_location_service_description">Thực thi sau khi dịch vụ hệ thống khởi động</string>
-    <string name="susfs_execution_location_post_fs_data_description">Thực thi sau khi file hệ thống được mount nhưng trước khi hệ thống khởi động hoàn toàn, có thể gây ra boot loop</string>
-    <string name="susfs_slot_info_title">Thông tin Slot</string>
-    <string name="susfs_slot_info_description">Xem thông tin Slot khởi động hiện tại và sao chép giá trị</string>
-    <string name="susfs_current_active_slot">Slot hiện tại: %s</string>
-    <string name="susfs_slot_uname">Uname: %s</string>
-    <string name="susfs_slot_build_time">Thời gian xây dựng: %s</string>
-    <string name="susfs_slot_current_badge">Hiện tại</string>
-    <string name="susfs_slot_use_uname">Sử dụng Uname</string>
-    <string name="susfs_slot_use_build_time">Sử dụng Thời gian xây dựng</string>
-    <string name="susfs_slot_info_unavailable">Không thể lấy thông tin Slot</string>
-    <!-- SuSFS 自启动相关字符串 -->
-    <string name="susfs_autostart_enabled_success">Module tự động khởi động SuSFS đã bật, đường dẫn module: %s</string>
-    <string name="susfs_autostart_disabled_success">Module tự động khởi động SuSFS đã bị vô hiệu hoá</string>
-    <!-- SuSFS Kstat相关字符串 -->
-    <string name="susfs_tab_kstat_config">Cấu hình Kstat</string>
-    <string name="kstat_static_config_added">Đã thêm cấu hình Kstat tĩnh: %1$s</string>
-    <string name="kstat_config_removed">Đã xoá cấu hình Kstat: %1$s</string>
-    <string name="kstat_path_added">Đã thêm Đường dẫn Kstat: %1$s</string>
-    <string name="kstat_path_removed">Đã xoá Đường dẫn Kstat: %1$s</string>
-    <string name="kstat_updated">Đã cập nhật Kstat: %1$s</string>
-    <string name="kstat_full_clone_updated">Bản sao Kstat đầy đủ đã cập nhật: %1$s</string>
-    <string name="add_kstat_statically_title">Thêm cấu hình Kstat tĩnh</string>
-    <string name="file_or_directory_path_label">Đường dẫn File/Folder</string>
-    <string name="hint_use_default_value">Gợi ý: Bạn có thể sử dụng \"default\" để thiết lập giá trị ban đầu</string>
-    <string name="add_kstat_path_title">Thêm Đường dẫn Kstat</string>
-    <string name="add">Thêm</string>
-    <string name="reset_kstat_config_title">Đặt lại Cấu hình Kstat</string>
-    <string name="reset_kstat_config_message">Bạn có chắc chắn muốn xóa tất cả cấu hình Kstat không? Không thể hoàn tác hành động này</string>
-    <string name="kstat_config_description_title">Mô tả cấu hình Kstat</string>
-    <string name="kstat_config_description_add_statically">• add_sus_kstat_statically: Thông tin thống kê cấu hình tĩnh của các File/Folder</string>
-    <string name="kstat_config_description_add">• add_sus_kstat: Thêm đường dẫn trước khi mount để lưu trữ thông tin trạng thái ban đầu</string>
-    <string name="kstat_config_description_update">• update_sus_kstat: Cập nhật ino mục tiêu, giữ nguyên kích thước và khối</string>
-    <string name="kstat_config_description_update_full_clone">• update_sus_kstat_full_clone: ​​Chỉ cập nhật ino, giữ nguyên các giá trị gốc khác</string>
-    <string name="static_kstat_config">Cấu hình Kstat tĩnh</string>
-    <string name="kstat_path_management">Quản lý Đường dẫn Kstat</string>
-    <string name="no_kstat_config_message">Chưa có cấu hình Kstat, hãy nhấp vào nút bên dưới để thêm</string>
-    <!-- SuSFS Mount Hiding Control Related Strings -->
-    <string name="susfs_hide_mounts_control_title">Điều khiển ẩn SuS Mount</string>
-    <string name="susfs_hide_mounts_control_description">Kiểm soát hành vi ẩn của SuS Mount với các tiến trình</string>
-    <string name="susfs_hide_mounts_for_all_procs_label">Ẩn SuS Mount khỏi tất cả các tiến trình</string>
-    <string name="susfs_hide_mounts_for_all_procs_enabled_description">Khi kích hoạt, SuS Mount sẽ bị ẩn khỏi tất cả các tiến trình, bao gồm cả các tiến trình KSU</string>
-    <string name="susfs_hide_mounts_for_all_procs_disabled_description">Khi bị vô hiệu hoá, SuS Mount sẽ chỉ bị ẩn khỏi các tiến trình không phải KSU, không bị ẩn ở tiến trình KSU</string>
-    <string name="susfs_hide_mounts_all_enabled">Đã kích hoạt ẩn SuS Mount khỏi tất cả các tiến trình</string>
-    <string name="susfs_hide_mounts_all_disabled">Đã vô hiệu hoá việc ẩn SuS Mount cho tất cả các tiến trình</string>
-    <string name="susfs_hide_mounts_recommendation">Nên vô hiệu hoá sau khi màn hình được mở khoá hoặc trong giai đoạn service.sh hoặc boot-completed.sh, vì điều này sẽ khắc phục sự cố trên một số ứng dụng đã root dựa vào mount bởi tiến trình KSU</string>
-    <string name="susfs_hide_mounts_current_setting">Cài đặt hiện tại: %s</string>
-    <string name="susfs_hide_mounts_setting_all">Ẩn khỏi tất cả các tiến trình</string>
-    <string name="susfs_hide_mounts_setting_non_ksu">Chỉ ẩn đối với các tiến trình không phải KSU</string>
     <string name="kernel_simple_kernel">Hiển thị tóm tắt \"Phiên bản Kernel\"</string>
     <string name="kernel_simple_kernel_summary">Tóm tắt hiển thị phiên bản Kernel cho ngắn gọn</string>
-    <string name="susfs_android_data_path_set">Đường dẫn Android Data đã được đặt thành: %s</string>
-    <string name="susfs_sdcard_path_set">Đường dẫn SD Card đã được đặt thành: %s</string>
-    <string name="susfs_path_setup_warning">Thiết lập đường dẫn có thể không thành công hoàn toàn, nhưng đường dẫn SuS sẽ tiếp tục được thêm vào</string>
-    <!-- 备份和还原相关字符串 -->
-    <string name="susfs_backup_title">Sao lưu</string>
-    <string name="susfs_backup_description">Tạo bản sao lưu cho tất cả các cấu hình SuSFS. File sao lưu sẽ bao gồm tất cả các thiết lập, đường dẫn và thông tin cấu hình</string>
-    <string name="susfs_backup_create">Tạo bản sao lưu</string>
-    <string name="susfs_backup_success">Đã tạo bản sao lưu thành công: %s</string>
-    <string name="susfs_backup_failed">Tạo bản sao lưu thất bại: %s</string>
-    <string name="susfs_backup_file_not_found">Không tìm thấy file sao lưu</string>
-    <string name="susfs_backup_invalid_format">Định dạng file sao lưu không hợp lệ</string>
-    <string name="susfs_backup_version_mismatch">Phiên bản sao lưu không khớp, nhưng sẽ cố gắng khôi phục</string>
-    <string name="susfs_restore_title">Khôi phục</string>
-    <string name="susfs_restore_description">Khôi phục cấu hình SuSFS từ file sao lưu. Thao tác này sẽ ghi đè lên tất cả các cài đặt hiện tại</string>
-    <string name="susfs_restore_select_file">Chọn file sao lưu</string>
-    <string name="susfs_restore_success" formatted="false">Cấu hình đã được khôi phục thành công từ bản sao lưu được tạo trên %s, từ thiết bị: %s</string>
-    <string name="susfs_restore_failed">Khôi phục thất bại: %s</string>
-    <string name="susfs_restore_confirm_title">Xác nhận khôi phục</string>
-    <string name="susfs_restore_confirm_description">Thao tác này sẽ ghi đè lên tất cả các cấu hình SuSFS hiện tại. Bạn có chắc chắn muốn tiếp tục không?</string>
-    <string name="susfs_restore_confirm">Khôi phục</string>
-    <string name="susfs_backup_info_date">Ngày sao lưu: %s</string>
-    <string name="susfs_backup_info_device">Thiết bị: %s</string>
-    <string name="susfs_backup_info_version">Phiên bản: %s</string>
-    <string name="hide_bl_script">Trạng thái Lock BL</string>
-    <string name="hide_bl_script_description">Ghi đè thuộc tính trạng thái lock bootloader ở chế độ dịch vụ late_start</string>
-    <string name="cleanup_residue">Dọn rác</string>
-    <string name="cleanup_residue_description">Dọn dẹp các file và folder còn sót lại của các module và công cụ (có thể bị xóa nhầm, dẫn đến mất dữ liệu và không khởi động được)</string>
-    <string name="susfs_edit_sus_path">Chỉnh sửa Đường dẫn SuS</string>
-    <string name="edit_kstat_statically_title">Chỉnh sửa cấu hình Kstat tĩnh</string>
-    <string name="edit_kstat_path_title">Chỉnh sửa Đường dẫn Kstat</string>
-    <string name="susfs_save">Lưu</string>
     <string name="edit">Chỉnh sửa</string>
     <string name="delete">Xoá</string>
     <string name="update">Cập nhật</string>
-    <string name="kstat_config_updated">Cập nhật cấu hình Kstat</string>
-    <string name="kstat_path_updated">Cập nhật Đường dẫn Kstat</string>
-    <string name="susfs_update_full_clone">Cập nhật bản sao SuSFS đầy đủ</string>
     <string name="app_paths_section">Đường dẫn ứng dụng</string>
     <string name="other_paths_section">Đường dẫn khác</string>
     <string name="add_custom_path">Khác</string>
     <string name="add_app_path">Ứng dụng</string>
-    <string name="susfs_add_app_path">Thêm Đường dẫn ứng dụng</string>
-    <string name="susfs_version_mismatch">Phiên bản thư viện SuSFS không khớp (Kernel: %1$s &amp; Trình quản lý: %2$s). Nên cập nhật Kernel hoặc Trình quản lý</string>
     <string name="warning">Cảnh báo</string>
     <string name="search_apps">Tìm kiếm ứng dụng</string>
-    <string name="selected_apps_count">%1$d ứng dụng đã chọn</string>
-    <string name="already_added_apps_count">%1$d ứng dụng đã thêm</string>
-    <string name="all_apps_already_added">Tất cả các ứng dụng đã được thêm vào</string>
-    <string name="hash_must_be_64_chars">Hash phải dài 64 ký tự thập lục phân</string>
-    <string name="invalid_sign_config">Cấu hình Trình quản lý không hợp lệ</string>
-    <string name="signature_index">Chữ ký %1$d</string>
-    <string name="unknown_signature">Không xác định</string>
-    <string name="multi_manager_list">Trình quản lý đang hoạt động</string>
-    <string name="no_active_manager">Trình quản lý đang không hoạt động</string>
-    <string name="default_signature">YukiSU</string>
     <string name="home_zygisk_implement">Triển khai Zygisk</string>
     <string name="home_meta_module_implement">Triển khai Siêu Module</string>
-    <!-- 循环路径相关 -->
-    <string name="susfs_tab_sus_loop_paths">Đường dẫn Vòng lặp SuS</string>
-    <string name="susfs_add_sus_loop_path">Thêm Đường dẫn Vòng lặp SuS</string>
-    <string name="susfs_edit_sus_loop_path">Chỉnh sửa Đường dẫn Vòng lặp SuS</string>
-    <string name="susfs_loop_path_added_success">Đường dẫn Vòng lặp SuS đã thêm thành công: %1$s</string>
-    <string name="susfs_loop_path_removed">Đã xoá Đường dẫn Vòng lặp SuS: %1$s</string>
-    <string name="susfs_loop_path_updated">Đã cập nhật Đường dẫn Vòng lặp SuS: %1$s → %2$s</string>
-    <string name="susfs_no_loop_paths_configured">Không có Đường dẫn Vòng lặp SuS nào được cấu hình</string>
-    <string name="susfs_reset_loop_paths_title">Đặt lại Đường dẫn Vòng lặp SuS</string>
-    <string name="susfs_reset_loop_paths_message">Bạn có chắc chắn muốn xóa tất cả các Đường dẫn Vòng lặp SuS không? Thao tác này không thể hoàn tác</string>
-    <string name="susfs_loop_path_label">Đường dẫn Vòng lặp</string>
-    <string name="susfs_loop_path_placeholder">/data/example/path</string>
-    <string name="susfs_loop_path_restriction_warning">Lưu ý: Chỉ những đường dẫn KHÔNG nằm trong /storage/ và /sdcard/ mới có thể được thêm vào thông qua Đường dẫn Vòng lặp</string>
-    <string name="susfs_loop_path_invalid_location">Lỗi: Đường dẫn Vòng lặp không thể nằm trong thư mục /storage/ hoặc /sdcard/</string>
-    <string name="loop_paths_section">Đường dẫn Vòng lặp</string>
-    <string name="add_loop_path">Thêm Đường dẫn Vòng lặp</string>
-    <!-- 循环路径功能描述 -->
-    <string name="sus_loop_paths_description_title">Cấu hình Đường dẫn Vòng lặp</string>
-    <string name="sus_loop_paths_description_text">Đường dẫn Vòng lặp được đổi tên thành SUS_PATH mỗi khi một ứng dụng không phải root hoặc dịch vụ cô lập được khởi động. Điều này giúp giải quyết vấn đề đường dẫn đã thêm có thể trở nên không hợp lệ do trạng thái inode được đặt lại hoặc inode được tạo lại trong Kernel</string>
-    <string name="avc_log_spoofing">Giả mạo nhật ký AVC</string>
-    <string name="avc_log_spoofing_enabled">Giả mạo nhật ký AVC đã kích hoạt</string>
-    <string name="avc_log_spoofing_disabled">Giả mạo nhật ký AVC đã bị vô hiệu hoá</string>
-    <string name="avc_log_spoofing_description">Tắt: Vô hiệu hoá tính năng giả mạo sus tcontext của \'su\' trong nhật ký AVC của kernel\n
-Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'u:r:priv_app:s0:c512,c768\' trong nhật ký AVC của kernel</string>
-    <string name="avc_log_spoofing_warning">Lưu ý quan trọng:\n
-- Giá trị này được đặt thành \'0\' theo mặc định trong kernel\n
-- Việc bật tính năng này đôi khi có thể khiến các nhà phát triển khó xác định nguyên nhân của các vấn đề về quyền hoặc SELinux khi gỡ lỗi, vì vậy người dùng nên tắt tính năng này khi gỡ lỗi</string>
-    <!-- 模块签名功能描述 -->
     <string name="home_hook_type">Chế độ Hook</string>
     <!-- KPM patching related strings -->
     <string name="kpm_patch_options">Vá KPM</string>
@@ -623,24 +416,6 @@ Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'u
     <string name="author">Tác giả</string>
     <string name="description">Mô tả</string>
     <string name="supported_devices">Thiết bị được hỗ trợ</string>
-    <!-- SUS Map related strings -->
-    <string name="susfs_tab_sus_maps">SuS Maps</string>
-    <string name="susfs_sus_map_label">Đường dẫn thư viện</string>
-    <string name="susfs_sus_map_placeholder">/data/adb/modules/my_module/zygisk/arm64-v8a.so</string>
-    <string name="susfs_add_sus_map">Thêm SuS Map</string>
-    <string name="susfs_edit_sus_map">Chỉnh sửa SuS Map</string>
-    <string name="susfs_sus_map_added_success">Đã thêm SuS Map thành công: %1$s</string>
-    <string name="susfs_sus_map_removed">Đã xoá SuS Map: %1$s</string>
-    <string name="susfs_sus_map_updated">Đã cập nhật SuS Map: %1$s → %2$s</string>
-    <string name="susfs_no_sus_maps_configured">Không có SuS Map nào được cấu hình</string>
-    <string name="susfs_reset_sus_maps_title">Đặt lại SuS Map</string>
-    <string name="susfs_reset_sus_maps_message">Thao tác này sẽ xóa tất cả các SuS Map đã cấu hình. Không thể hoàn tác thao tác này</string>
-    <string name="sus_maps_section">Ẩn Bộ nhớ Map</string>
-    <string name="sus_maps_description_title">Ẩn tệp mmapp khỏi các map khác nhau trong /proc/self/</string>
-    <string name="sus_maps_description_text">Ẩn đường dẫn tệp của bộ nhớ map khỏi /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap]. Lưu ý: Tính năng này không hỗ trợ ẩn bộ nhớ map ẩn danh, cũng như không thể ẩn các hook nội tuyến hoặc hook PLT do chính thư viện được đưa vào gây ra</string>
-    <string name="sus_maps_warning">Quan trọng: Đối với các ứng dụng có cơ chế phát hiện tấn công mạnh mẽ, tính năng này có thể không hiệu quả trong việc bỏ qua khả năng phát hiện</string>
-    <string name="sus_maps_debug_info">Trước tiên, hãy tìm PID và UID của ứng dụng đích bằng lệnh ps -enf. Sau đó kiểm tra các đường dẫn liên quan trong /proc/&lt;pid&gt;/maps và so sánh chúng với số thiết bị trong /proc/1/mountinfo để đảm bảo tính nhất quán. Chỉ khi số thiết bị khớp nhau thì chức năng ẩn map mới hoạt động bình thường</string>
-    <!-- Log Viewer -->
     <string name="log_viewer_title">Trình xem nhật ký</string>
     <string name="log_viewer_back">Trở lại</string>
     <string name="log_viewer_search">Tìm kiếm</string>
@@ -664,9 +439,6 @@ Bật: Kích hoạt tính năng giả mạo sus tcontext của \'su\' thành \'u
     <string name="log_viewer_too_many_logs">Quá nhiều nhật ký, chỉ hiển thị %1$d nhật ký mới nhất</string>
     <string name="log_viewer_load_more">Đang load thêm nhật ký</string>
     <string name="log_viewer_all_logs_loaded">Tất cả nhật ký đã được hiển thị</string>
-    <!-- MiUI Uninstall Desc -->
-    <string name="miui_uninstall_title">Bạn muốn Gỡ cài đặt YukiSU sao 😭?</string>
-    <string name="miui_uninstall_content">Hừm, được rồi. Tôi sẽ bị bạn Gỡ cài đặt. Chức năng root sẽ không ngừng hoạt động chỉ vì bạn mất một Trình quản lý. Đừng lo chỉ Gỡ cài đặt Trình quản lý thôi thì không thể mất quyền truy cập root được đâu, zako~❤️.</string>
     <string name="incompatible_kernel_msg">Trình quản lý hiện tại không tương thích với Kernel này! Vui lòng nâng cấp Kernel lên phiên bản %2$d hoặc cao hơn (hiện tại là %1$d)</string>
     <string name="umount_path_manager">Quản lý Đường dẫn Umount</string>
     <string name="umount_path_manager_summary">Quản lý Đường dẫn Kernel Umount</string>

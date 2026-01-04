@@ -306,14 +306,6 @@ class MoreSettingsHandlers(
     }
 
     /**
-     * 处理隐藏SuSFS状态变更
-     */
-    fun handleHideSusfsStatusChange(newValue: Boolean) {
-        prefs.edit { putBoolean("is_hide_susfs_status", newValue) }
-        state.isHideSusfsStatus = newValue
-    }
-
-    /**
      * 处理隐藏Zygisk实现变更
      */
     fun handleHideZygiskImplementChange(newValue: Boolean) {
