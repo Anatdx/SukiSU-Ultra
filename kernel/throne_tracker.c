@@ -431,12 +431,30 @@ out:
 	}
 }
 
+#include <linux/workqueue.h>
+
+// Delayed work for manager search (avoids blocking module_init)
+static struct delayed_work throne_search_work;
+
+static void do_throne_search(struct work_struct *work)
+{
+	pr_info("throne_tracker: delayed search for manager...\n");
+	track_throne(false);
+}
+
 void ksu_throne_tracker_init(void)
 {
-	// nothing to do
+	// LKM: When loaded after boot, packages.list may already exist
+	// and won't trigger fsnotify. Schedule a delayed search for manager.
+	// Use delayed work to avoid blocking module_init and ensure
+	// filesystem is ready.
+	INIT_DELAYED_WORK(&throne_search_work, do_throne_search);
+	schedule_delayed_work(&throne_search_work, msecs_to_jiffies(3000));
+	pr_info("throne_tracker: init, scheduled manager search in 3s\n");
 }
 
 void ksu_throne_tracker_exit(void)
 {
-	// nothing to do
+	cancel_delayed_work_sync(&throne_search_work);
+	pr_info("throne_tracker: exit\n");
 }
