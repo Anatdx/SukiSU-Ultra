@@ -15,8 +15,6 @@
 
 uid_t ksu_manager_uid = KSU_INVALID_UID;
 
-static uid_t locked_manager_uid = KSU_INVALID_UID;
-
 #define SYSTEM_PACKAGES_LIST_PATH "/data/system/packages.list"
 
 struct uid_data {
@@ -67,19 +65,17 @@ static int get_pkg_from_apk_path(char *pkg, const char *path)
 	return 0;
 }
 
-static void crown_manager(const char *apk, struct list_head *uid_data,
-			  int signature_index)
+static void crown_manager(const char *apk, struct list_head *uid_data)
 {
 	char pkg[KSU_MAX_PACKAGE_NAME];
 	struct uid_data *np;
-
 
 	if (get_pkg_from_apk_path(pkg, apk) < 0) {
 		pr_err("Failed to get package name from apk path: %s\n", apk);
 		return;
 	}
 
-	pr_info("manager pkg: %s, signature_index: %d\n", pkg, signature_index);
+	pr_info("manager pkg: %s\n", pkg);
 
 #ifdef KSU_MANAGER_PACKAGE
 	// pkg is `/<real package>`
@@ -94,21 +90,8 @@ static void crown_manager(const char *apk, struct list_head *uid_data,
 	list_for_each_entry(np, uid_data, list)
 	{
 		if (strncmp(np->package, pkg, KSU_MAX_PACKAGE_NAME) == 0) {
-			if (locked_manager_uid != KSU_INVALID_UID &&
-			    locked_manager_uid != np->uid) {
-				pr_info("Unlocking previous manager "
-					"UID: %d\n",
-					locked_manager_uid);
-				ksu_invalidate_manager_uid(); // unlock old one
-				locked_manager_uid = KSU_INVALID_UID;
-			}
-
-			pr_info("Crowning manager: %s (uid=%d, "
-				"signature_index=%d)\n",
-				pkg, np->uid, signature_index);
-
-			ksu_set_manager_uid(np->uid); // throne new UID
-			locked_manager_uid = np->uid; // store locked UID
+			pr_info("Crowning manager: %s(uid=%d)\n", pkg, np->uid);
+			ksu_set_manager_appid(np->uid);
 			break;
 		}
 	}
@@ -207,8 +190,6 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 			struct apk_path_hash *pos, *n;
 			unsigned int hash =
 			    full_name_hash(NULL, dirpath, strlen(dirpath));
-			int signature_index = -1;
-			bool is_multi_manager = false;
 			struct apk_path_hash *apk_data = NULL;
 
 			list_for_each_entry(pos, &apk_path_hash_list, list)
@@ -219,22 +200,13 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 				}
 			}
 
-			if (is_manager_apk(dirpath)) {
-				pr_info("Found manager base.apk at path: %s\n",
-					dirpath);
-				crown_manager(dirpath, my_ctx->private_data, 0);
+			bool is_manager = is_manager_apk(dirpath);
+			pr_info("Found new base.apk at path: %s, is_manager: %d\n",
+				dirpath, is_manager);
+			if (is_manager) {
+				crown_manager(dirpath, my_ctx->private_data);
 				*my_ctx->stop = 1;
-			}
 
-			apk_data = kzalloc(sizeof(*apk_data), GFP_ATOMIC);
-			if (apk_data) {
-				apk_data->hash = hash;
-				apk_data->exists = true;
-				list_add_tail(&apk_data->list,
-					      &apk_path_hash_list);
-			}
-
-			if (is_manager_apk(dirpath)) {
 				// Manager found, clear APK cache list
 				list_for_each_entry_safe(
 				    pos, n, &apk_path_hash_list, list)
@@ -242,6 +214,12 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 					list_del(&pos->list);
 					kfree(pos);
 				}
+			} else {
+				apk_data = kzalloc(sizeof(struct apk_path_hash), GFP_ATOMIC);
+				apk_data->hash = hash;
+				apk_data->exists = true;
+				list_add_tail(&apk_data->list,
+					      &apk_path_hash_list);
 			}
 		}
 	}
@@ -350,7 +328,7 @@ static bool is_uid_exist(uid_t uid, char *package, void *data)
 	bool exist = false;
 	list_for_each_entry(np, list, list)
 	{
-		if (np->uid == uid % 100000 &&
+		if (np->uid == uid % PER_USER_RANGE &&
 		    strncmp(np->package, package, KSU_MAX_PACKAGE_NAME) == 0) {
 			exist = true;
 			break;
@@ -361,60 +339,46 @@ static bool is_uid_exist(uid_t uid, char *package, void *data)
 
 void track_throne(bool prune_only)
 {
+	struct file *fp = filp_open(SYSTEM_PACKAGES_LIST_PATH, O_RDONLY, 0);
+	if (IS_ERR(fp)) {
+		pr_err("%s: open " SYSTEM_PACKAGES_LIST_PATH " failed: %ld\n",
+		       __func__, PTR_ERR(fp));
+		return;
+	}
+
 	struct list_head uid_list;
-	struct uid_data *np, *n;
-	struct file *fp;
+	INIT_LIST_HEAD(&uid_list);
+
 	char chr = 0;
 	loff_t pos = 0;
 	loff_t line_start = 0;
 	char buf[KSU_MAX_PACKAGE_NAME];
-	static bool manager_exist = false;
-	int current_manager_uid = ksu_get_manager_uid() % 100000;
-	bool need_search = false;
-
-
-	// init uid list head
-	INIT_LIST_HEAD(&uid_list);
-
-	fp = filp_open(SYSTEM_PACKAGES_LIST_PATH, O_RDONLY, 0);
-		if (IS_ERR(fp)) {
-			pr_err("%s: open " SYSTEM_PACKAGES_LIST_PATH
-			       " failed: %ld\n",
-			       __func__, PTR_ERR(fp));
-			return;
-		}
-
 	for (;;) {
-		struct uid_data *data = NULL;
-		ssize_t count =
-		    kernel_read(fp, &chr, sizeof(chr), &pos);
-			const char *delim = " ";
-			char *package = NULL;
-			char *tmp = NULL;
-			char *uid = NULL;
-			u32 res;
-
+		ssize_t count = kernel_read(fp, &chr, sizeof(chr), &pos);
 		if (count != sizeof(chr))
 			break;
 		if (chr != '\n')
 			continue;
 
 		count = kernel_read(fp, buf, sizeof(buf), &line_start);
-		data = kzalloc(sizeof(struct uid_data), GFP_ATOMIC);
+
+		struct uid_data *data =
+		    kzalloc(sizeof(struct uid_data), GFP_ATOMIC);
 		if (!data) {
 			filp_close(fp, 0);
 			goto out;
 		}
 
-		tmp = buf;
-
-		package = strsep(&tmp, delim);
-		uid = strsep(&tmp, delim);
+		char *tmp = buf;
+		const char *delim = " ";
+		char *package = strsep(&tmp, delim);
+		char *uid = strsep(&tmp, delim);
 		if (!uid || !package) {
 			pr_err("update_uid: package or uid is NULL!\n");
 			break;
 		}
 
+		u32 res;
 		if (kstrtou32(uid, 10, &res)) {
 			pr_err("update_uid: uid parse err\n");
 			break;
@@ -425,15 +389,37 @@ void track_throne(bool prune_only)
 		// reset line start
 		line_start = pos;
 	}
-
 	filp_close(fp, 0);
 
-	if (need_search) {
-		pr_info("Searching for manager(s)...\n");
-		search_manager("/data/app", 2, &uid_list);
-		pr_info("Manager search finished\n");
+	// now update uid list
+	struct uid_data *np;
+	struct uid_data *n;
+
+	if (prune_only)
+		goto prune;
+
+	// first, check if manager_uid exist!
+	bool manager_exist = false;
+	list_for_each_entry(np, &uid_list, list)
+	{
+		if (np->uid == ksu_get_manager_appid()) {
+			manager_exist = true;
+			break;
+		}
 	}
 
+	if (!manager_exist) {
+		if (ksu_is_manager_appid_valid()) {
+			pr_info("manager is uninstalled, invalidate it!\n");
+			ksu_invalidate_manager_uid();
+			goto prune;
+		}
+		pr_info("Searching manager...\n");
+		search_manager("/data/app", 2, &uid_list);
+		pr_info("Search manager finished\n");
+	}
+
+prune:
 	// then prune the allowlist
 	ksu_prune_allowlist(is_uid_exist, &uid_list);
 out:
