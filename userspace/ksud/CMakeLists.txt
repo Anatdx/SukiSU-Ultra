@@ -79,6 +79,8 @@ set(SOURCES
     src/umount.cpp
     src/debug.cpp
     src/kpm.cpp
+    # Core features
+    src/core/hide_bootloader.cpp
     # Flash kernel packages
     src/flash/flash_ak3.cpp
     # HymoFS module management

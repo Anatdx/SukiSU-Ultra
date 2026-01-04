@@ -294,6 +294,12 @@
     <string name="selinux_enabled_toast">SELinux Enabled</string>
     <string name="selinux_disabled_toast">SELinux Disabled</string>
     <string name="selinux_change_failed">SELinux Status change failed</string>
+    <string name="hide_bl_title">Bootloader Unlock Status Hide</string>
+    <string name="hide_bl_enabled">Enabled</string>
+    <string name="hide_bl_disabled">Disabled</string>
+    <string name="hide_bl_enabled_toast">Bootloader Unlock Status Hide enabled, reboot to apply</string>
+    <string name="hide_bl_disabled_toast">Bootloader Unlock Status Hide disabled</string>
+    <string name="hide_bl_change_failed">Failed to change Bootloader Unlock Status Hide setting</string>
     <string name="advanced_settings">Advanced Settings</string>
     <string name="appearance_settings">Customize the toolbar</string>
     <string name="back">Comeback</string>

@@ -61,6 +61,9 @@ class MoreSettingsState(
     // SELinux状态
     var selinuxEnabled by mutableStateOf(false)
 
+    // 弱BL隐藏状态
+    var hideBlEnabled by mutableStateOf(false)
+
     // 卡片配置状态
     var cardAlpha by mutableFloatStateOf(CardConfig.cardAlpha)
     var cardDim by mutableFloatStateOf(CardConfig.cardDim)

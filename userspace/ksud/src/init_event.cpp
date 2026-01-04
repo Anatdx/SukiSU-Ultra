@@ -1,6 +1,7 @@
 #include "init_event.hpp"
 #include "assets.hpp"
 #include "core/feature.hpp"
+#include "core/hide_bootloader.hpp"
 #include "core/ksucalls.hpp"
 #include "defs.hpp"
 #include "kpm.hpp"
@@ -199,6 +200,10 @@ int on_post_data_fs() {
 
 void on_services() {
     LOGI("services triggered");
+    
+    // Hide bootloader unlock status (soft BL hiding)
+    hide_bootloader_status();
+    
     run_stage("service", false);
     LOGI("services completed");
 }

@@ -292,6 +292,12 @@
     <string name="selinux_enabled_toast">SELinux 已设置为启用状态</string>
     <string name="selinux_disabled_toast">SELinux 已设置为禁用状态</string>
     <string name="selinux_change_failed">SELinux 状态更改失败</string>
+    <string name="hide_bl_title">引导锁解锁状态隐藏</string>
+    <string name="hide_bl_enabled">已启用</string>
+    <string name="hide_bl_disabled">已禁用</string>
+    <string name="hide_bl_enabled_toast">引导锁解锁状态隐藏已启用</string>
+    <string name="hide_bl_disabled_toast">引导锁解锁状态隐藏已禁用</string>
+    <string name="hide_bl_change_failed">引导锁解锁状态隐藏设置失败</string>
     <string name="advanced_settings">高级设置</string>
     <string name="appearance_settings">外观设置</string>
     <string name="back">返回</string>

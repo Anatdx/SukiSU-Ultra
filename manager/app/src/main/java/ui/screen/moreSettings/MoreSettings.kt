@@ -353,6 +353,16 @@ private fun AdvancedSettings(
             checked = state.selinuxEnabled,
             onChange = handlers::handleSelinuxChange
         )
+
+        SwitchSettingItem(
+            icon = Icons.Filled.Lock,
+            title = stringResource(R.string.hide_bl_title),
+            summary = if (state.hideBlEnabled)
+                stringResource(R.string.hide_bl_enabled) else
+                stringResource(R.string.hide_bl_disabled),
+            checked = state.hideBlEnabled,
+            onChange = handlers::handleHideBlChange
+        )
     }
 }
 

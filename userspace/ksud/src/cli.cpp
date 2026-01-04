@@ -2,6 +2,7 @@
 #include "assets.hpp"
 #include "boot/boot_patch.hpp"
 #include "core/feature.hpp"
+#include "core/hide_bootloader.hpp"
 #include "core/ksucalls.hpp"
 #include "debug.hpp"
 #include "defs.hpp"
@@ -213,6 +214,10 @@ static int cmd_feature(const std::vector<std::string>& args) {
         printf("  check <ID>      Check feature status\n");
         printf("  load            Load config from file\n");
         printf("  save            Save config to file\n");
+        printf("  hide-bl         Show bootloader hiding status\n");
+        printf("  hide-bl enable  Enable bootloader hiding\n");
+        printf("  hide-bl disable Disable bootloader hiding\n");
+        printf("  hide-bl run     Run bootloader hiding now\n");
         return 1;
     }
 
@@ -231,6 +236,28 @@ static int cmd_feature(const std::vector<std::string>& args) {
         return feature_load_config();
     } else if (subcmd == "save") {
         return feature_save_config();
+    } else if (subcmd == "hide-bl") {
+        // Bootloader hiding subcommand
+        if (args.size() > 1) {
+            const std::string& action = args[1];
+            if (action == "enable") {
+                set_bl_hiding_enabled(true);
+                printf("Bootloader hiding enabled. Will take effect on next boot.\n");
+                return 0;
+            } else if (action == "disable") {
+                set_bl_hiding_enabled(false);
+                printf("Bootloader hiding disabled.\n");
+                return 0;
+            } else if (action == "run") {
+                hide_bootloader_status();
+                printf("Bootloader hiding executed.\n");
+                return 0;
+            }
+        }
+        // Show status
+        bool enabled = is_bl_hiding_enabled();
+        printf("Bootloader hiding: %s\n", enabled ? "enabled" : "disabled");
+        return 0;
     }
 
     printf("Unknown feature subcommand: %s\n", subcmd.c_str());
