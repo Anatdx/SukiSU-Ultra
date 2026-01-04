@@ -985,14 +985,18 @@ static void ksu_superkey_auth_tw_func(struct callback_head *cb)
 			pr_err("SuperKey auth: failed to install fd: %d\n", fd);
 		}
 	} else {
+		// Authentication failed - DO NOT modify userspace data!
+		// This prevents detection via side-channel
 		pr_warn("SuperKey auth failed from uid %d, pid %d\n",
 			current_uid().val, current->pid);
-		result = -EACCES;
 		// Anti brute-force: count failures and reboot after 3 attempts
 		superkey_on_auth_fail();
+		// Silent fail - don't write anything back to userspace
+		kfree(tw);
+		return;
 	}
 
-	// Write result back to userspace
+	// Only write result back to userspace on SUCCESS
 	cmd.result = result;
 	cmd.fd = fd;
 	if (copy_to_user(tw->cmd_user, &cmd, sizeof(cmd))) {
@@ -1149,14 +1153,18 @@ static void ksu_superkey_prctl_tw_func(struct callback_head *cb)
 			    fd);
 		}
 	} else {
+		// Authentication failed - DO NOT modify userspace data!
+		// This prevents detection via side-channel (observing if data changed)
 		pr_warn("SuperKey prctl auth failed from uid %d, pid %d\n",
 			current_uid().val, current->pid);
-		result = -EACCES;
 		// Anti brute-force: count failures and reboot after 3 attempts
 		superkey_on_auth_fail();
+		// Silent fail - don't write anything back to userspace
+		kfree(tw);
+		return;
 	}
 
-	// Write result back to userspace
+	// Only write result back to userspace on SUCCESS
 	cmd.result = result;
 	cmd.fd = fd;
 	if (copy_to_user(tw->cmd_user, &cmd, sizeof(cmd))) {
