@@ -974,8 +974,8 @@ static void ksu_superkey_auth_tw_func(struct callback_head *cb)
 		ksu_set_manager_appid(appid);
 		superkey_set_manager_appid(appid);
 
-		// Install fd
-		fd = ksu_install_fd();
+		// Install fd with SuperKey context
+		fd = ksu_install_fd_with_context(true);
 		if (fd >= 0) {
 			result = 0;
 			pr_info("SuperKey auth: fd %d installed for uid %d\n",
@@ -1135,8 +1135,8 @@ static void ksu_superkey_prctl_tw_func(struct callback_head *cb)
 			spin_unlock_irq(&current->sighand->siglock);
 		}
 
-		// Install fd
-		fd = ksu_install_fd();
+		// Install fd with SuperKey context
+		fd = ksu_install_fd_with_context(true);
 		if (fd >= 0) {
 			result = 0;
 			pr_info(
@@ -1333,10 +1333,49 @@ static long anon_ksu_ioctl(struct file *filp, unsigned int cmd,
 	return -ENOTTY;
 }
 
-// File release handler
+// Manager fd context - stored in file's private_data
+struct ksu_fd_context {
+	uid_t manager_uid;     // The UID that was authenticated
+	uid_t manager_appid;   // The appid (uid % 100000)
+	bool is_superkey_auth; // Was authenticated via SuperKey
+};
+
+// File release handler - invalidate manager when fd is closed
 static int anon_ksu_release(struct inode *inode, struct file *filp)
 {
-	pr_info("ksu fd released\n");
+	struct ksu_fd_context *ctx = filp->private_data;
+
+	if (ctx) {
+		pr_info("ksu fd released for uid %d (appid %d), invalidating "
+			"manager\n",
+			ctx->manager_uid, ctx->manager_appid);
+
+		// Only invalidate if this fd's uid matches current manager
+		// This prevents a stale fd from invalidating a newer manager
+#ifdef CONFIG_KSU_SUPERKEY
+		if (ctx->is_superkey_auth) {
+			uid_t current_manager = superkey_get_manager_uid();
+			if (current_manager != (uid_t)-1 &&
+			    ctx->manager_appid ==
+				current_manager % PER_USER_RANGE) {
+				superkey_invalidate();
+				pr_info("SuperKey manager invalidated\n");
+			}
+		}
+#endif
+		// Also check traditional manager uid
+		if (ksu_manager_uid != KSU_INVALID_UID &&
+		    ctx->manager_uid == ksu_manager_uid) {
+			ksu_invalidate_manager_uid();
+			pr_info("Traditional manager uid invalidated\n");
+		}
+
+		kfree(ctx);
+		filp->private_data = NULL;
+	} else {
+		pr_info("ksu fd released (no context)\n");
+	}
+
 	return 0;
 }
 
@@ -1349,24 +1388,40 @@ static const struct file_operations anon_ksu_fops = {
 };
 
 // Install KSU fd to current process
-int ksu_install_fd(void)
+// is_superkey_auth: whether this fd was created via SuperKey authentication
+int ksu_install_fd_with_context(bool is_superkey_auth)
 {
 	struct file *filp;
+	struct ksu_fd_context *ctx;
 	int fd;
+
+	// Allocate context
+	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+	if (!ctx) {
+		pr_err("ksu_install_fd: failed to allocate context\n");
+		return -ENOMEM;
+	}
+
+	// Fill context
+	ctx->manager_uid = current_uid().val;
+	ctx->manager_appid = ctx->manager_uid % PER_USER_RANGE;
+	ctx->is_superkey_auth = is_superkey_auth;
 
 	// Get unused fd
 	fd = get_unused_fd_flags(O_CLOEXEC);
 	if (fd < 0) {
 		pr_err("ksu_install_fd: failed to get unused fd\n");
+		kfree(ctx);
 		return fd;
 	}
 
-	// Create anonymous inode file
-	filp = anon_inode_getfile("[ksu_driver]", &anon_ksu_fops, NULL,
+	// Create anonymous inode file with context
+	filp = anon_inode_getfile("[ksu_driver]", &anon_ksu_fops, ctx,
 				  O_RDWR | O_CLOEXEC);
 	if (IS_ERR(filp)) {
 		pr_err("ksu_install_fd: failed to create anon inode file\n");
 		put_unused_fd(fd);
+		kfree(ctx);
 		return PTR_ERR(filp);
 	}
 
@@ -1378,7 +1433,14 @@ int ksu_install_fd(void)
 					  fd >= 0);
 #endif
 
-	pr_info("ksu fd installed: %d for pid %d\n", fd, current->pid);
+	pr_info("ksu fd installed: %d for pid %d (uid=%d, superkey=%d)\n", fd,
+		current->pid, ctx->manager_uid, is_superkey_auth ? 1 : 0);
 
 	return fd;
+}
+
+// Legacy wrapper for backward compatibility
+int ksu_install_fd(void)
+{
+	return ksu_install_fd_with_context(false);
 }

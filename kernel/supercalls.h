@@ -235,6 +235,9 @@ struct ksu_ioctl_cmd_map {
 };
 
 // Install KSU fd to current process
+// is_superkey_auth: whether this fd was created via SuperKey authentication
+int ksu_install_fd_with_context(bool is_superkey_auth);
+// Legacy wrapper (equivalent to ksu_install_fd_with_context(false))
 int ksu_install_fd(void);
 
 void ksu_supercalls_init(void);
