@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home">ホーム</string>
+    <string name="learn_more">Learn more</string>
     <string name="home_not_installed">未インストール</string>
     <string name="home_click_to_install">タップでインストール</string>
     <string name="home_working">動作中</string>
@@ -34,6 +35,7 @@
     <string name="reboot_edl">EDL で再起動</string>
     <string name="about">アプリについて</string>
     <string name="module_uninstall_confirm">%s モジュールをアンインストールしますか？</string>
+    <string name="metamodule_uninstall_confirm">Are you sure you want to uninstall module %s? This action will affect all modules, and certain features provided by the metamodule (such as mounting) will no longer work</string>
     <string name="module_uninstall_success">%s をアンインストールしました</string>
     <string name="module_uninstall_failed">%s をアンインストールできませんでした</string>
     <string name="module_version">バージョン</string>
@@ -121,6 +123,8 @@
     <string name="settings_uninstall_permanent">完全にアンインストールする</string>
     <string name="settings_restore_stock_image">ストックイメージを復元</string>
     <string name="settings_uninstall_temporary_message">KernelSU を一時的にアンインストールし、次回の再起動後に元の状態に戻します。</string>
+    <string name="settings_uninstall_permanent_message">Uninstalling KernelSU (root and all modules) completely and permanently</string>
+    <string name="settings_restore_stock_image_message">Restore the stock factory image (if a backup exists), usually used before OTA; if you need to uninstall KernelSU, please use \"Uninstall permanently\"</string>
     <string name="flashing">フラッシュ</string>
     <string name="flash_success">フラッシュが成功しました</string>
     <string name="flash_failed">フラッシュに失敗しました</string>
@@ -163,9 +167,13 @@
     <string name="home_device_model">デバイスモデル</string>
     <string name="su_not_allowed">「%s」にスーパーユーザー権限を付与することはできません</string>
     <string name="settings_disable_su">su の互換性を無効化する</string>
+    <string name="settings_disable_su_summary">Disable the ability of any app to gain root privileges via the ⁠su command (existing root processes won\'t be affected)</string>
     <string name="settings_disable_kernel_umount">カーネルアンマウントを無効化</string>
+    <string name="settings_disable_kernel_umount_summary">Disable kernel-level umount behavior controlled by KernelSU</string>
     <string name="settings_enable_enhanced_security">強化されたセキュリティを有効化</string>
     <string name="settings_enable_enhanced_security_summary">より厳格なセキュリティポリシーを有効化</string>
+    <string name="feature_status_unsupported_summary">Kernel does not support this feature</string>
+    <string name="feature_status_managed_summary">This feature is managed by a module</string>
     <string name="settings_mode_default">デフォルト</string>
     <string name="settings_mode_temp_enable">一時的に有効化</string>
     <string name="settings_mode_always_enable">恒久的に有効化</string>
@@ -185,6 +193,7 @@
     <string name="hide_zygisk_implement">Zygisk のステータスを非表示</string>
     <string name="hide_zygisk_implement_summary">ホームページ上の Zygisk 実装情報を非表示にします。</string>
     <string name="hide_meta_module_implement">メタモジュールステータスを非表示</string>
+    <string name="hide_meta_module_implement_summary">Hide Meta Module implementation information on the home page</string>
     <string name="hide_link_card">リンクカードのステータスを非表示</string>
     <string name="hide_link_card_summary">ホームページ上のリンクカード情報を非表示にします。</string>
     <string name="hide_tag_card">モジュールラベルの行を非表示</string>
@@ -327,6 +336,7 @@
     <string name="module_download_error">モデルのダウンロードに失敗しました</string>
     <string name="kernel_flashing">カーネルをフラッシュ中</string>
     <string name="warning_of_meta_module_title">メタモジュールが必要です</string>
+    <string name="warning_of_meta_module_summary">This module want to mount /system, meta module will handle that. Otherwise, it might not work</string>
     <!-- 分类相关 -->
     <string name="category_all_apps">すべて</string>
     <string name="category_root_apps">Root</string>
@@ -514,6 +524,7 @@
     <string name="hide_bl_script">ロック状態</string>
     <string name="hide_bl_script_description">late_start サービスモードでブートローダーのロック状態属性を上書きする</string>
     <string name="cleanup_residue">残骸をクリーンアップ</string>
+    <string name="cleanup_residue_description">Clean up the residual files and directories of various modules and tools (may be deleted by mistake, resulting in loss and failure to start, use with caution)</string>
     <string name="susfs_edit_sus_path">SUS のパスを編集</string>
     <string name="edit_kstat_statically_title">Kstat 静的構成を編集</string>
     <string name="edit_kstat_path_title">Kstat のパスを編集</string>
@@ -529,6 +540,7 @@
     <string name="add_custom_path">その他</string>
     <string name="add_app_path">アプリ</string>
     <string name="susfs_add_app_path">追加のアプリパス</string>
+    <string name="susfs_version_mismatch">SuSFS library version mismatch, kernel: %1$s vs manager: %2$s, It is recommended to update the kernel or manager</string>
     <string name="warning">警告</string>
     <string name="search_apps">アプリを検索</string>
     <string name="selected_apps_count">%1$d 個のアプリを選択済み</string>
@@ -585,6 +597,7 @@
     <string name="module_verified">検証済み</string>
     <string name="module_signature_verified">モジュールの署名が検証されました</string>
     <string name="module_signature_verification">署名の検証</string>
+    <string name="module_signature_verification_summary">Force signature verification when installing modules (only available for ARM architecture)</string>
     <string name="module_signature_invalid">不明な発行元</string>
     <string name="module_signature_invalid_message">署名されていないモジュールは不完全な可能性があります。デバイスを保護するため、このモジュールのインストールをブロックしました。</string>
     <string name="module_signature_verification_failed">署名されていないモジュールは不完全な可能性があります。不明な発行元のモジュールをこのデバイスにインストールすることを許可しますか？</string>
@@ -643,15 +656,22 @@
     <string name="susfs_reset_sus_maps_title">SUS マップをリセット</string>
     <string name="susfs_reset_sus_maps_message">構成されている SUS マップをすべて削除します。この操作は元に戻せません。</string>
     <string name="sus_maps_section">メモリマップの非表示</string>
+    <string name="sus_maps_description_title">Hide the mmapped real file from various maps in /proc/self/</string>
+    <string name="sus_maps_description_text">Hide the real file paths of memory mappings from /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap]. Please note: This feature does not support hiding anonymous memory mappings, nor can it hide inline hooks or PLT hooks caused by the injected library itself</string>
+    <string name="sus_maps_warning">Important Notice: For applications with well-implemented injection detection mechanisms, this feature may not effectively bypass detection</string>
+    <string name="sus_maps_debug_info">First, find the target application\'s PID and UID using ps -enf, then check the relevant paths in /proc/&lt;pid&gt;/maps and compare the device numbers with those in /proc/1/mountinfo to ensure consistency. Only when the device numbers match can the map hiding function work properly</string>
     <!-- Log Viewer -->
     <string name="log_viewer_title">ログビューア</string>
     <string name="log_viewer_back">戻る</string>
     <string name="log_viewer_search">検索</string>
     <string name="log_viewer_clear_logs">ログを消去</string>
+    <string name="log_viewer_clear_logs_confirm">Are you sure you want to clear the selected log file? This action cannot be undone</string>
     <string name="log_viewer_logs_cleared">ログを消去しました</string>
     <string name="log_viewer_filter_type">タイプで絞り込み</string>
     <string name="log_viewer_all_types">すべてのタイプ</string>
+    <string name="log_viewer_showing_entries">Showing %1$d of %2$d entries</string>
     <string name="log_viewer_no_logs">ログが見つかりません</string>
+    <string name="log_viewer_no_matching_logs">No matching logs found</string>
     <string name="log_viewer_refresh">更新</string>
     <string name="log_viewer_raw_log">生のログ</string>
     <string name="log_viewer_search_placeholder">UID、コマンドまたは詳細で検索…</string>
@@ -661,18 +681,29 @@
     <string name="log_viewer_exclude_subtypes">サブタイプを除外</string>
     <string name="log_viewer_exclude_current_app">現在のアプリ</string>
     <string name="log_viewer_page_info">ページ: %1$d/%2$d | ログの合計: %3$d</string>
+    <string name="log_viewer_too_many_logs">Too many logs, showing only the latest %1$d entries</string>
     <string name="log_viewer_load_more">さらにログを読み込む</string>
+    <string name="log_viewer_all_logs_loaded">All logs displayed</string>
     <!-- MiUI Uninstall Desc -->
+    <string name="miui_uninstall_title">Confirm Uninstallation SukiSU Manager?</string>
+    <string name="miui_uninstall_content">Proceeding with the uninstallation will not affect the core functionality of your root access. The root is designed to operate independently of this manager.</string>
+    <string name="incompatible_kernel_msg">    The current manager is incompatible with this kernel! Please upgrade the kernel to version %2$d or higher (currently %1$d)
+    </string>
     <string name="umount_path_manager">アンマウントパスの管理</string>
     <string name="umount_path_manager_summary">カーネルアンマウントパスの管理</string>
+    <string name="umount_path_restart_notice">A reboot is required for changes to take effect. The system will apply the new configuration on the next boot</string>
     <string name="add_umount_path">アンマウントパスを追加</string>
     <string name="mount_path">マウントパス</string>
     <string name="umount_flags">アンマウントフラグ</string>
     <string name="umount_flags_hint">0=通常のアンマウント、2=MNT_DETACH</string>
     <string name="flags">フラグ</string>
     <string name="confirm_delete">構成を削除</string>
+    <string name="confirm_delete_umount_path">Are you sure you want to delete the path %s?</string>
+    <string name="umount_path_added">Path added, will take effect after reboot</string>
+    <string name="umount_path_removed">Path removed, will take effect after reboot</string>
     <string name="operation_failed">操作が失敗しました</string>
     <string name="confirm_action">アクションを確認</string>
+    <string name="confirm_clear_custom_paths">Are you sure you want to clear all custom paths? (default paths will be preserved)</string>
     <string name="custom_paths_cleared">カスタムパスを消去しました</string>
     <string name="clear_custom_paths">カスタムパスを消去</string>
     <string name="apply_config">構成を適用</string>
