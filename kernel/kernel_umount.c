@@ -74,7 +74,7 @@ static void ksu_sys_umount(const char *mnt, int flags)
 	ksys_umount(usermnt, flags);
 #else
 	sys_umount(usermnt, flags); // cuz asmlinkage long sys##name
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 17, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 	set_fs(old_fs);
 }
 
@@ -84,7 +84,7 @@ static void ksu_sys_umount(const char *mnt, int flags)
 		ksu_sys_umount(mnt, flags);                                    \
 	})
 
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0) ||
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 void try_umount(const char *mnt, int flags)
 {

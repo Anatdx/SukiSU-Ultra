@@ -242,7 +242,7 @@ struct my_dir_context {
 #define FILLDIR_RETURN_TYPE int
 #define FILLDIR_ACTOR_CONTINUE 0
 #define FILLDIR_ACTOR_STOP -EINVAL
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 			     int namelen, loff_t off, u64 ino,
@@ -300,7 +300,7 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 #else
 			unsigned int hash =
 			    full_name_hash(NULL, dirpath, strlen(dirpath));
-#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0)
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
 			int signature_index = -1;
 			bool is_multi_manager = false;
 			struct apk_path_hash *apk_data = NULL;

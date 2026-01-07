@@ -34,7 +34,7 @@
 #include <linux/vmalloc.h>
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0) && defined(CONFIG_MODULES)
 #include <linux/moduleloader.h>
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0) && defined(CONFIG_MODULES)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 #ifndef CONFIG_KSU_LKM
 #include "../kernel_compat.h"
 #endif // #ifndef CONFIG_KSU_LKM
@@ -51,7 +51,7 @@
 #define NO_OPTIMIZE __attribute__((optnone))
 #else
 #define NO_OPTIMIZE
-#endif // #if defined(__GNUC__) && !defined(__clang__)
+#endif // #if defined(__GNUC__) && !defined(__cla...
 #endif // #ifndef NO_OPTIMIZE
 
 noinline NO_OPTIMIZE void yukisu_kpm_load_module_path(const char *path,

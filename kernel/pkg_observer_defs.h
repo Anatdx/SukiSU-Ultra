@@ -10,7 +10,7 @@ typedef const struct qstr *ksu_fname_t;
 typedef const unsigned char *ksu_fname_t;
 #define ksu_fname_len(f) (strlen(f))
 #define ksu_fname_arg(f) (f)
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)
 #define KSU_DECL_FSNOTIFY_OPS(name)                                            \
@@ -39,4 +39,4 @@ typedef const unsigned char *ksu_fname_t;
 		 struct fsnotify_mark *inode_mark,                             \
 		 struct fsnotify_mark *vfsmount_mark, u32 mask, void *data,    \
 		 int data_type, ksu_fname_t file_name, u32 cookie)
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...

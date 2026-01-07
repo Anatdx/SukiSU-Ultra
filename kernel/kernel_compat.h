@@ -32,7 +32,7 @@ extern ssize_t ksu_kernel_write_compat(struct file *p, const void *buf,
 #ifdef HISI_SELINUX_EBITMAP_RO
 #define CONFIG_IS_HW_HISI
 #endif // #ifdef HISI_SELINUX_EBITMAP_RO
-#endif // #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)) &&
+#endif // #if (LINUX_VERSION_CODE >= KERNEL_VERSI...
        // (LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0)) ||
        // (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)) &&
        // (LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0))
@@ -42,14 +42,14 @@ extern ssize_t ksu_kernel_write_compat(struct file *p, const void *buf,
 #if defined(CONFIG_UH) || defined(CONFIG_KDP) || defined(CONFIG_RKP)
 #error                                                                         \
     "CONFIG_UH, CONFIG_KDP and CONFIG_RKP is enabled! Please disable or remove it before compile a kernel with KernelSU!"
-#endif // #if defined(CONFIG_UH) || defined(CONFIG_KDP) || defined(CONFIG_RKP)
+#endif // #if defined(CONFIG_UH) || defined(CONFI...
 #endif // #ifdef SAMSUNG_UH_DRIVER_EXIST
        // defined(CONFIG_RKP)
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0) ||                           \
     defined(CONFIG_IS_HW_HISI) || defined(CONFIG_KSU_ALLOWLIST_WORKAROUND)
 extern struct key *init_session_keyring;
-#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0) ||
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
        // defined(CONFIG_IS_HW_HISI) || defined(CONFIG_KSU_ALLOWLIST_WORKAROUND)
 #endif // #ifndef CONFIG_KSU_LKM
 
@@ -57,14 +57,14 @@ extern struct key *init_session_keyring;
 #define ksu_access_ok(addr, size) access_ok(addr, size)
 #else
 #define ksu_access_ok(addr, size) access_ok(VERIFY_READ, addr, size)
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 // https://elixir.bootlin.com/linux/v5.3-rc1/source/kernel/signal.c#L1613
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 3, 0)
 #define __force_sig(sig) force_sig(sig)
 #else
 #define __force_sig(sig) force_sig(sig, current)
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 3, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 // Linux >= 5.7
 // task_work_add (struct, struct, enum)
@@ -74,7 +74,7 @@ extern struct key *init_session_keyring;
 #ifndef TWA_RESUME
 #define TWA_RESUME true
 #endif // #ifndef TWA_RESUME
-#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 7, 0)
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
 
 static inline int do_close_fd(unsigned int fd)
 {
@@ -82,7 +82,7 @@ static inline int do_close_fd(unsigned int fd)
 	return close_fd(fd);
 #else
 	return __close_fd(current->files, fd);
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 }
 
 #endif // #ifndef __KSU_H_KERNEL_COMPAT

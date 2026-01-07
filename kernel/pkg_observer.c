@@ -67,7 +67,7 @@ static const struct fsnotify_ops ksu_ops = {
     .handle_inode_event = ksu_handle_generic_event,
 #else
     .handle_event = ksu_handle_generic_event,
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 #endif // #ifdef CONFIG_KSU_LKM
 };
 
@@ -109,7 +109,7 @@ static int add_mark_on_inode(struct inode *inode, u32 mask,
 	fsnotify_init_mark(m, m_free);
 	m->mask = mask;
 	ret = fsnotify_add_mark(m, g, inode, NULL, 0);
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 	if (ret < 0) {
 		fsnotify_put_mark(m);
@@ -170,7 +170,7 @@ int ksu_observer_init(void)
 	g = fsnotify_alloc_group(&ksu_ops, 0);
 #else
 	g = fsnotify_alloc_group(&ksu_ops);
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 	if (IS_ERR(g))
 		return PTR_ERR(g);
 

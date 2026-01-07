@@ -12,7 +12,7 @@
 #include <crypto/sha2.h>
 #else
 #include <crypto/sha.h>
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 #include "apk_sign.h"
 #include "kernel_compat.h"

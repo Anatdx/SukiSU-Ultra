@@ -31,7 +31,7 @@
 #include "sulog.h"
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)
 #include <linux/sched/signal.h>
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 #endif // #ifndef CONFIG_KSU_LKM
 
 #include "allowlist.h"
@@ -45,7 +45,7 @@
 #include "supercalls.h"
 #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 #include "syscall_hook_manager.h"
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 
 #ifdef CONFIG_KSU_HYMOFS
 #include <linux/hymofs.h>
@@ -162,7 +162,7 @@ int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid)
 #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 		// tracepoint hook mode
 		ksu_set_task_tracepoint_flag(current);
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 		spin_unlock_irq(&current->sighand->siglock);
 
 		// Use task_work to install fd after returning to userspace
@@ -190,14 +190,14 @@ int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid)
 #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 		// tracepoint hook mode
 		ksu_set_task_tracepoint_flag(current);
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 	}
 #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	// tracepoint hook mode
 	else {
 		ksu_clear_task_tracepoint_flag_if_needed(current);
 	}
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 
 #else // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
 	if (ksu_is_allow_uid_for_current(new_uid)) {
@@ -213,7 +213,7 @@ int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid)
 
 		return 0;
 	}
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 	// Handle kernel umount
 	ksu_handle_umount(old_uid, new_uid);
@@ -324,7 +324,7 @@ int ksu_handle_setuid(uid_t new_uid, uid_t old_uid, uid_t euid)
 		hymofs_set_proc_privileged();
 		return 0;
 	}
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 	// Check if spawned process is normal user app and needs to be umounted
 	if (likely(is_zygote_normal_app_uid(new_uid) &&

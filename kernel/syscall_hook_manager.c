@@ -136,7 +136,7 @@ int ksu_get_task_mark(pid_t pid)
 #else
 		marked =
 		    test_tsk_thread_flag(task, TIF_SYSCALL_TRACEPOINT) ? 1 : 0;
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 		put_task_struct(task);
 	} else {
 		rcu_read_unlock();
@@ -257,7 +257,7 @@ static inline bool check_syscall_fastpath(int nr)
 	case __NR_clone:
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
 	case __NR_clone3:
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 		return true;
 	default:
 		return false;

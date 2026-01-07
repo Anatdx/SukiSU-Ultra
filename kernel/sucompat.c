@@ -6,7 +6,7 @@
 #include <linux/pgtable.h>
 #else
 #include <asm/pgtable.h>
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 #include <asm/current.h>
 #include <linux/cred.h>
 #include <linux/fs.h>
@@ -17,7 +17,7 @@
 #include <linux/sched/task_stack.h>
 #else
 #include <linux/sched.h>
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 #ifdef CONFIG_KSU_HYMOFS
 #include "objsec.h"
@@ -52,7 +52,7 @@ bool ksu_su_compat_enabled __read_mostly = true;
 
 #if defined(CONFIG_KSU_MANUAL_HOOK) || defined(CONFIG_KSU_HYMOFS)
 EXPORT_SYMBOL(ksu_su_compat_enabled);
-#endif // #if defined(CONFIG_KSU_MANUAL_HOOK) || defined(CONFIG_KSU_HYMOFS)
+#endif // #if defined(CONFIG_KSU_MANUAL_HOOK) || ...
 
 static int su_compat_feature_get(u64 *value)
 {
@@ -193,7 +193,7 @@ int ksu_handle_execve_sucompat(const char __user **filename_user,
 
 	return 0;
 }
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 
 #if defined(CONFIG_KSU_HYMOFS) || defined(CONFIG_KSU_MANUAL_HOOK)
 static inline void ksu_handle_execveat_init(struct filename **filename_ptr)
@@ -239,7 +239,7 @@ int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv,
 	return ksu_handle_execveat_sucompat(fd, filename_ptr, argv, envp,
 					    flags);
 }
-#endif // #if defined(CONFIG_KSU_HYMOFS) || defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if defined(CONFIG_KSU_HYMOFS) || defin...
 
 int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
 			 int *__unused_flags)
@@ -331,14 +331,14 @@ int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags)
 
 	return 0;
 }
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0) && defined(CONFIG_KSU_HYMOFS)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 #if defined(CONFIG_KSU_MANUAL_HOOK) || defined(CONFIG_KSU_HYMOFS)
 EXPORT_SYMBOL(ksu_handle_execveat);
 EXPORT_SYMBOL(ksu_handle_execveat_sucompat);
 EXPORT_SYMBOL(ksu_handle_faccessat);
 EXPORT_SYMBOL(ksu_handle_stat);
-#endif // #if defined(CONFIG_KSU_MANUAL_HOOK) || defined(CONFIG_KSU_HYMOFS)
+#endif // #if defined(CONFIG_KSU_MANUAL_HOOK) || ...
 
 // dead code: devpts handling
 int __maybe_unused ksu_handle_devpts(struct inode *inode)

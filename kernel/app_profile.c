@@ -10,7 +10,7 @@
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
 #include <linux/sched/signal.h> // signal_struct
 #include <linux/sched/task.h>
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 #include "objsec.h"
 #include <linux/sched.h>
 #include <linux/seccomp.h>
@@ -38,7 +38,7 @@ static struct group_info root_groups = {
 };
 #else
 static struct group_info root_groups = {.usage = ATOMIC_INIT(2)};
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 7, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 static void setup_groups(struct root_profile *profile, struct cred *cred)
 {
@@ -76,7 +76,7 @@ static void setup_groups(struct root_profile *profile, struct cred *cred)
 		group_info->gid[i] = kgid;
 #else
 		GROUP_AT(group_info, i) = kgid;
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 	}
 
 	groups_sort(group_info);
@@ -120,12 +120,12 @@ void disable_seccomp(struct task_struct *tsk)
 #else
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
 		put_seccomp_filter(tsk);
-#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0)
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
 		tsk->seccomp.filter = NULL;
-#endif // #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0) &&
+#endif // #if (LINUX_VERSION_CODE >= KERNEL_VERSI...
        // LINUX_VERSION_CODE < KERNEL_VERSION(6, 10, 0))
 
-#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0) &&
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
        // defined(KSU_OPTIONAL_SECCOMP_FILTER_RELEASE)
 	}
 #endif // #ifdef CONFIG_SECCOMP
@@ -240,7 +240,7 @@ static int __manual_su_handle_devpts(struct inode *inode)
 #else
 	struct inode_security_struct *sec =
 	    (struct inode_security_struct *)inode->i_security;
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 1, 0) ||
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 	if (ksu_file_sid && sec)
 		sec->sid = ksu_file_sid;
 

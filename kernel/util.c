@@ -4,7 +4,7 @@
 #include <linux/pgtable.h>
 #else
 #include <asm/pgtable.h>
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 #include <asm/current.h>
 #include <linux/printk.h>
 
@@ -84,7 +84,7 @@ out_unlock:
 	mmap_read_unlock(mm);
 #else
 	up_read(&mm->mmap_sem);
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 208)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 	return ret;
 #else
 	return false;

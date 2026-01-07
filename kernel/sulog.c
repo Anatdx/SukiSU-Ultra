@@ -13,7 +13,7 @@
 #include <linux/version.h>
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
 #include <linux/sched/task.h>
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 #include <linux/ktime.h>
 #include <linux/mm.h>
 #include <linux/mutex.h>

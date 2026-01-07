@@ -12,16 +12,16 @@
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0) &&                          \
     LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 #include <linux/sched/task.h>
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0) &&
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
        // LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
 #include <linux/input-event-codes.h>
 #else
 #include <uapi/linux/input.h>
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 1, 0)
 #include <linux/aio.h>
-#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 1, 0)
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
 #include <linux/kprobes.h>
 #include <linux/namei.h>
 #include <linux/printk.h>
@@ -85,7 +85,7 @@ bool ksu_input_hook __read_mostly = true;
 EXPORT_SYMBOL(ksu_vfs_read_hook);
 EXPORT_SYMBOL(ksu_execveat_hook);
 EXPORT_SYMBOL(ksu_input_hook);
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 
 u32 ksu_file_sid;
 void on_post_fs_data(void)
@@ -103,7 +103,7 @@ void on_post_fs_data(void)
 	pr_info("Applying KernelSU SELinux rules (inline hook mode)\n");
 	apply_kernelsu_rules();
 	setup_ksu_cred();
-#endif // #if defined(CONFIG_KSU_HYMOFS) || defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if defined(CONFIG_KSU_HYMOFS) || defin...
 	ksu_load_allow_list();
 	ksu_observer_init();
 	// sanity check, this may influence the performance
@@ -441,7 +441,7 @@ int ksu_handle_vfs_read(struct file **file_ptr, char __user **buf_ptr,
 	if (!ksu_vfs_read_hook) {
 		return 0;
 	}
-#endif // #if defined(CONFIG_KSU_HYMOFS) || defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if defined(CONFIG_KSU_HYMOFS) || defin...
 	struct file *file;
 	char __user *buf;
 	size_t count;
@@ -548,7 +548,7 @@ int ksu_handle_sys_read(unsigned int fd, char __user **buf_ptr,
 #if defined(CONFIG_KSU_MANUAL_HOOK) || defined(CONFIG_KSU_HYMOFS)
 EXPORT_SYMBOL(ksu_handle_vfs_read);
 EXPORT_SYMBOL(ksu_handle_sys_read);
-#endif // #if defined(CONFIG_KSU_MANUAL_HOOK) || defined(CONFIG_KSU_HYMOFS)
+#endif // #if defined(CONFIG_KSU_MANUAL_HOOK) || ...
 
 static unsigned int volumedown_pressed_count = 0;
 
@@ -564,7 +564,7 @@ int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code,
 	if (!ksu_input_hook) {
 		return 0;
 	}
-#endif // #if defined(CONFIG_KSU_HYMOFS) || defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if defined(CONFIG_KSU_HYMOFS) || defin...
 	if (*type == EV_KEY && *code == KEY_VOLUMEDOWN) {
 		int val = *value;
 		pr_info("KEY_VOLUMEDOWN val: %d\n", val);
@@ -586,7 +586,7 @@ int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code,
 }
 #if defined(CONFIG_KSU_MANUAL_HOOK) || defined(CONFIG_KSU_HYMOFS)
 EXPORT_SYMBOL(ksu_handle_input_handle_event);
-#endif // #if defined(CONFIG_KSU_MANUAL_HOOK) || defined(CONFIG_KSU_HYMOFS)
+#endif // #if defined(CONFIG_KSU_MANUAL_HOOK) || ...
 
 bool ksu_is_safe_mode()
 {
@@ -710,7 +710,7 @@ static void do_stop_input_hook(struct work_struct *work)
 {
 	unregister_kprobe(&input_event_kp);
 }
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 
 static void stop_vfs_read_hook(void)
 {
@@ -720,7 +720,7 @@ static void stop_vfs_read_hook(void)
 #else
 	ksu_vfs_read_hook = false;
 	pr_info("stop vfs_read_hook\n");
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 }
 
 static void stop_execve_hook(void)
@@ -731,7 +731,7 @@ static void stop_execve_hook(void)
 #else
 	ksu_execveat_hook = false;
 	pr_info("stop execve_hook\n");
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 }
 
 static void stop_input_hook(void)
@@ -747,7 +747,7 @@ static void stop_input_hook(void)
 #else
 	ksu_input_hook = false;
 	pr_info("stop input_hook\n");
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 }
 
 // ksud: module support
@@ -768,7 +768,7 @@ void ksu_ksud_init(void)
 	INIT_WORK(&stop_vfs_read_work, do_stop_vfs_read_hook);
 	INIT_WORK(&stop_execve_hook_work, do_stop_execve_hook);
 	INIT_WORK(&stop_input_hook_work, do_stop_input_hook);
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 }
 
 void ksu_ksud_exit(void)
@@ -778,7 +778,7 @@ void ksu_ksud_exit(void)
 	// this should be done before unregister vfs_read_kp
 	// unregister_kprobe(&vfs_read_kp);
 	unregister_kprobe(&input_event_kp);
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 
 #ifndef CONFIG_KSU_LKM
 	is_boot_phase = false;

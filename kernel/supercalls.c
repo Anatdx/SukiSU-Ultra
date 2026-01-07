@@ -53,7 +53,7 @@
 // technically not a secure inode, but, this is the only way so.
 #define getfd_secure(name, ops, data, flags, __unused)                         \
 	anon_inode_getfd(name, ops, data, flags)
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 #endif // #ifndef CONFIG_KSU_LKM
 
 #ifdef CONFIG_KSU_MANUAL_SU
@@ -431,7 +431,7 @@ static int do_get_wrapper_fd(void __user *arg)
 #else
 	struct inode_security_struct *sec =
 	    (struct inode_security_struct *)wrapper_inode->i_security;
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 1, 0) ||
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
        // defined(KSU_OPTIONAL_SELINUX_INODE)
 
 	if (sec) {
@@ -476,7 +476,7 @@ static int do_manage_mark(void __user *arg)
 #else
 		cmd.result = 0;
 		break;
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 	}
 	case KSU_MARK_MARK: {
 #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
@@ -495,7 +495,7 @@ static int do_manage_mark(void __user *arg)
 		if (cmd.pid != 0) {
 			return 0;
 		}
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 		break;
 	}
 	case KSU_MARK_UNMARK: {
@@ -515,7 +515,7 @@ static int do_manage_mark(void __user *arg)
 		if (cmd.pid != 0) {
 			return 0;
 		}
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 		break;
 	}
 	case KSU_MARK_REFRESH: {
@@ -524,7 +524,7 @@ static int do_manage_mark(void __user *arg)
 		pr_info("manage_mark: refreshed running processes\n");
 #else
 		pr_info("manual_hook: cmd: KSU_MARK_REFRESH: do nothing\n");
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 		break;
 	}
 	default: {
@@ -801,7 +801,7 @@ static int do_get_full_version(void __user *arg)
 	strscpy(cmd.version_full, KSU_VERSION_FULL, sizeof(cmd.version_full));
 #else
 	strlcpy(cmd.version_full, KSU_VERSION_FULL, sizeof(cmd.version_full));
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 	if (copy_to_user(arg, &cmd, sizeof(cmd))) {
 		pr_err("get_full_version: copy_to_user failed\n");
@@ -827,7 +827,7 @@ static int do_get_hook_type(void __user *arg)
 	strscpy(cmd.hook_type, type, sizeof(cmd.hook_type));
 #else
 	strlcpy(cmd.hook_type, type, sizeof(cmd.hook_type));
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 	if (copy_to_user(arg, &cmd, sizeof(cmd))) {
 		pr_err("get_hook_type: copy_to_user failed\n");
@@ -1077,7 +1077,7 @@ static void ksu_install_fd_tw_func(struct callback_head *cb)
 		close_fd(fd);
 #else
 		ksys_close(fd);
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 #else
 		do_close_fd(fd);
 #endif // #ifdef CONFIG_KSU_LKM
@@ -1146,7 +1146,7 @@ static void ksu_superkey_auth_tw_func(struct callback_head *cb)
 			close_fd(fd);
 #else
 			ksys_close(fd);
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 #else
 			do_close_fd(fd);
 #endif // #ifdef CONFIG_KSU_LKM
@@ -1372,7 +1372,7 @@ static void ksu_superkey_prctl_tw_func(struct callback_head *cb)
 			close_fd(fd);
 #else
 			ksys_close(fd);
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 #else
 			do_close_fd(fd);
 #endif // #ifdef CONFIG_KSU_LKM
@@ -1420,7 +1420,7 @@ static int ksu_handle_prctl_superkey(int option, unsigned long arg2)
 				close_fd(cmd.fd);
 #else
 				ksys_close(cmd.fd);
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 			}
 			return 0;
 		}

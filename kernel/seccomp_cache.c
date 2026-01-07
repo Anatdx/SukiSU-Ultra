@@ -22,7 +22,7 @@ struct seccomp_filter {
 	bool log;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
 	bool wait_killable_recv;
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 	struct action_cache cache;
 	struct seccomp_filter *prev;
 	struct bpf_prog *prog;
@@ -64,4 +64,4 @@ void ksu_seccomp_allow_cache(struct seccomp_filter *filter, int nr)
 	}
 #endif // #ifdef SECCOMP_ARCH_COMPAT
 }
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...

@@ -31,7 +31,7 @@
 
 #if !defined(CONFIG_KSU_HYMOFS) && !defined(KSU_MANUAL_HOOK)
 #include "syscall_hook_manager.h"
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 
 #include "allowlist.h"
 #include "feature.h"
@@ -200,7 +200,7 @@ int ksu_yield(void)
 #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	ksu_ksud_exit();
 	ksu_syscall_hook_manager_exit();
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 
 	extern void yukisu_custom_config_exit(void);
 	ksu_sucompat_exit();
@@ -272,7 +272,7 @@ int __init kernelsu_init(void)
 	yukisu_custom_config_init();
 #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 	ksu_syscall_hook_manager_init();
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 
 #ifndef CONFIG_KSU_LKM
 	ksu_lsm_hook_init();
@@ -292,7 +292,7 @@ int __init kernelsu_init(void)
 	ksu_ksud_init();
 
 	ksu_file_wrapper_init();
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 
 #ifdef MODULE
 #ifndef CONFIG_KSU_DEBUG
@@ -336,7 +336,7 @@ void kernelsu_exit(void)
 	ksu_ksud_exit();
 
 	ksu_syscall_hook_manager_exit();
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 
 #ifndef CONFIG_KSU_LKM
 	ksu_observer_exit();
@@ -367,5 +367,5 @@ MODULE_DESCRIPTION("Android KernelSU");
 MODULE_IMPORT_NS("VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver");
 #else
 MODULE_IMPORT_NS(VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver);
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 13, 0)
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...

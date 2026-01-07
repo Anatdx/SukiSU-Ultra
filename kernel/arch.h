@@ -30,7 +30,7 @@
 #define SYS_EXECVE_SYMBOL "sys_execve"
 #define SYS_PRCTL_SYMBOL "sys_prctl"
 #define SYS_SETNS_SYMBOL sys_setns
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 16, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 #elif defined(__x86_64__)
 
@@ -60,7 +60,7 @@
 #define SYS_EXECVE_SYMBOL "sys_execve"
 #define SYS_PRCTL_SYMBOL "sys_prctl"
 #define SYS_SETNS_SYMBOL sys_setns
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 16, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 #else
 #ifdef KSU_KPROBES_HOOK
@@ -90,6 +90,6 @@
 #define PT_REAL_REGS(regs) ((struct pt_regs *)PT_REGS_PARM1(regs))
 #else
 #define PT_REAL_REGS(regs) ((regs))
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 16, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 #endif // #ifndef __KSU_H_ARCH

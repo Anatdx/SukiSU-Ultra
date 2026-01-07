@@ -83,7 +83,7 @@ DEFINE_MEMBER(mnt_namespace, seq)
 DEFINE_MEMBER(mnt_namespace, mounts)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 0)
 DEFINE_MEMBER(mnt_namespace, count)
-#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 0)
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
 DYNAMIC_STRUCT_END(mnt_namespace)
 
 #ifdef CONFIG_KPROBES
@@ -95,7 +95,7 @@ DEFINE_MEMBER(kprobe, pre_handler)
 DEFINE_MEMBER(kprobe, post_handler)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 0)
 DEFINE_MEMBER(kprobe, fault_handler)
-#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 0)
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
 DEFINE_MEMBER(kprobe, flags)
 DYNAMIC_STRUCT_END(kprobe)
 #endif // #ifdef CONFIG_KPROBES
@@ -127,12 +127,12 @@ DEFINE_MEMBER(netlink_kernel_cfg, flags)
 DEFINE_MEMBER(netlink_kernel_cfg, input)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 DEFINE_MEMBER(netlink_kernel_cfg, cb_mutex)
-#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
 DEFINE_MEMBER(netlink_kernel_cfg, bind)
 DEFINE_MEMBER(netlink_kernel_cfg, unbind)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0)
 DEFINE_MEMBER(netlink_kernel_cfg, compare)
-#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0)
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
 DYNAMIC_STRUCT_END(netlink_kernel_cfg)
 
 DYNAMIC_STRUCT_BEGIN(task_struct)
@@ -149,7 +149,7 @@ DEFINE_MEMBER(task_struct, active_mm)
 DEFINE_MEMBER(task_struct, pids[PIDTYPE_PID].pid)
 #else
 DEFINE_MEMBER(task_struct, thread_pid)
-#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
 DEFINE_MEMBER(task_struct, files)
 DEFINE_MEMBER(task_struct, seccomp)
 #ifdef CONFIG_THREAD_INFO_IN_TASK
@@ -162,7 +162,7 @@ DEFINE_MEMBER(task_struct, cgroups)
 #ifdef CONFIG_SECURITY
 DEFINE_MEMBER(task_struct, security)
 #endif // #ifdef CONFIG_SECURITY
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 12, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 DEFINE_MEMBER(task_struct, thread)
 DYNAMIC_STRUCT_END(task_struct)
 

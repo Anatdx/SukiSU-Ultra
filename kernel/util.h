@@ -9,7 +9,7 @@
 		barrier();                                                     \
 		__preempt_count_dec();                                         \
 	} while (0)
-#endif // #ifndef preempt_enable_no_resched_notrace
+#endif // #ifndef preempt_enable_no_resched_notrace...
 
 #ifndef preempt_disable_notrace
 #define preempt_disable_notrace()                                              \
@@ -27,6 +27,6 @@ static inline bool try_set_access_flag(unsigned long addr)
 }
 #else
 bool try_set_access_flag(unsigned long addr);
-#endif // #if defined(CONFIG_KSU_HYMOFS) || defined(KSU_MANUAL_HOOK)
+#endif // #if defined(CONFIG_KSU_HYMOFS) || defin...
 
 #endif // #ifndef __KSU_UTIL_H

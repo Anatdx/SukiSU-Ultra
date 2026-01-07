@@ -19,7 +19,7 @@ static int transive_to_domain(const char *domain, struct cred *cred)
 	struct task_security_struct *tsec;
 #else
 	struct cred_security_struct *tsec;
-#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 18, 0)
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
 	tsec = cred->security;
 	if (!tsec) {
 		pr_err("tsec == NULL!\n");
@@ -60,7 +60,7 @@ is_ksu_transition(const struct task_security_struct *old_tsec,
 	security_release_secctx(secdata, seclen);
 	return allowed;
 }
-#endif // #if LINUX_VERSION_CODE <= KERNEL_VERSION(4, 19, 0)
+#endif // #if LINUX_VERSION_CODE <= KERNEL_VERSIO...
 
 void setup_selinux(const char *domain)
 {
@@ -122,7 +122,7 @@ static inline u32 current_sid(void)
 
 	return tsec->sid;
 }
-#endif // #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)) &&
+#endif // #if (LINUX_VERSION_CODE < KERNEL_VERSIO...
        // !defined(KSU_COMPAT_HAS_CURRENT_SID)
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 14, 0)
@@ -142,7 +142,7 @@ static void __security_release_secctx(struct lsm_context *cp)
 #else
 #define __security_secid_to_secctx security_secid_to_secctx
 #define __security_release_secctx security_release_secctx
-#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 14, 0)
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
 
 bool is_task_ksu_domain(const struct cred *cred)
 {
@@ -155,7 +155,7 @@ bool is_task_ksu_domain(const struct cred *cred)
 	const struct task_security_struct *tsec;
 #else
 	const struct cred_security_struct *tsec;
-#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 18, 0)
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
 	tsec = cred->security;
 	if (!tsec) {
 		return false;
@@ -186,7 +186,7 @@ bool is_context(const struct cred *cred, const char *context)
 	const struct task_security_struct *tsec;
 #else
 	const struct cred_security_struct *tsec;
-#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 18, 0)
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
 	tsec = cred->security;
 	if (!tsec) {
 		return false;

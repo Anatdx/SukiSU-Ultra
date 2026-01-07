@@ -14,10 +14,10 @@
 #include <linux/sched/task.h>
 #else
 #include <linux/sched.h>
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 #include <linux/compiler_types.h>
-#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 #include "allowlist.h"
 #include "kernel_compat.h"
@@ -279,7 +279,7 @@ out:
 #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
 		// FIXME: use a new flag
 		ksu_mark_running_process();
-#endif // #if !defined(CONFIG_KSU_HYMOFS) && !defined(CONFIG_KSU_MANUAL_HOOK)
+#endif // #if !defined(CONFIG_KSU_HYMOFS) && !def...
 	}
 
 	return result;
@@ -323,7 +323,7 @@ bool __ksu_is_allow_uid_for_current(uid_t uid)
 }
 #if defined(CONFIG_KSU_MANUAL_HOOK) || defined(CONFIG_KSU_HYMOFS)
 EXPORT_SYMBOL(__ksu_is_allow_uid_for_current);
-#endif // #if defined(CONFIG_KSU_MANUAL_HOOK) || defined(CONFIG_KSU_HYMOFS)
+#endif // #if defined(CONFIG_KSU_MANUAL_HOOK) || ...
 
 bool ksu_uid_should_umount(uid_t uid)
 {
