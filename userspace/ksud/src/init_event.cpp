@@ -1,6 +1,7 @@
 #include "init_event.hpp"
 #include "assets.hpp"
 #include "core/feature.hpp"
+#include "core/hide_bootloader.hpp"
 #include "core/ksucalls.hpp"
 #include "defs.hpp"
 #include "kpm.hpp"
@@ -9,7 +10,7 @@
 #include "module/module.hpp"
 #include "module/module_config.hpp"
 #include "profile/profile.hpp"
-#include "restorecon.hpp"
+#include "core/restorecon.hpp"
 #include "umount.hpp"
 #include "utils.hpp"
 
@@ -199,6 +200,11 @@ int on_post_data_fs() {
 
 void on_services() {
     LOGI("services triggered");
+    
+    // Hide bootloader unlock status (soft BL hiding)
+    // Service stage is the correct timing - after boot_completed is set
+    hide_bootloader_status();
+    
     run_stage("service", false);
     LOGI("services completed");
 }

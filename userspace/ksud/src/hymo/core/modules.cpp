@@ -48,66 +48,6 @@ static bool has_content(const fs::path &module_path,
   return false;
 }
 
-void update_module_description(bool success, const std::string &storage_mode,
-                               bool nuke_active, size_t overlay_count,
-                               size_t magic_count, size_t hymofs_count,
-                               const std::string &warning_msg,
-                               bool hymofs_active) {
-  if (!fs::exists(MODULE_PROP_FILE)) {
-    LOG_WARN("module.prop not found, skipping update");
-    return;
-  }
-
-  std::ostringstream desc;
-  desc << (success ? "😋" : "😭") << " Hymo";
-  if (nuke_active) {
-    desc << " 🐾";
-  }
-  desc << " | ";
-  desc << "fs: " << storage_mode << " | ";
-  desc << "Modules: " << hymofs_count << " HymoFS + " << overlay_count
-       << " Overlay + " << magic_count << " Magic";
-
-  if (!warning_msg.empty()) {
-    desc << " " << warning_msg;
-  }
-
-  std::ifstream infile(MODULE_PROP_FILE);
-  std::string content;
-  std::string line;
-  bool desc_updated = false;
-  bool name_updated = false;
-
-  std::string new_name = hymofs_active ? "Hymo - HymoFS Enabled" : "Hymo";
-
-  while (std::getline(infile, line)) {
-    if (line.find("description=") == 0) {
-      content += "description=" + desc.str() + "\n";
-      desc_updated = true;
-    } else if (line.find("name=") == 0) {
-      content += "name=" + new_name + "\n";
-      name_updated = true;
-    } else {
-      content += line + "\n";
-    }
-  }
-  infile.close();
-
-  if (!desc_updated) {
-    content += "description=" + desc.str() + "\n";
-  }
-  if (!name_updated) {
-    content += "name=" + new_name + "\n";
-  }
-
-  // Write back
-  std::ofstream outfile(MODULE_PROP_FILE);
-  outfile << content;
-  outfile.close();
-
-  LOG_DEBUG("Updated module description and name");
-}
-
 void print_module_list(const Config &config) {
   auto modules = scan_modules(config.moduledir, config);
 

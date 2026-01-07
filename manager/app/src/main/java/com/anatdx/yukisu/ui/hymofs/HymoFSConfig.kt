@@ -1,8 +1,12 @@
 package com.anatdx.yukisu.ui.hymofs
 
 import android.annotation.SuppressLint
+import android.content.Context
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,9 +21,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ramcosta.composedestinations.annotation.Destination
@@ -28,6 +36,9 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.anatdx.yukisu.R
 import com.anatdx.yukisu.ui.hymofs.util.HymoFSManager
 import com.anatdx.yukisu.ui.hymofs.util.HymoFSManager.HymoFSStatus
+import com.anatdx.yukisu.ui.theme.getCardColors
+import com.anatdx.yukisu.ui.theme.getCardElevation
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.launch
 
 /**
@@ -175,6 +186,7 @@ fun HymoFSConfigScreen(
                     HymoFSTab.SETTINGS -> SettingsTab(
                         config = config,
                         hymofsStatus = hymofsStatus,
+                        snackbarHostState = snackbarHostState,
                         onConfigChanged = { newConfig ->
                             coroutineScope.launch {
                                 if (HymoFSManager.saveConfig(newConfig)) {
@@ -309,7 +321,7 @@ private fun StatusTab(
                     )
                     Column {
                         Text(
-                            text = "HymoFS Kernel",
+                            text = stringResource(R.string.hymofs_kernel_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -324,7 +336,7 @@ private fun StatusTab(
                 if (hymofsStatus == HymoFSStatus.AVAILABLE) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Version: $version",
+                        text = stringResource(R.string.hymofs_version_label, version),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -335,7 +347,9 @@ private fun StatusTab(
         // Storage Card
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
+            colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
+            elevation = getCardElevation()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(
@@ -410,14 +424,16 @@ private fun StatusTab(
                 value = if (hymofsStatus == HymoFSStatus.AVAILABLE)
                     systemInfo.hymofsModuleIds.size.toString()
                 else "❌",
-                label = "HymoFS"
+                label = stringResource(R.string.hymofs_stats_hymofs)
             )
         }
         
         // System Info Card
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
+            colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
+            elevation = getCardElevation()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -426,14 +442,14 @@ private fun StatusTab(
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
                 
-                InfoRow(label = "Kernel", value = systemInfo.kernel)
-                InfoRow(label = "SELinux", value = systemInfo.selinux)
-                InfoRow(label = "Mount Base", value = systemInfo.mountBase)
+                InfoRow(label = stringResource(R.string.hymofs_info_kernel), value = systemInfo.kernel)
+                InfoRow(label = stringResource(R.string.hymofs_info_selinux), value = systemInfo.selinux)
+                InfoRow(label = stringResource(R.string.hymofs_info_mount_base), value = systemInfo.mountBase)
                 
                 if (systemInfo.activeMounts.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Active Mounts:",
+                        text = stringResource(R.string.hymofs_info_active_mounts),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -446,7 +462,7 @@ private fun StatusTab(
                     }
                     if (systemInfo.activeMounts.size > 5) {
                         Text(
-                            text = "  ... and ${systemInfo.activeMounts.size - 5} more",
+                            text = stringResource(R.string.hymofs_info_more_mounts, systemInfo.activeMounts.size - 5),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -475,7 +491,7 @@ private fun StatusTab(
                         tint = Color(0xFFFF9800)
                     )
                     Text(
-                        text = systemInfo.mismatchMessage ?: "Protocol mismatch detected. Please update kernel or module.",
+                        text = systemInfo.mismatchMessage ?: stringResource(R.string.hymofs_mismatch_default),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -492,7 +508,9 @@ private fun StatCard(
 ) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(16.dp),
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
+        elevation = getCardElevation()
     ) {
         Column(
             modifier = Modifier
@@ -591,7 +609,9 @@ private fun ModuleCard(
     
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(16.dp),
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
+        elevation = getCardElevation()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -702,6 +722,7 @@ private fun ModuleCard(
 private fun SettingsTab(
     config: HymoFSManager.HymoConfig,
     hymofsStatus: HymoFSStatus,
+    snackbarHostState: SnackbarHostState,
     onConfigChanged: (HymoFSManager.HymoConfig) -> Unit,
     onSetDebug: (Boolean) -> Unit,
     onSetStealth: (Boolean) -> Unit,
@@ -709,8 +730,12 @@ private fun SettingsTab(
     builtinMountEnabled: Boolean,
     onBuiltinMountChanged: (Boolean) -> Unit
 ) {
-    var localConfig by remember(config) { mutableStateOf(config) }
-    var hasChanges by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    
+    // Helper to update config and save immediately
+    fun updateAndSave(newConfig: HymoFSManager.HymoConfig) {
+        onConfigChanged(newConfig)
+    }
     
     Column(
         modifier = Modifier
@@ -719,29 +744,16 @@ private fun SettingsTab(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Save button
-        if (hasChanges) {
-            Button(
-                onClick = {
-                    onConfigChanged(localConfig)
-                    hasChanges = false
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(Icons.Filled.Save, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Save Changes")
-            }
-        }
-        
         // General Settings
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
+            colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
+            elevation = getCardElevation()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "General",
+                    text = stringResource(R.string.hymofs_general),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
@@ -756,102 +768,191 @@ private fun SettingsTab(
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 
                 SettingSwitch(
-                    title = "Verbose Logging",
-                    subtitle = "Enable detailed daemon logs",
-                    checked = localConfig.verbose,
+                    title = stringResource(R.string.hymofs_verbose),
+                    subtitle = stringResource(R.string.hymofs_verbose_desc),
+                    checked = config.verbose,
                     onCheckedChange = {
-                        localConfig = localConfig.copy(verbose = it)
-                        hasChanges = true
+                        updateAndSave(config.copy(verbose = it))
                     }
                 )
                 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 
                 SettingSwitch(
-                    title = "Force EXT4",
-                    subtitle = "Always use EXT4 image instead of tmpfs",
-                    checked = localConfig.forceExt4,
+                    title = stringResource(R.string.hymofs_force_ext4),
+                    subtitle = stringResource(R.string.hymofs_force_ext4_desc),
+                    checked = config.forceExt4,
                     onCheckedChange = {
-                        localConfig = localConfig.copy(forceExt4 = it)
-                        hasChanges = true
+                        updateAndSave(config.copy(forceExt4 = it))
                     }
                 )
                 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 
                 SettingSwitch(
-                    title = "Disable Umount",
-                    subtitle = "Don't unmount on process isolation",
-                    checked = localConfig.disableUmount,
+                    title = stringResource(R.string.hymofs_prefer_erofs),
+                    subtitle = stringResource(R.string.hymofs_prefer_erofs_desc),
+                    checked = config.preferErofs,
                     onCheckedChange = {
-                        localConfig = localConfig.copy(disableUmount = it)
-                        hasChanges = true
+                        updateAndSave(config.copy(preferErofs = it))
+                    }
+                )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                SettingSwitch(
+                    title = stringResource(R.string.hymofs_disable_umount),
+                    subtitle = stringResource(R.string.hymofs_disable_umount_desc),
+                    checked = config.disableUmount,
+                    onCheckedChange = {
+                        updateAndSave(config.copy(disableUmount = it))
+                    }
+                )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                // Module Directory Setting
+                var moduledir by remember { mutableStateOf(config.moduledir) }
+                SettingTextField(
+                    title = stringResource(R.string.hymofs_moduledir),
+                    subtitle = stringResource(R.string.hymofs_moduledir_desc),
+                    value = moduledir,
+                    onValueChange = { moduledir = it },
+                    onConfirm = {
+                        updateAndSave(config.copy(moduledir = moduledir))
+                    }
+                )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                // Temporary Mount Point Setting
+                var tempdir by remember { mutableStateOf(config.tempdir) }
+                SettingTextField(
+                    title = stringResource(R.string.hymofs_tempdir),
+                    subtitle = stringResource(R.string.hymofs_tempdir_desc),
+                    value = tempdir,
+                    onValueChange = { tempdir = it },
+                    onConfirm = {
+                        updateAndSave(config.copy(tempdir = tempdir))
+                    },
+                    placeholder = "Auto"
+                )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                // OverlayFS Mount Source Setting
+                var mountsource by remember { mutableStateOf(config.mountsource) }
+                SettingTextField(
+                    title = stringResource(R.string.hymofs_mountsource),
+                    subtitle = stringResource(R.string.hymofs_mountsource_desc),
+                    value = mountsource,
+                    onValueChange = { mountsource = it },
+                    onConfirm = {
+                        updateAndSave(config.copy(mountsource = mountsource))
+                    },
+                    placeholder = "KSU"
+                )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                // Partitions Setting with chip input
+                PartitionsInput(
+                    partitions = config.partitions,
+                    onPartitionsChanged = { newPartitions ->
+                        updateAndSave(config.copy(partitions = newPartitions))
+                    },
+                    onScanPartitions = {
+                        coroutineScope.launch {
+                            val scanned = HymoFSManager.scanPartitionCandidates(config.moduledir)
+                            if (scanned.isNotEmpty()) {
+                                val merged = (config.partitions + scanned).distinct()
+                                updateAndSave(config.copy(partitions = merged))
+                                snackbarHostState.showSnackbar("Found ${scanned.size} partitions")
+                            } else {
+                                snackbarHostState.showSnackbar("No new partitions found")
+                            }
+                        }
                     }
                 )
             }
         }
         
-        // HymoFS Settings (only if available)
-        if (hymofsStatus == HymoFSStatus.AVAILABLE) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "HymoFS Kernel",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
-                    
-                    SettingSwitch(
-                        title = "Kernel Debug",
-                        subtitle = "Enable HymoFS kernel debug logging",
-                        checked = localConfig.enableKernelDebug,
-                        onCheckedChange = {
-                            localConfig = localConfig.copy(enableKernelDebug = it)
-                            onSetDebug(it)
-                            hasChanges = true
-                        }
-                    )
-                    
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                    
-                    SettingSwitch(
-                        title = "Stealth Mode",
-                        subtitle = "Hide mount traces and reorder mount IDs",
-                        checked = localConfig.enableStealth,
-                        onCheckedChange = {
-                            localConfig = localConfig.copy(enableStealth = it)
-                            onSetStealth(it)
-                            hasChanges = true
-                        }
-                    )
-                    
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                    
-                    SettingSwitch(
-                        title = "AVC Log Spoofing",
-                        subtitle = "Spoof SELinux AVC deny logs",
-                        checked = localConfig.avcSpoof,
-                        onCheckedChange = {
-                            localConfig = localConfig.copy(avcSpoof = it)
-                            hasChanges = true
-                        }
-                    )
-                    
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                    
-                    SettingSwitch(
-                        title = "Enable Nuke",
-                        subtitle = "Allow nuking ext4 sysfs entries",
-                        checked = localConfig.enableNuke,
-                        onCheckedChange = {
-                            localConfig = localConfig.copy(enableNuke = it)
-                            hasChanges = true
-                        }
-                    )
-                    
+        // Advanced Settings
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
+            elevation = getCardElevation()
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = stringResource(R.string.hymofs_advanced),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+                
+                val hymofsAvailable = hymofsStatus == HymoFSStatus.AVAILABLE
+                
+                SettingSwitch(
+                    title = stringResource(R.string.hymofs_kernel_debug),
+                    subtitle = stringResource(R.string.hymofs_kernel_debug_desc),
+                    checked = config.enableKernelDebug,
+                    enabled = hymofsAvailable,
+                    onCheckedChange = {
+                        onSetDebug(it)
+                        updateAndSave(config.copy(enableKernelDebug = it))
+                    }
+                )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                SettingSwitch(
+                    title = stringResource(R.string.hymofs_stealth),
+                    subtitle = stringResource(R.string.hymofs_stealth_desc),
+                    checked = config.enableStealth,
+                    enabled = hymofsAvailable,
+                    onCheckedChange = {
+                        onSetStealth(it)
+                        updateAndSave(config.copy(enableStealth = it))
+                    }
+                )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                SettingSwitch(
+                    title = stringResource(R.string.hymofs_avc_spoof),
+                    subtitle = stringResource(R.string.hymofs_avc_spoof_desc),
+                    checked = config.avcSpoof,
+                    enabled = hymofsAvailable,
+                    onCheckedChange = {
+                        updateAndSave(config.copy(avcSpoof = it))
+                    }
+                )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                SettingSwitch(
+                    title = stringResource(R.string.hymofs_enable_nuke),
+                    subtitle = stringResource(R.string.hymofs_enable_nuke_desc),
+                    checked = config.enableNuke,
+                    enabled = hymofsAvailable,
+                    onCheckedChange = {
+                        updateAndSave(config.copy(enableNuke = it))
+                    }
+                )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                SettingSwitch(
+                    title = stringResource(R.string.hymofs_ignore_protocol),
+                    subtitle = stringResource(R.string.hymofs_ignore_protocol_desc),
+                    checked = config.ignoreProtocolMismatch,
+                    onCheckedChange = {
+                        updateAndSave(config.copy(ignoreProtocolMismatch = it))
+                    }
+                )
+                
+                if (hymofsAvailable) {
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     OutlinedButton(
@@ -860,33 +961,9 @@ private fun SettingsTab(
                     ) {
                         Icon(Icons.Filled.Build, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Fix Mount IDs")
+                        Text(stringResource(R.string.hymofs_fix_mounts))
                     }
                 }
-            }
-        }
-        
-        // Advanced Settings
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Advanced",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-                
-                SettingSwitch(
-                    title = "Ignore Protocol Mismatch",
-                    subtitle = "Continue even if kernel/userspace versions don't match",
-                    checked = localConfig.ignoreProtocolMismatch,
-                    onCheckedChange = {
-                        localConfig = localConfig.copy(ignoreProtocolMismatch = it)
-                        hasChanges = true
-                    }
-                )
             }
         }
     }
@@ -897,7 +974,8 @@ private fun SettingSwitch(
     title: String,
     subtitle: String,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
+    enabled: Boolean = true
 ) {
     Row(
         modifier = Modifier
@@ -909,18 +987,96 @@ private fun SettingSwitch(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (enabled) Color.Unspecified else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             )
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 1f else 0.5f)
             )
         }
         Switch(
             checked = checked,
-            onCheckedChange = onCheckedChange
+            onCheckedChange = onCheckedChange,
+            enabled = enabled
         )
+    }
+}
+
+@Composable
+private fun SettingTextField(
+    title: String,
+    subtitle: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    enabled: Boolean = true,
+    placeholder: String = ""
+) {
+    var isEditing by remember { mutableStateOf(false) }
+    
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (enabled) Color.Unspecified else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 1f else 0.5f)
+                )
+            }
+            IconButton(
+                onClick = { isEditing = !isEditing },
+                enabled = enabled
+            ) {
+                Icon(
+                    imageVector = if (isEditing) Icons.Filled.Check else Icons.Filled.Edit,
+                    contentDescription = null
+                )
+            }
+        }
+        
+        if (isEditing) {
+            OutlinedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                placeholder = { if (placeholder.isNotEmpty()) Text(placeholder) },
+                singleLine = true,
+                enabled = enabled,
+                trailingIcon = {
+                    IconButton(onClick = {
+                        onConfirm()
+                        isEditing = false
+                    }) {
+                        Icon(Icons.Filled.Done, contentDescription = null)
+                    }
+                }
+            )
+        } else if (value.isNotEmpty()) {
+            Text(
+                text = value,
+                modifier = Modifier.padding(top = 4.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                fontFamily = FontFamily.Monospace,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
     }
 }
 
@@ -937,8 +1093,8 @@ private fun RulesTab(
     if (showClearDialog) {
         AlertDialog(
             onDismissRequest = { showClearDialog = false },
-            title = { Text("Clear All Rules") },
-            text = { Text("Are you sure you want to clear all active HymoFS rules? This will take effect immediately.") },
+            title = { Text(stringResource(R.string.hymofs_rules_clear_all)) },
+            text = { Text(stringResource(R.string.hymofs_rules_clear_confirm)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -946,12 +1102,12 @@ private fun RulesTab(
                         onClearAll()
                     }
                 ) {
-                    Text("Clear", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.hymofs_rules_clear), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showClearDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.hymofs_rules_cancel))
                 }
             }
         )
@@ -966,9 +1122,8 @@ private fun RulesTab(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
+                elevation = getCardElevation()
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -976,7 +1131,7 @@ private fun RulesTab(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(Icons.Filled.Info, contentDescription = null)
-                    Text("HymoFS kernel not available. Rules tab requires HymoFS kernel support.")
+                    Text(stringResource(R.string.hymofs_rules_not_available))
                 }
             }
             return
@@ -995,7 +1150,7 @@ private fun RulesTab(
             ) {
                 Icon(Icons.Filled.Refresh, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Refresh")
+                Text(stringResource(R.string.hymofs_rules_refresh))
             }
             
             OutlinedButton(
@@ -1007,13 +1162,13 @@ private fun RulesTab(
             ) {
                 Icon(Icons.Filled.Delete, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Clear All")
+                Text(stringResource(R.string.hymofs_rules_clear_all))
             }
         }
         
         // Rules list
         Text(
-            text = "${activeRules.size} active rules",
+            text = stringResource(R.string.hymofs_rules_count, activeRules.size),
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -1034,7 +1189,7 @@ private fun RulesTab(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No active rules",
+                            text = stringResource(R.string.hymofs_rules_empty),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -1049,9 +1204,8 @@ private fun RuleItem(rule: HymoFSManager.ActiveRule) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
+        elevation = getCardElevation()
     ) {
         Row(
             modifier = Modifier
@@ -1102,6 +1256,14 @@ private fun RuleItem(rule: HymoFSManager.ActiveRule) {
 }
 
 // ==================== Logs Tab ====================
+
+enum class LogLevel(val displayNameRes: Int, val color: Color, val tag: String) {
+    ALL(R.string.hymofs_logs_filter_all, Color.Unspecified, ""),
+    INFO(R.string.hymofs_logs_filter_info, Color(0xFF4CAF50), "INFO"),
+    WARN(R.string.hymofs_logs_filter_warn, Color(0xFFFF9800), "WARN"),
+    ERROR(R.string.hymofs_logs_filter_error, Color(0xFFF44336), "ERROR")
+}
+
 @Composable
 private fun LogsTab(
     showKernelLog: Boolean,
@@ -1109,8 +1271,42 @@ private fun LogsTab(
     logContent: String,
     onRefreshLog: () -> Unit
 ) {
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    var selectedLogLevel by remember { mutableStateOf(LogLevel.ALL) }
+    
     LaunchedEffect(showKernelLog) {
         onRefreshLog()
+    }
+    
+    // Filter logs by level
+    val filteredLogContent = remember(logContent, selectedLogLevel) {
+        if (selectedLogLevel == LogLevel.ALL) {
+            logContent
+        } else {
+            logContent.lines()
+                .filter { line -> line.contains(selectedLogLevel.tag, ignoreCase = true) }
+                .joinToString("\n")
+        }
+    }
+    
+    // Parse and colorize logs
+    val annotatedLogContent = remember(filteredLogContent) {
+        buildAnnotatedString {
+            filteredLogContent.lines().forEach { line ->
+                val color = when {
+                    line.contains("ERROR", ignoreCase = true) -> LogLevel.ERROR.color
+                    line.contains("WARN", ignoreCase = true) -> LogLevel.WARN.color
+                    line.contains("INFO", ignoreCase = true) -> LogLevel.INFO.color
+                    else -> Color(0xFFD4D4D4)
+                }
+                withStyle(style = SpanStyle(color = color)) {
+                    append(line)
+                }
+                append("\n")
+            }
+        }
     }
     
     Column(
@@ -1118,28 +1314,71 @@ private fun LogsTab(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Toggle buttons
+        // Control buttons row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            // Log type toggles
             FilterChip(
                 selected = !showKernelLog,
                 onClick = { if (showKernelLog) onToggleLogType() },
-                label = { Text("Daemon Log") }
+                label = { Text(stringResource(R.string.hymofs_logs_daemon)) }
             )
             FilterChip(
                 selected = showKernelLog,
                 onClick = { if (!showKernelLog) onToggleLogType() },
-                label = { Text("Kernel Log") }
+                label = { Text(stringResource(R.string.hymofs_logs_kernel)) }
             )
             
             Spacer(modifier = Modifier.weight(1f))
             
+            // Copy button
+            IconButton(
+                onClick = {
+                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    val clip = android.content.ClipData.newPlainText("HymoFS Log", filteredLogContent)
+                    clipboard.setPrimaryClip(clip)
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(context.getString(R.string.hymofs_logs_copy_success))
+                    }
+                }
+            ) {
+                Icon(Icons.Filled.ContentCopy, contentDescription = stringResource(R.string.hymofs_logs_copy))
+            }
+            
+            // Refresh button
             IconButton(onClick = onRefreshLog) {
                 Icon(Icons.Filled.Refresh, contentDescription = "Refresh")
+            }
+        }
+        
+        // Log level filter chips
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(LogLevel.entries.size) { index ->
+                val level = LogLevel.entries[index]
+                FilterChip(
+                    selected = selectedLogLevel == level,
+                    onClick = { selectedLogLevel = level },
+                    label = { Text(stringResource(level.displayNameRes)) },
+                    leadingIcon = if (level != LogLevel.ALL) {
+                        {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .background(level.color, shape = RoundedCornerShape(4.dp))
+                            )
+                        }
+                    } else null
+                )
             }
         }
         
@@ -1153,18 +1392,131 @@ private fun LogsTab(
                 containerColor = Color(0xFF1E1E1E)
             )
         ) {
-            val scrollState = rememberScrollState()
-            
-            Text(
-                text = if (logContent.isEmpty()) "No logs available" else logContent,
+            Box(modifier = Modifier.fillMaxSize()) {
+                val scrollState = rememberScrollState()
+                
+                Text(
+                    text = annotatedLogContent,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                        .padding(12.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 11.sp
+                )
+                
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
+                )
+            }
+        }
+    }
+}
+
+// ==================== Partitions Input Component ====================
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PartitionsInput(
+    partitions: List<String>,
+    onPartitionsChanged: (List<String>) -> Unit,
+    onScanPartitions: () -> Unit
+) {
+    var inputText by remember { mutableStateOf("") }
+    
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.hymofs_partitions),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = stringResource(R.string.hymofs_partitions_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            IconButton(onClick = onScanPartitions) {
+                Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.hymofs_partitions_scan))
+            }
+        }
+        
+        // Chips display with FlowRow for wrapping
+        if (partitions.isNotEmpty()) {
+            FlowRow(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(12.dp),
-                style = MaterialTheme.typography.bodySmall,
-                fontFamily = FontFamily.Monospace,
-                color = Color(0xFFD4D4D4),
-                fontSize = 11.sp
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                partitions.forEach { partition ->
+                    InputChip(
+                        selected = false,
+                        onClick = { },
+                        label = { Text(partition) },
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = "Remove",
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .clickable {
+                                        onPartitionsChanged(partitions - partition)
+                                    }
+                            )
+                        }
+                    )
+                }
+            }
+        }
+        
+        // Input field for adding new partitions
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = inputText,
+                onValueChange = { inputText = it },
+                modifier = Modifier.weight(1f),
+                placeholder = { Text(stringResource(R.string.hymofs_partitions_placeholder)) },
+                singleLine = true,
+                trailingIcon = {
+                    if (inputText.isNotEmpty()) {
+                        IconButton(
+                            onClick = {
+                                val newPartitions = inputText
+                                    .split(",", " ")
+                                    .map { it.trim() }
+                                    .filter { it.isNotEmpty() }
+                                
+                                if (newPartitions.isNotEmpty()) {
+                                    val merged = (partitions + newPartitions).distinct()
+                                    onPartitionsChanged(merged)
+                                    inputText = ""
+                                }
+                            }
+                        ) {
+                            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.hymofs_partitions_add))
+                        }
+                    }
+                }
             )
         }
     }

@@ -51,24 +51,35 @@ static int hymo_execute_cmd(unsigned int syscall_cmd, unsigned int ioctl_cmd, vo
 }
 
 int HymoFS::get_protocol_version() {
+  int version = -1;
+  bool fd_tried = false;
+  bool syscall_tried = false;
+  
   // Try fd-based mode first
   if (s_use_fd_mode || try_open_hymo_device() >= 0) {
-    int version = 0;
-    if (ioctl(s_hymo_fd, HYMO_IOC_GET_VERSION, &version) == 0) {
-      LOG_INFO("get_protocol_version (fd mode) returned: " + std::to_string(version));
-      return version;
+    fd_tried = true;
+    int fd_version = 0;
+    if (ioctl(s_hymo_fd, HYMO_IOC_GET_VERSION, &fd_version) == 0) {
+      LOG_INFO("get_protocol_version (fd mode) returned: " + std::to_string(fd_version));
+      return fd_version;
+    } else {
+      LOG_WARN("get_protocol_version (fd mode) failed: " + std::string(strerror(errno)));
     }
-    // ioctl failed, try syscall
   }
   
   // Fallback to syscall mode
-  int ret = syscall(SYS_reboot, HYMO_MAGIC1, HYMO_MAGIC2, HYMO_CMD_GET_VERSION, 0);
-  if (ret < 0) {
-    LOG_ERROR("get_protocol_version failed: " + std::string(strerror(errno)));
+  syscall_tried = true;
+  int syscall_ret = syscall(SYS_reboot, HYMO_MAGIC1, HYMO_MAGIC2, HYMO_CMD_GET_VERSION, 0);
+  if (syscall_ret >= 0) {
+    LOG_INFO("get_protocol_version (syscall mode) returned: " + std::to_string(syscall_ret));
+    return syscall_ret;
   } else {
-    LOG_INFO("get_protocol_version (syscall mode) returned: " + std::to_string(ret));
+    LOG_WARN("get_protocol_version (syscall mode) failed: " + std::string(strerror(errno)));
   }
-  return ret;
+  
+  // Both methods failed
+  LOG_ERROR("get_protocol_version: Both fd and syscall modes failed");
+  return -1;
 }
 
 HymoFSStatus HymoFS::check_status() {

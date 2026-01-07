@@ -1,4 +1,4 @@
-name: Build ksuinit (C++)
+name: Build ksuinit
 on:
   workflow_call:
     inputs:

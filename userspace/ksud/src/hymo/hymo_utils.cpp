@@ -153,11 +153,22 @@ bool mount_image(const fs::path &image_path, const fs::path &target) {
     return false;
   }
 
-  // Use mount command directly which handles loop device setup automatically
-  // and robustly This avoids issues with manual losetup parsing on some Android
-  // devices
-  std::string cmd = "mount -t ext4 -o loop,rw,noatime " + image_path.string() +
-                    " " + target.string();
+  // Detect filesystem type (for EROFS support)
+  std::string fstype = "ext4"; // default
+  if (image_path.extension() == ".erofs") {
+    fstype = "erofs";
+  }
+
+  // Build mount command
+  std::string cmd;
+  if (fstype == "erofs") {
+    // EROFS is always read-only
+    cmd = "mount -t erofs -o loop,ro " + image_path.string() + " " + target.string();
+  } else {
+    // ext4 with read-write
+    cmd = "mount -t ext4 -o loop,rw,noatime " + image_path.string() + " " + target.string();
+  }
+
   int ret = system(cmd.c_str());
 
   if (ret != 0) {

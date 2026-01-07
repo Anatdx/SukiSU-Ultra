@@ -8,7 +8,6 @@
     <string name="home_unsupported">غير مدعوم</string>
     <string name="home_unsupported_reason">KernelSU يدعم GKI kernels فقط</string>
     <string name="home_kernel">إصدار النواة</string>
-    <string name="home_susfs_version">إصدار SuSFS</string>
     <string name="home_manager_version">إصدار المدير</string>
     <string name="home_selinux_status">وضع SELinux</string>
     <string name="selinux_status_disabled">معطل</string>
@@ -174,8 +173,6 @@
     <string name="hide_kernel_kernelsu_version_summary">إخفاء إصدار النواة</string>
     <string name="hide_other_info">إخفاء معلومات أخرى</string>
     <string name="hide_other_info_summary">يخفي معلومات عن عدد المستخدمين المتميزين والوحدات ووحدات KPM على الصفحة الرئيسية</string>
-    <string name="hide_susfs_status">إخفاء حالة SuSFS</string>
-    <string name="hide_susfs_status_summary">إخفاء معلومات حالة SuSFS على الصفحة الرئيسية</string>
     <string name="hide_link_card">إخفاء حالة بطاقة الرابط</string>
     <string name="hide_link_card_summary">إخفاء معلومات البطاقة في الصفحة الرئيسية</string>
     <string name="theme_mode">الثيم</string>
@@ -277,9 +274,6 @@
     <string name="back">عد مرة أخرى</string>
     <string name="background_set_success">تم تعيين الخلفية بنجاح</string>
     <string name="background_removed">إزالة خلفيات مخصصة</string>
-    <string name="icon_switch_title">Alternate icon</string>
-    <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon.</string>
-    <string name="icon_switched">Icon switched</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">عرض وظيفة KPM</string>
     <string name="show_kpm_info_summary">إخفاء معلومات KPM ووظيفتها في الشريط المنزلي والأسفل</string>
@@ -345,20 +339,4 @@
     <string name="menu_options">Menu Options</string>
     <string name="sort_options">Sort by</string>
     <string name="app_categories">Application Type Selection</string>
-    <!-- SuSFS Configuration -->
-    <!-- SuSFS Reset Confirmation -->
-    <!-- SuSFS Toast Messages -->
-    <!-- SuSFS Settings Item -->
-    <!-- 开机自启动相关 -->
-    <!-- SuSFS Tab Titles -->
-    <!-- SuSFS Dialog Actions -->
-    <!-- SuSFS Path Management -->
-    <!-- SuSFS Umount Mode -->
-    <!-- SuSFS Run Umount -->
-    <!-- SuSFS Reset Categories -->
-    <!-- SuSFS Path Settings -->
-    <!-- SuSFS Enabled Features -->
-    <!-- Feature Labels -->
-    <!-- 可切换状态 -->
-    <!-- Settings related strings -->
 </resources>

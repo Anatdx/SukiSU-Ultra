@@ -83,6 +83,25 @@ int cmd_hymo(const std::vector<std::string>& args) {
         return 0;
     }
     
+    if (subcmd == "status") {
+        HymoFSStatus status = HymoFS::check_status();
+        switch (status) {
+            case HymoFSStatus::Available:
+                printf("Available\n");
+                break;
+            case HymoFSStatus::NotPresent:
+                printf("NotPresent\n");
+                break;
+            case HymoFSStatus::KernelTooOld:
+                printf("KernelTooOld\n");
+                break;
+            case HymoFSStatus::ModuleTooOld:
+                printf("ModuleTooOld\n");
+                break;
+        }
+        return 0;
+    }
+    
     if (subcmd == "list") {
         if (HymoFS::is_available()) {
             std::string rules = HymoFS::get_active_rules();
@@ -169,7 +188,13 @@ int cmd_hymo(const std::vector<std::string>& args) {
         printf("  \"mountsource\": \"%s\",\n", config.mountsource.c_str());
         printf("  \"verbose\": %s,\n", config.verbose ? "true" : "false");
         printf("  \"force_ext4\": %s,\n", config.force_ext4 ? "true" : "false");
+        printf("  \"prefer_erofs\": %s,\n", config.prefer_erofs ? "true" : "false");
+        printf("  \"disable_umount\": %s,\n", config.disable_umount ? "true" : "false");
+        printf("  \"enable_nuke\": %s,\n", config.enable_nuke ? "true" : "false");
+        printf("  \"ignore_protocol_mismatch\": %s,\n", config.ignore_protocol_mismatch ? "true" : "false");
+        printf("  \"enable_kernel_debug\": %s,\n", config.enable_kernel_debug ? "true" : "false");
         printf("  \"enable_stealth\": %s,\n", config.enable_stealth ? "true" : "false");
+        printf("  \"avc_spoof\": %s,\n", config.avc_spoof ? "true" : "false");
         printf("  \"hymofs_available\": %s,\n", HymoFS::is_available() ? "true" : "false");
         printf("  \"hymofs_status\": %d,\n", (int)HymoFS::check_status());
         printf("  \"partitions\": [");
@@ -582,11 +607,11 @@ static int cmd_mount() {
         try {
             // Setup storage with fallback
             try {
-                storage = setup_storage(MIRROR_DIR, img_path, config.force_ext4);
+                storage = setup_storage(MIRROR_DIR, img_path, config.force_ext4, config.prefer_erofs);
             } catch (const std::exception& e) {
                 if (config.force_ext4) {
                     LOG_WARN("Force Ext4 failed: " + std::string(e.what()) + ". Falling back to auto.");
-                    storage = setup_storage(MIRROR_DIR, img_path, false);
+                    storage = setup_storage(MIRROR_DIR, img_path, false, config.prefer_erofs);
                 } else {
                     throw;
                 }
@@ -717,7 +742,7 @@ static int cmd_mount() {
         fs::path mnt_base(FALLBACK_CONTENT_DIR);
         fs::path img_path = fs::path(BASE_DIR) / "modules.img";
 
-        storage = setup_storage(mnt_base, img_path, config.force_ext4);
+        storage = setup_storage(mnt_base, img_path, config.force_ext4, config.prefer_erofs);
 
         module_list = scan_modules(config.moduledir, config);
         LOG_INFO("Scanned " + std::to_string(module_list.size()) + " active modules.");
@@ -845,12 +870,6 @@ static int cmd_mount() {
     if (!state.save()) {
         LOG_ERROR("Failed to save runtime state");
     }
-
-    // Update module description
-    update_module_description(
-        true, storage.mode, nuke_active, exec_result.overlay_module_ids.size(),
-        exec_result.magic_module_ids.size(), plan.hymofs_module_ids.size(),
-        warning_msg, hymofs_active);
 
     LOG_INFO("Hymo Mount Completed.");
     printf("Mount completed successfully.\n");

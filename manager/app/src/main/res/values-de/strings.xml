@@ -8,7 +8,6 @@
     <string name="home_unsupported">Nicht unterstützt</string>
     <string name="home_unsupported_reason">KernelSU unterstützt derzeit nur GKI-Kernel</string>
     <string name="home_kernel">Kernel</string>
-    <string name="home_susfs_version">SuSFS version</string>
     <string name="home_manager_version">Manager-Version</string>
     <string name="home_selinux_status">SELinux Status</string>
     <string name="selinux_status_disabled">Deaktiviert</string>
@@ -174,8 +173,6 @@
     <string name="hide_kernel_kernelsu_version_summary">Kernel-Version ausblenden</string>
     <string name="hide_other_info">Andere Infos ausblenden</string>
     <string name="hide_other_info_summary">Versteckt Informationen über die Anzahl der Supernutzer, Module und KPM-Module auf der Startseite</string>
-    <string name="hide_susfs_status">SuSFS-Status ausblenden</string>
-    <string name="hide_susfs_status_summary">SuSFS Statusinformationen auf der Startseite ausblenden</string>
     <string name="hide_link_card">Link-Kartenstatus ausblenden</string>
     <string name="hide_link_card_summary">Link Karteninformationen auf der Startseite ausblenden</string>
     <string name="theme_mode">Thema</string>
@@ -277,9 +274,6 @@
     <string name="back">Comeback</string>
     <string name="background_set_success">Hintergrund erfolgreich gesetzt</string>
     <string name="background_removed">Eigene Hintergründe entfernt</string>
-    <string name="icon_switch_title">Alternatives Symbol</string>
-    <string name="icon_switch_summary">Ändere das Launcher-Symbol auf das KernelSU Icon.</string>
-    <string name="icon_switched">Icon gewechselt</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">KPM-Funktion anzeigen</string>
     <string name="show_kpm_info_summary">Versteckt KPM-Informationen und Funktion in der Home- und Unterleiste</string>
@@ -345,20 +339,4 @@
     <string name="menu_options">Menu Options</string>
     <string name="sort_options">Sort by</string>
     <string name="app_categories">Application Type Selection</string>
-    <!-- SuSFS Configuration -->
-    <!-- SuSFS Reset Confirmation -->
-    <!-- SuSFS Toast Messages -->
-    <!-- SuSFS Settings Item -->
-    <!-- 开机自启动相关 -->
-    <!-- SuSFS Tab Titles -->
-    <!-- SuSFS Dialog Actions -->
-    <!-- SuSFS Path Management -->
-    <!-- SuSFS Umount Mode -->
-    <!-- SuSFS Run Umount -->
-    <!-- SuSFS Reset Categories -->
-    <!-- SuSFS Path Settings -->
-    <!-- SuSFS Enabled Features -->
-    <!-- Feature Labels -->
-    <!-- 可切换状态 -->
-    <!-- Settings related strings -->
 </resources>

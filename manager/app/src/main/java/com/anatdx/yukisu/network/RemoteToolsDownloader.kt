@@ -19,8 +19,8 @@ class RemoteToolsDownloader(
         private const val TAG = "RemoteToolsDownloader"
 
         // 远程下载URL配置
-        private const val KPTOOLS_REMOTE_URL = "https://raw.githubusercontent.com/ShirkNeko/SukiSU_patch/refs/heads/main/kpm/kptools"
-        private const val KPIMG_REMOTE_URL = "https://raw.githubusercontent.com/ShirkNeko/SukiSU_patch/refs/heads/main/kpm/kpimg"
+        private const val KPTOOLS_REMOTE_URL = "https://raw.githubusercontent.com/Anatdx/YukiSU_patch/refs/heads/main/kpm/kptools"
+        private const val KPIMG_REMOTE_URL = "https://raw.githubusercontent.com/Anatdx/YukiSU_patch/refs/heads/main/kpm/kpimg"
 
         // 网络超时配置（毫秒）
         private const val CONNECTION_TIMEOUT = 15000  // 15秒连接超时

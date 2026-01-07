@@ -8,7 +8,6 @@
     <string name="home_unsupported">Non pris en charge</string>
     <string name="home_unsupported_reason">KernelSU ne prend désormais en charge que les noyaux GKI</string>
     <string name="home_kernel">Noyau</string>
-    <string name="home_susfs_version">Version SuSFS</string>
     <string name="home_manager_version">Version du gestionnaire</string>
     <string name="home_selinux_status">Mode SELinux</string>
     <string name="selinux_status_disabled">Désactivé</string>
@@ -174,8 +173,6 @@
     <string name="hide_kernel_kernelsu_version_summary">Masquer la version du noyau</string>
     <string name="hide_other_info">Masquer les autres infos</string>
     <string name="hide_other_info_summary">Masque des informations sur le nombre de super utilisateurs, de modules et de modules KPM sur la page d\'accueil</string>
-    <string name="hide_susfs_status">Masquer le statut SuSFS</string>
-    <string name="hide_susfs_status_summary">Masquer les informations de la carte de lien sur la page d\'accueil</string>
     <string name="hide_link_card">Masquer le statut du lien de la carte</string>
     <string name="hide_link_card_summary">Masquer les informations de la carte de lien sur la page d\'accueil</string>
     <string name="theme_mode">Thème</string>
@@ -277,9 +274,6 @@
     <string name="back">Reviens</string>
     <string name="background_set_success">Fond d\'écran défini avec succès</string>
     <string name="background_removed">Fond d\'écran personnalisé supprimé</string>
-    <string name="icon_switch_title">Icône alternative</string>
-    <string name="icon_switch_summary">Changer l\'icône du lanceur en icône de KernelSU.</string>
-    <string name="icon_switched">Icône changée</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">Afficher la fonction KPM</string>
     <string name="show_kpm_info_summary">Masque les informations et fonctions KPM dans la barre d\'accueil et en bas</string>
@@ -345,20 +339,4 @@
     <string name="menu_options">Menu Options</string>
     <string name="sort_options">Sort by</string>
     <string name="app_categories">Application Type Selection</string>
-    <!-- SuSFS Configuration -->
-    <!-- SuSFS Reset Confirmation -->
-    <!-- SuSFS Toast Messages -->
-    <!-- SuSFS Settings Item -->
-    <!-- 开机自启动相关 -->
-    <!-- SuSFS Tab Titles -->
-    <!-- SuSFS Dialog Actions -->
-    <!-- SuSFS Path Management -->
-    <!-- SuSFS Umount Mode -->
-    <!-- SuSFS Run Umount -->
-    <!-- SuSFS Reset Categories -->
-    <!-- SuSFS Path Settings -->
-    <!-- SuSFS Enabled Features -->
-    <!-- Feature Labels -->
-    <!-- 可切换状态 -->
-    <!-- Settings related strings -->
 </resources>

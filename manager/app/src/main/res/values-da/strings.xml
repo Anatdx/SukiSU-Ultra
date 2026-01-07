@@ -8,7 +8,6 @@
     <string name="home_unsupported">Ikke understøttet</string>
     <string name="home_unsupported_reason">KernelSU understøtter kun GKI kernels</string>
     <string name="home_kernel">Kernel</string>
-    <string name="home_susfs_version">SuSFS Version</string>
     <string name="home_manager_version">Manager Version</string>
     <string name="home_selinux_status">SELinux-status</string>
     <string name="selinux_status_disabled">Deaktiveret</string>
@@ -172,8 +171,6 @@
     <string name="hide_kernel_kernelsu_version_summary">Hide kernel version</string>
     <string name="hide_other_info">Hide other info</string>
     <string name="hide_other_info_summary">Hides information about the number of super users, modules and KPM modules on the home page</string>
-    <string name="hide_susfs_status">Hide SuSFS status</string>
-    <string name="hide_susfs_status_summary">Hide SuSFS status information on the home page</string>
     <string name="hide_link_card">Hide Link Card Status</string>
     <string name="hide_link_card_summary">Hide link card information on the home page</string>
     <string name="theme_mode">Theme</string>
@@ -301,7 +298,6 @@
     <string name="dpi_confirm_message">Are you sure you want to change the application DPI from %1$d to %2$d?</string>
     <string name="dpi_confirm_summary">Application needs to be restarted to apply the new DPI settings, does not affect the system status bar or other applications</string>
     <string name="dpi_applied_success">DPI has been set to %1$d, effective after restarting the application</string>
-    <!-- Language settings related strings -->
     <string name="settings_language">App Language</string>
     <string name="language_system_default">Follow System</string>
     <string name="settings_card_dim">Card Darkness Adjustment</string>
@@ -343,20 +339,4 @@
     <string name="menu_options">Menu Options</string>
     <string name="sort_options">Sort by</string>
     <string name="app_categories">Application Type Selection</string>
-    <!-- SuSFS Configuration -->
-    <!-- SuSFS Reset Confirmation -->
-    <!-- SuSFS Toast Messages -->
-    <!-- SuSFS Settings Item -->
-    <!-- 开机自启动相关 -->
-    <!-- SuSFS Tab Titles -->
-    <!-- SuSFS Dialog Actions -->
-    <!-- SuSFS Path Management -->
-    <!-- SuSFS Umount Mode -->
-    <!-- SuSFS Run Umount -->
-    <!-- SuSFS Reset Categories -->
-    <!-- SuSFS Path Settings -->
-    <!-- SuSFS Enabled Features -->
-    <!-- Feature Labels -->
-    <!-- 可切换状态 -->
-    <!-- Settings related strings -->
 </resources>

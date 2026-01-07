@@ -55,6 +55,8 @@ Config Config::from_file(const fs::path &path) {
         config.verbose = (value == "true");
       else if (key == "force_ext4")
         config.force_ext4 = (value == "true");
+      else if (key == "prefer_erofs")
+        config.prefer_erofs = (value == "true");
       else if (key == "disable_umount")
         config.disable_umount = (value == "true");
       else if (key == "enable_nuke")
@@ -102,6 +104,7 @@ bool Config::save_to_file(const fs::path &path) const {
   file << "mountsource = \"" << mountsource << "\"\n";
   file << "verbose = " << (verbose ? "true" : "false") << "\n";
   file << "force_ext4 = " << (force_ext4 ? "true" : "false") << "\n";
+  file << "prefer_erofs = " << (prefer_erofs ? "true" : "false") << "\n";
   file << "disable_umount = " << (disable_umount ? "true" : "false") << "\n";
   file << "enable_nuke = " << (enable_nuke ? "true" : "false") << "\n";
   file << "ignore_protocol_mismatch = "

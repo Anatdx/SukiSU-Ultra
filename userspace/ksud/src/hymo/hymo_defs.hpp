@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-// #define HYMO_PROTOCOL_VERSION 7 // Moved to hymo_magic.h
 
 namespace hymo {
 
@@ -16,7 +15,6 @@ constexpr const char *RUN_DIR = "/data/adb/hymo/run/";
 constexpr const char *STATE_FILE = "/data/adb/hymo/run/daemon_state.json";
 constexpr const char *DAEMON_LOG_FILE = "/data/adb/hymo/daemon.log";
 constexpr const char *SYSTEM_RW_DIR = "/data/adb/hymo/rw";
-constexpr const char *MODULE_PROP_FILE = "/data/adb/modules/hymo/module.prop";
 
 // Marker files
 constexpr const char *DISABLE_FILE_NAME = "disable";

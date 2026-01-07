@@ -94,6 +94,7 @@ object HymoFSManager {
         val verbose: Boolean = false,
         val partitions: List<String> = emptyList(),
         val forceExt4: Boolean = false,
+        val preferErofs: Boolean = false,
         val enableNuke: Boolean = false,
         val disableUmount: Boolean = false,
         val ignoreProtocolMismatch: Boolean = false,
@@ -174,6 +175,7 @@ object HymoFSManager {
                         (0 until arr.length()).map { arr.getString(it) }
                     } ?: emptyList(),
                     forceExt4 = json.optBoolean("force_ext4", false),
+                    preferErofs = json.optBoolean("prefer_erofs", false),
                     enableNuke = json.optBoolean("enable_nuke", false),
                     disableUmount = json.optBoolean("disable_umount", false),
                     ignoreProtocolMismatch = json.optBoolean("ignore_protocol_mismatch", false),
@@ -206,19 +208,24 @@ object HymoFSManager {
                 appendLine("mountsource = \"${config.mountsource}\"")
                 appendLine("verbose = ${config.verbose}")
                 appendLine("force_ext4 = ${config.forceExt4}")
+                appendLine("prefer_erofs = ${config.preferErofs}")
                 appendLine("disable_umount = ${config.disableUmount}")
                 appendLine("enable_nuke = ${config.enableNuke}")
                 appendLine("ignore_protocol_mismatch = ${config.ignoreProtocolMismatch}")
                 appendLine("enable_kernel_debug = ${config.enableKernelDebug}")
                 appendLine("enable_stealth = ${config.enableStealth}")
                 appendLine("avc_spoof = ${config.avcSpoof}")
-                appendLine("partitions = \"${config.partitions.joinToString(",")}\"")
+                if (config.partitions.isNotEmpty()) {
+                    appendLine("partitions = \"${config.partitions.joinToString(",")}\"")
+                }
             }
             
-            val escapedContent = content.replace("'", "'\\''")
+            // Use cat with heredoc to avoid quote escaping issues
             val result = Shell.cmd(
                 "mkdir -p '$HYMO_CONFIG_DIR'",
-                "printf '%s\\n' '$escapedContent' > '$HYMO_CONFIG_FILE'"
+                "cat > '$HYMO_CONFIG_FILE' << 'HYMO_CONFIG_EOF'",
+                content,
+                "HYMO_CONFIG_EOF"
             ).exec()
             result.isSuccess
         } catch (e: Exception) {
@@ -540,6 +547,55 @@ object HymoFSManager {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to set builtin mount state", e)
             false
+        }
+    }
+    
+    /**
+     * Scan for partition candidates in module directories
+     * Returns list of detected partition names that are mountpoints
+     */
+    suspend fun scanPartitionCandidates(moduleDir: String = MODULE_DIR): List<String> = withContext(Dispatchers.IO) {
+        try {
+            // Built-in standard partitions to ignore
+            val ignored = setOf(
+                "META-INF", "common", "system", "vendor", "product", "system_ext",
+                "odm", "oem", ".git", ".github", "lost+found"
+            )
+            
+            val candidates = mutableSetOf<String>()
+            val moduleDirFile = File(moduleDir)
+            
+            if (!moduleDirFile.exists() || !moduleDirFile.isDirectory) {
+                return@withContext emptyList()
+            }
+            
+            // Scan each module directory
+            moduleDirFile.listFiles()?.forEach { moduleFile ->
+                if (!moduleFile.isDirectory) return@forEach
+                
+                // Check subdirectories in each module
+                moduleFile.listFiles()?.forEach { subdir ->
+                    if (!subdir.isDirectory) return@forEach
+                    
+                    val name = subdir.name
+                    if (ignored.contains(name)) return@forEach
+                    
+                    // Check if it corresponds to a real mountpoint in root
+                    val rootPath = "/$name"
+                    val checkResult = Shell.cmd(
+                        "test -d '$rootPath' && mountpoint -q '$rootPath' && echo 'yes' || echo 'no'"
+                    ).exec()
+                    
+                    if (checkResult.isSuccess && checkResult.out.firstOrNull()?.trim() == "yes") {
+                        candidates.add(name)
+                    }
+                }
+            }
+            
+            candidates.sorted()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to scan partition candidates", e)
+            emptyList()
         }
     }
 }

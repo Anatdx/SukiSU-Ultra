@@ -287,15 +287,6 @@ private fun HideOptionsSettings(
 
     SwitchSettingItem(
         icon = Icons.Filled.VisibilityOff,
-        title = stringResource(R.string.hide_susfs_status),
-        summary = stringResource(R.string.hide_susfs_status_summary),
-        checked = state.isHideSusfsStatus,
-        onChange = handlers::handleHideSusfsStatusChange
-    )
-
-
-    SwitchSettingItem(
-        icon = Icons.Filled.VisibilityOff,
         title = stringResource(R.string.hide_zygisk_implement),
         summary = stringResource(R.string.hide_zygisk_implement_summary),
         checked = state.isHideZygiskImplement,
@@ -361,6 +352,16 @@ private fun AdvancedSettings(
                 stringResource(R.string.selinux_disabled),
             checked = state.selinuxEnabled,
             onChange = handlers::handleSelinuxChange
+        )
+
+        SwitchSettingItem(
+            icon = Icons.Filled.Lock,
+            title = stringResource(R.string.hide_bl_title),
+            summary = if (state.hideBlEnabled)
+                stringResource(R.string.hide_bl_enabled) else
+                stringResource(R.string.hide_bl_disabled),
+            checked = state.hideBlEnabled,
+            onChange = handlers::handleHideBlChange
         )
     }
 }
