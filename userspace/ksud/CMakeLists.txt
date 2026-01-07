@@ -17,16 +17,48 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffunction-sections -fdata-sections -fvi
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld -Wl,--gc-sections -Wl,--strip-all -flto")
 set(CMAKE_CXX_FLAGS_RELEASE "-Oz -DNDEBUG -flto")
 
+# Fetch third-party dependencies
+include(FetchContent)
+
+# PicoSHA2 - SHA-256 implementation
+FetchContent_Declare(
+    picosha2
+    GIT_REPOSITORY https://github.com/okdshin/PicoSHA2.git
+    GIT_TAG v1.0.1
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(picosha2)
+
+# miniz - Lightweight ZIP library
+FetchContent_Declare(
+    miniz
+    GIT_REPOSITORY https://github.com/richgel999/miniz.git
+    GIT_TAG 3.0.2
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(miniz)
+
 # Generate embedded assets
 set(ASSETS_DIR ${CMAKE_SOURCE_DIR}/assets)
 set(GENERATED_DIR ${CMAKE_BINARY_DIR}/generated)
 set(ASSETS_CPP ${GENERATED_DIR}/assets_data.cpp)
+set(VERSION_CPP ${CMAKE_SOURCE_DIR}/src/defs.cpp)
 
 # Create generated directory
 file(MAKE_DIRECTORY ${GENERATED_DIR})
 
-# Run embed_assets.py to generate assets_data.cpp
+# Generate version file at configure time
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
+execute_process(
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/generate_version.py ${VERSION_CPP}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    RESULT_VARIABLE VERSION_RESULT
+)
+if(NOT VERSION_RESULT EQUAL 0)
+    message(WARNING "Failed to generate version file, using defaults")
+endif()
+
+# Run embed_assets.py to generate assets_data.cpp
 add_custom_command(
     OUTPUT ${ASSETS_CPP}
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/embed_assets.py 
@@ -44,7 +76,8 @@ set(SOURCES
     src/utils.cpp
     src/core/ksucalls.cpp
     src/core/feature.cpp
-    src/core/susfs.cpp
+    src/core/restorecon.cpp
+    src/core/assets.cpp
     src/module/module.cpp
     src/module/module_config.cpp
     src/module/metamodule.cpp
@@ -55,14 +88,33 @@ set(SOURCES
     src/su.cpp
     src/init_event.cpp
     src/umount.cpp
-    src/restorecon.cpp
     src/debug.cpp
     src/kpm.cpp
+    # Core features
+    src/core/hide_bootloader.cpp
+    # Flash kernel packages
+    src/flash/flash_ak3.cpp
+    # HymoFS module management
+    src/hymo/hymo_cli.cpp
+    src/hymo/hymo_utils.cpp
+    src/hymo/conf/config.cpp
+    src/hymo/core/executor.cpp
+    src/hymo/core/inventory.cpp
+    src/hymo/core/modules.cpp
+    src/hymo/core/planner.cpp
+    src/hymo/core/state.cpp
+    src/hymo/core/storage.cpp
+    src/hymo/core/sync.cpp
+    src/hymo/mount/hymofs.cpp
+    src/hymo/mount/magic.cpp
+    src/hymo/mount/overlay.cpp
     ${ASSETS_CPP}
 )
 
 # 头文件目录
 include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${picosha2_SOURCE_DIR})
+include_directories(${miniz_SOURCE_DIR})
 include_directories(${GENERATED_DIR})
 
 add_executable(ksud ${SOURCES})
@@ -72,7 +124,7 @@ if(NOT ANDROID)
     target_link_libraries(ksud PRIVATE pthread)
 endif()
 
-target_link_libraries(ksud PRIVATE z)
+target_link_libraries(ksud PRIVATE z miniz)
 
 # 安装
 install(TARGETS ksud DESTINATION bin)

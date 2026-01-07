@@ -4,9 +4,11 @@
 #include "log.hpp"
 #include "utils.hpp"
 
+#include <fcntl.h>
 #include <getopt.h>
 #include <grp.h>
 #include <pwd.h>
+#include <sched.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -31,6 +33,7 @@ static void print_su_usage() {
     printf("  -M, -mm, --mount-master  force run in the global mount namespace\n");
     printf("  -g, --group GROUP        specify the primary group\n");
     printf("  -G, --supp-group GROUP   specify a supplementary group\n");
+    printf("  -W, --no-wrapper         don't use ksu fd wrapper\n");
 }
 
 static void set_identity(uid_t uid, gid_t gid, const std::vector<gid_t>& groups) {
@@ -39,6 +42,21 @@ static void set_identity(uid_t uid, gid_t gid, const std::vector<gid_t>& groups)
     }
     setresgid(gid, gid, gid);
     setresuid(uid, uid, uid);
+}
+
+static void wrap_tty(int fd) {
+    if (isatty(fd) != 1) {
+        return;
+    }
+    int new_fd = get_wrapped_fd(fd);
+    if (new_fd < 0) {
+        LOGW("Failed to get wrapped fd for %d", fd);
+        return;
+    }
+    if (dup2(new_fd, fd) == -1) {
+        LOGW("Failed to dup %d -> %d: %s", new_fd, fd, strerror(errno));
+    }
+    close(new_fd);
 }
 
 int su_main(int argc, char* argv[]) {
@@ -58,17 +76,30 @@ int su_main(int argc, char* argv[]) {
     bool is_login = false;
     bool preserve_env = false;
     bool mount_master = false;
+    bool use_fd_wrapper = true;
     uid_t target_uid = 0;
     gid_t target_gid = 0;
     bool gid_specified = false;
     std::vector<gid_t> groups;
 
     // Preprocess: replace -mm with -M, -cn with -z
+    // AND merge everything after -c into a single argument (matching Rust behavior)
     std::vector<std::string> args_vec;
     args_vec.push_back(argv[0]);
+
+    int c_index = -1;
     for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
-        if (arg == "-mm") {
+        if (arg == "-c" || arg == "--command") {
+            c_index = static_cast<int>(args_vec.size());
+            args_vec.push_back(arg);
+        } else if (c_index >= 0 && static_cast<int>(args_vec.size()) == c_index + 1) {
+            // This is the first argument after -c, start collecting
+            args_vec.push_back(arg);
+        } else if (c_index >= 0 && static_cast<int>(args_vec.size()) == c_index + 2) {
+            // Append all remaining args to the command with spaces
+            args_vec.back() += " " + arg;
+        } else if (arg == "-mm") {
             args_vec.push_back("-M");
         } else if (arg == "-cn") {
             args_vec.push_back("-z");
@@ -95,11 +126,12 @@ int su_main(int argc, char* argv[]) {
                                            {"mount-master", no_argument, 0, 'M'},
                                            {"group", required_argument, 0, 'g'},
                                            {"supp-group", required_argument, 0, 'G'},
+                                           {"no-wrapper", no_argument, 0, 'W'},
                                            {0, 0, 0, 0}};
 
     optind = 1;  // Reset getopt
     int opt;
-    while ((opt = getopt_long(argc, argv, "c:hlps:vVMg:G:", long_options, nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, "c:hlps:vVMg:G:W", long_options, nullptr)) != -1) {
         switch (opt) {
         case 'c':
             command = optarg;
@@ -132,6 +164,9 @@ int su_main(int argc, char* argv[]) {
         case 'G':
             groups.push_back(static_cast<gid_t>(std::stoul(optarg)));
             break;
+        case 'W':
+            use_fd_wrapper = false;
+            break;
         default:
             break;
         }
@@ -156,8 +191,12 @@ int su_main(int argc, char* argv[]) {
             struct passwd* pw = getpwnam(user);
             if (pw) {
                 target_uid = pw->pw_uid;
+            } else {
+                // Invalid username, default to 0 (matching Rust behavior)
+                target_uid = 0;
             }
         }
+        optind++;
     }
 
     // If no gid specified, use first supplementary group or uid
@@ -174,6 +213,13 @@ int su_main(int argc, char* argv[]) {
         if (!switch_mnt_ns(1)) {
             LOGW("Failed to switch to global mount namespace");
         }
+    }
+
+    // Wrap tty fds if requested
+    if (use_fd_wrapper) {
+        wrap_tty(0);
+        wrap_tty(1);
+        wrap_tty(2);
     }
 
     // Switch cgroups
@@ -242,12 +288,46 @@ int root_shell() {
     return su_main(1, argv);
 }
 
+// Simple grant_root for "debug su" command
+// This is a simplified version that just grants root and execs to sh
+// Used by manager app which may have SECCOMP restrictions
+// Mirrors Rust behavior: grant_root() then immediately exec("sh")
 int grant_root_shell(bool global_mnt) {
-    if (global_mnt) {
-        char* argv[] = {const_cast<char*>("su"), const_cast<char*>("-M"), nullptr};
-        return su_main(2, argv);
+    // Grant root first via kernel
+    if (grant_root() < 0) {
+        LOGE("Failed to grant root");
+        return 1;
     }
-    return root_shell();
+
+    // Set UID/GID to 0
+    setgid(0);
+    setuid(0);
+
+    // Switch to global mount namespace if requested
+    if (global_mnt) {
+        int fd = open("/proc/1/ns/mnt", O_RDONLY);
+        if (fd >= 0) {
+            setns(fd, CLONE_NEWNS);
+            close(fd);
+        }
+    }
+
+    // Add /data/adb/ksu/bin to PATH
+    const char* old_path = getenv("PATH");
+    std::string new_path = "/data/adb/ksu/bin";
+    if (old_path && old_path[0]) {
+        new_path += ":";
+        new_path += old_path;
+    }
+    setenv("PATH", new_path.c_str(), 1);
+
+    // Exec to sh immediately (matching Rust behavior)
+    // This avoids any complex operations that might trigger SECCOMP
+    char* shell_argv[] = {const_cast<char*>("sh"), nullptr};
+    execv("/system/bin/sh", shell_argv);
+
+    LOGE("Failed to exec shell: %s", strerror(errno));
+    return 127;
 }
 
 }  // namespace ksud

@@ -10,7 +10,6 @@
     <string name="home_unsupported">不支持</string>
     <string name="home_unsupported_reason">内核上未检测到 KernelSU 驱动程序，内核错误？</string>
     <string name="home_kernel">内核版本</string>
-    <string name="home_susfs_version">SuSFS 版本</string>
     <string name="home_manager_version">管理器版本</string>
     <string name="home_selinux_status">SELinux 状态</string>
     <string name="selinux_status_disabled">被禁用</string>
@@ -41,6 +40,8 @@
     <string name="module_uninstall_failed">卸载失败：%s</string>
     <string name="module_version">版本</string>
     <string name="module_author">作者</string>
+    <string name="module_update_json">更新 JSON</string>
+    <string name="module_update_json_copied">更新 JSON 链接已复制</string>
     <string name="refresh">刷新</string>
     <string name="show_system_apps">显示系统应用</string>
     <string name="hide_system_apps">隐藏系统应用</string>
@@ -165,7 +166,7 @@
     <string name="home_android_version">Android 版本</string>
     <string name="home_device_model">设备</string>
     <string name="su_not_allowed">不允许授予 %s 超级用户权限</string>
-    <string name="settings_disable_su">禁用 su 兼容性</string>
+    <string name="settings_disable_su">禁用 su 命令</string>
     <string name="settings_disable_su_summary">禁止任何应用通过 su 命令获取 root 权限（已运行的 root 进程不受影响）。</string>
     <string name="settings_disable_kernel_umount">关闭内核 umount</string>
     <string name="settings_disable_kernel_umount_summary">关闭 KernelSU 控制的内核级 umount 行为。</string>
@@ -187,8 +188,6 @@
     <string name="hide_kernel_kernelsu_version_summary">隐藏内核部分的 KernelSU 版本号</string>
     <string name="hide_other_info">强迫症开关</string>
     <string name="hide_other_info_summary">隐藏导航栏上的超级用户数、模块数和 KPM 模块数红点</string>
-    <string name="hide_susfs_status">隐藏 SuSFS 状态信息</string>
-    <string name="hide_susfs_status_summary">隐藏主页上的 SuSFS 状态信息</string>
     <string name="hide_zygisk_implement">隐藏 Zygisk 状态信息</string>
     <string name="hide_zygisk_implement_summary">隐藏主页上的 Zygisk 实现状态信息</string>
     <string name="hide_meta_module_implement">隐藏元模块状态信息</string>
@@ -213,6 +212,7 @@
     <string name="color_pink">粉色</string>
     <string name="color_gray">高级灰</string>
     <string name="color_yellow">黄色</string>
+    <string name="color_trans_pride">Trans Pride</string>
     <string name="horizon_kernel">刷写 AnyKernel3 压缩包</string>
     <string name="horizon_kernel_summary">刷入 Anykernel3 内核</string>
     <string name="root_required">需要 root 权限</string>
@@ -292,6 +292,12 @@
     <string name="selinux_enabled_toast">SELinux 已设置为启用状态</string>
     <string name="selinux_disabled_toast">SELinux 已设置为禁用状态</string>
     <string name="selinux_change_failed">SELinux 状态更改失败</string>
+    <string name="hide_bl_title">解锁状态隐藏</string>
+    <string name="hide_bl_enabled">已启用</string>
+    <string name="hide_bl_disabled">已禁用</string>
+    <string name="hide_bl_enabled_toast">解锁状态隐藏已启用</string>
+    <string name="hide_bl_disabled_toast">解锁状态隐藏已禁用</string>
+    <string name="hide_bl_change_failed">解锁状态隐藏设置失败</string>
     <string name="advanced_settings">高级设置</string>
     <string name="appearance_settings">外观设置</string>
     <string name="back">返回</string>
@@ -366,233 +372,23 @@
     <string name="menu_options">菜单选项</string>
     <string name="sort_options">排序方式</string>
     <string name="app_categories">应用类型选择</string>
-    <!-- SuSFS Configuration -->
-    <string name="susfs_config_title">SuSFS 配置</string>
-    <string name="susfs_config_description">配置说明</string>
-    <string name="susfs_config_description_text">此功能允许您自定义 SuSFS 的 uname 值和构建时间伪装。输入您想要设置的值，点击应用即可生效</string>
-    <string name="susfs_uname_label">Uname 值</string>
-    <string name="susfs_uname_placeholder">请输入自定义 uname 值</string>
-    <string name="susfs_build_time_label">构建时间伪装</string>
-    <string name="susfs_build_time_placeholder">请输入构建时间伪装值</string>
-    <string name="susfs_current_value">当前值: %s</string>
-    <string name="susfs_current_build_time">当前构建时间: %s</string>
-    <string name="susfs_reset_to_default">重置为默认值</string>
-    <string name="susfs_apply">应用</string>
-    <!-- SuSFS Reset Confirmation -->
-    <string name="susfs_reset_confirm_title">确认重置</string>
-    <!-- SuSFS Toast Messages -->
-    <string name="susfs_binary_not_found">无法找到 ksu_susfs 文件</string>
-    <string name="susfs_command_failed">SuSFS 命令执行失败</string>
-    <string name="susfs_command_error">执行 SuSFS 命令时出错: %s</string>
-    <string name="susfs_uname_set_success" formatted="false">SuSFS 内核名称和构建时间设置成功: %s, %s</string>
-    <!-- SuSFS Settings Item -->
-    <string name="susfs_config_setting_title">SuSFS 配置</string>
-    <!-- 开机自启动相关 -->
-    <string name="susfs_autostart_title">开机自启动</string>
-    <string name="susfs_autostart_description">重启时自动应用所有非默认配置</string>
-    <string name="susfs_autostart_requirement">需要添加配置后才能启用</string>
-    <string name="susfs_autostart_enable_failed">启用开机自启动失败</string>
-    <string name="susfs_autostart_disable_failed">禁用开机自启动失败</string>
-    <string name="susfs_autostart_error">开机自启动配置错误: %s</string>
-    <string name="susfs_no_config_to_autostart">没有可用的配置进行开机自启动</string>
-    <!-- SuSFS Tab Titles -->
-    <string name="susfs_tab_basic_settings">基本设置</string>
-    <string name="susfs_tab_sus_paths">SuS 路径</string>
-    <string name="susfs_tab_path_settings">路径设置</string>
-    <string name="susfs_tab_enabled_features">启用功能状态</string>
-    <!-- SuSFS Path Management -->
-    <string name="susfs_add_sus_path">添加 SuS 路径</string>
-    <string name="susfs_sus_path_added_success">SuS 路径添加成功</string>
-    <string name="susfs_path_not_found_error">路径未找到错误</string>
-    <string name="susfs_path_label">路径</string>
-    <string name="susfs_path_placeholder">例如: /system/addon.d</string>
-    <string name="susfs_no_paths_configured">暂无 SuS 路径配置</string>
-    <!-- SuSFS Reset Categories -->
-    <string name="susfs_reset_paths_title">重置 SuS 路径</string>
-    <string name="susfs_reset_paths_message">这将清除所有 SuS 路径配置，确定要继续吗？</string>
-    <string name="susfs_reset_path_title">重置路径设置</string>
-    <!-- SuSFS Path Settings -->
-    <string name="susfs_android_data_path_label">Android Data 路径</string>
-    <string name="susfs_sdcard_path_label">SDCard 路径</string>
-    <string name="susfs_set_android_data_path">设置 Android Data 路径</string>
-    <string name="susfs_set_sdcard_path">设置 SDCard 路径</string>
-    <!-- SuSFS Enabled Features -->
-    <string name="susfs_enabled_features_description">显示当前 SuSFS 启用的功能状态</string>
-    <string name="susfs_no_features_found">未找到功能状态信息</string>
-    <string name="susfs_feature_enabled">已启用</string>
-    <string name="susfs_feature_disabled">已禁用</string>
-    <!-- Feature Labels -->
-    <string name="sus_path_feature_label">SuS 路径支持</string>
-    <string name="spoof_uname_feature_label">欺骗 uname 支持</string>
-    <string name="spoof_cmdline_feature_label">欺骗 Cmdline/Bootconfig</string>
-    <string name="open_redirect_feature_label">开放重定向支持</string>
-    <string name="enable_log_feature_label">日志记录支持</string>
-    <string name="hide_symbols_feature_label">隐藏 KSU SuSFS 符号</string>
-    <string name="sus_kstat_feature_label">SuS Kstat 支持</string>
-    <string name="sus_map_feature_label">SUS Map 支持</string>
-    <!-- 可切换状态 -->
-    <string name="susfs_feature_configurable">可配置的 SuSFS 功能</string>
-    <string name="susfs_enable_log_label">SuSFS 启用日志</string>
-    <string name="susfs_log_config_description">启用或者关闭 SuSFS 的日志</string>
-    <string name="susfs_log_config_title">SuSFS 日志配置</string>
-    <string name="susfs_log_enabled">启用 SuSFS 日志</string>
-    <string name="susfs_log_disabled">关闭 SuSFS 日志</string>
-    <string name="module_update_json">更新配置</string>
-    <string name="module_update_json_copied">更新配置地址已复制到剪贴板</string>
     <!-- Settings related strings -->
     <string name="show_more_module_info">显示更多模块信息</string>
     <string name="show_more_module_info_summary">显示额外的模块信息，如更新配置 URL 等</string>
-    <string name="susfs_execution_location_label">执行位置</string>
-    <string name="susfs_current_execution_location">当前执行位置：%s</string>
-    <string name="susfs_execution_location_service">Service</string>
-    <string name="susfs_execution_location_post_fs_data">Post-FS-Data</string>
-    <string name="susfs_execution_location_service_description">在系统服务启动后执行</string>
-    <string name="susfs_execution_location_post_fs_data_description">在文件系统挂载后但系统完全启动前执行,可能会导致循环重启</string>
-    <string name="susfs_slot_info_title">槽位信息</string>
-    <string name="susfs_slot_info_description">查看当前启动槽位信息并复制数值</string>
-    <string name="susfs_current_active_slot">当前活动槽位：%s</string>
-    <string name="susfs_slot_uname">Uname：%s</string>
-    <string name="susfs_slot_build_time">构建时间：%s</string>
-    <string name="susfs_slot_current_badge">当前</string>
-    <string name="susfs_slot_use_uname">使用 Uname</string>
-    <string name="susfs_slot_use_build_time">使用构建时间</string>
-    <string name="susfs_slot_info_unavailable">无法获取槽位信息</string>
-    <!-- SuSFS 自启动相关字符串 -->
-    <string name="susfs_autostart_enabled_success">SuSFS 自启动模块已启用，模块路径：%s</string>
-    <string name="susfs_autostart_disabled_success">SuSFS 自启动模块已禁用</string>
-    <!-- SuSFS Kstat相关字符串 -->
-    <string name="susfs_tab_kstat_config">Kstat 配置</string>
-    <string name="kstat_static_config_added">Kstat 静态配置已添加：%1$s</string>
-    <string name="kstat_config_removed">已移除 Kstat 配置：%1$s</string>
-    <string name="kstat_path_added">Kstat 路径已添加：%1$s</string>
-    <string name="kstat_path_removed">已移除 Kstat 路径：%1$s</string>
-    <string name="kstat_updated">Kstat 已更新：%1$s</string>
-    <string name="kstat_full_clone_updated">Kstat 完整克隆已更新：%1$s</string>
-    <string name="add_kstat_statically_title">添加 Kstat 静态配置</string>
-    <string name="file_or_directory_path_label">文件/目录路径</string>
-    <string name="hint_use_default_value">提示：可以使用 “default” 来使用原始值</string>
-    <string name="add_kstat_path_title">添加 Kstat 路径</string>
-    <string name="add">添加</string>
-    <string name="reset_kstat_config_title">重置 Kstat 配置</string>
-    <string name="reset_kstat_config_message">确定要清除所有 Kstat 配置吗？此操作不可撤销</string>
-    <string name="kstat_config_description_title">Kstat 配置说明</string>
-    <string name="kstat_config_description_add_statically">• add_sus_kstat_statically: 静态配置文件/目录的 stat 信息</string>
-    <string name="kstat_config_description_add">• add_sus_kstat: 在绑定挂载前添加路径，存储原始 stat 信息</string>
-    <string name="kstat_config_description_update">• update_sus_kstat: 更新目标 ino，保持 size 和 blocks 不变</string>
-    <string name="kstat_config_description_update_full_clone">• update_sus_kstat_full_clone: 仅更新 ino，其他保持原始值</string>
-    <string name="static_kstat_config">静态 Kstat 配置</string>
-    <string name="kstat_path_management">Kstat 路径管理</string>
-    <string name="no_kstat_config_message">暂无 Kstat 配置，点击下方按钮添加配置</string>
-    <!-- SuSFS Mount Hiding Control Related Strings -->
-    <string name="susfs_hide_mounts_control_title">SuS 挂载隐藏控制</string>
-    <string name="susfs_hide_mounts_control_description">控制 SuS 挂载对进程的隐藏行为</string>
-    <string name="susfs_hide_mounts_for_all_procs_label">对所有进程隐藏 SuS 挂载</string>
-    <string name="susfs_hide_mounts_for_all_procs_enabled_description">启用后，SuS 挂载将对所有进程隐藏，包括 KSU 进程</string>
-    <string name="susfs_hide_mounts_for_all_procs_disabled_description">禁用后，SuS 挂载仅对非 KSU 进程隐藏，KSU 进程可以看到挂载</string>
-    <string name="susfs_hide_mounts_all_enabled">已启用对所有进程隐藏 SuS 挂载</string>
-    <string name="susfs_hide_mounts_all_disabled">已禁用对所有进程隐藏 SuS 挂载</string>
-    <string name="susfs_hide_mounts_recommendation">建议在屏幕解锁后或在 service.sh 或 boot-completed.sh 阶段设置为禁用，这可以修复一些依赖 KSU 进程挂载的 root 应用的问题</string>
-    <string name="susfs_hide_mounts_current_setting">当前设置: %s</string>
-    <string name="susfs_hide_mounts_setting_all">对所有进程隐藏</string>
-    <string name="susfs_hide_mounts_setting_non_ksu">仅对非 KSU 进程隐藏</string>
     <string name="kernel_simple_kernel">内核版本简洁模式</string>
     <string name="kernel_simple_kernel_summary">启用或禁用 YukiSU 内核版本显示的简洁模式</string>
-    <string name="susfs_android_data_path_set">Android Data 路径已设置为: %s</string>
-    <string name="susfs_sdcard_path_set">SDCard 路径已设置为: %s</string>
-    <string name="susfs_path_setup_warning">路径设置可能未完全成功，但将继续添加 SuS 路径</string>
     <!-- 备份和还原相关字符串 -->
-    <string name="susfs_backup_title">备份</string>
-    <string name="susfs_backup_description">创建所有 SuSFS 配置的备份。备份文件将包含所有设置、路径和配置信息。</string>
-    <string name="susfs_backup_create">创建备份</string>
-    <string name="susfs_backup_success">备份创建成功：%s</string>
-    <string name="susfs_backup_failed">备份创建失败：%s</string>
-    <string name="susfs_backup_file_not_found">备份文件未找到</string>
-    <string name="susfs_backup_invalid_format">无效的备份文件格式</string>
-    <string name="susfs_backup_version_mismatch">备份版本不匹配，但将尝试还原</string>
-    <string name="susfs_restore_title">还原</string>
-    <string name="susfs_restore_description">从备份文件还原 SuSFS 配置。这将覆盖所有当前设置。</string>
-    <string name="susfs_restore_select_file">选择备份文件</string>
-    <string name="susfs_restore_success" formatted="false">配置还原成功，备份创建于 %s，来自设备：%s</string>
-    <string name="susfs_restore_failed">还原失败：%s</string>
-    <string name="susfs_restore_confirm_title">确认还原</string>
-    <string name="susfs_restore_confirm_description">这将覆盖所有当前的 SuSFS 配置。您确定要继续吗？</string>
-    <string name="susfs_restore_confirm">还原</string>
-    <string name="susfs_backup_info_date">备份日期：%s</string>
-    <string name="susfs_backup_info_device">设备：%s</string>
-    <string name="susfs_backup_info_version">版本：%s</string>
-    <string name="hide_bl_script">上锁状态</string>
-    <string name="hide_bl_script_description">覆盖引导锁状态属性于 late_start 服务模式</string>
-    <string name="cleanup_residue">清理工具残留</string>
-    <string name="cleanup_residue_description">清理各种模块以及工具的残留文件和目录（可能会误删导致丢失以及无法启动，谨慎使用）</string>
-    <string name="susfs_edit_sus_path">编辑 SuS 路径</string>
-    <string name="edit_kstat_statically_title">编辑 Kstat 静态配置</string>
-    <string name="edit_kstat_path_title">编辑 Kstat 路径</string>
-    <string name="susfs_save">保存</string>
     <string name="edit">编辑</string>
     <string name="delete">删除</string>
     <string name="update">更新</string>
-    <string name="kstat_config_updated">Kstat 配置更新</string>
-    <string name="kstat_path_updated">Kstat 路径更新</string>
-    <string name="susfs_update_full_clone">Susfs 完整克隆更新</string>
     <string name="app_paths_section">应用路径</string>
     <string name="other_paths_section">其他路径</string>
     <string name="add_custom_path">其他</string>
     <string name="add_app_path">应用</string>
-    <string name="susfs_add_app_path">添加应用路径</string>
-    <string name="susfs_version_mismatch">SuSFS 库版本不匹配，内核：%1$s vs 管理器：%2$s，建议更新内核或管理器</string>
     <string name="warning">警告</string>
     <string name="search_apps">搜索应用</string>
-    <string name="selected_apps_count">%1$d 个已选应用</string>
-    <string name="already_added_apps_count">%1$d 个已添加应用</string>
-    <string name="all_apps_already_added">所有应用均已添加</string>
-    <string name="dynamic_manager_title">动态管理器配置</string>
-    <string name="dynamic_manager_enabled_summary">已启用（大小: %s）</string>
-    <string name="dynamic_manager_disabled">未启用</string>
-    <string name="enable_dynamic_manager">启用动态管理器</string>
-    <string name="signature_size">动态管理器签名大小</string>
-    <string name="signature_hash">动态管理器签名哈希值</string>
-    <string name="hash_must_be_64_chars">哈希值必须是 64 位十六进制字符</string>
-    <string name="dynamic_manager_set_success">动态管理器配置设置成功</string>
-    <string name="dynamic_manager_set_failed">动态管理器配置设置失败</string>
-    <string name="invalid_sign_config">无效的签名配置</string>
-    <string name="dynamic_manager_disabled_success">动态管理器已禁用</string>
-    <string name="dynamic_manager_clear_failed">清除动态管理器错误</string>
-    <string name="dynamic_managerature">动态</string>
-    <string name="signature_index">签名 %1$d</string>
-    <string name="unknown_signature">未知</string>
-    <string name="multi_manager_list">活跃管理器</string>
-    <string name="no_active_manager">无活跃管理器</string>
-    <string name="default_signature">YukiSU</string>
     <string name="home_zygisk_implement">Zygisk 实现</string>
     <string name="home_meta_module_implement">元模块实现</string>
-    <!-- 循环路径相关 -->
-    <string name="susfs_tab_sus_loop_paths">SuS 循环路径</string>
-    <string name="susfs_add_sus_loop_path">添加 SuS 循环路径</string>
-    <string name="susfs_edit_sus_loop_path">编辑 SuS 循环路径</string>
-    <string name="susfs_loop_path_added_success">SuS 循环路径添加成功: %1$s</string>
-    <string name="susfs_loop_path_removed">SuS 循环路径已移除: %1$s</string>
-    <string name="susfs_loop_path_updated">SuS 循环路径已更新: %1$s -&gt; %2$s</string>
-    <string name="susfs_no_loop_paths_configured">未配置 SuS 循环路径</string>
-    <string name="susfs_reset_loop_paths_title">重置循环路径</string>
-    <string name="susfs_reset_loop_paths_message">确定要清空所有 SuS 循环路径吗？此操作无法撤销。</string>
-    <string name="susfs_loop_path_label">循环路径</string>
-    <string name="susfs_loop_path_placeholder">/data/example/path</string>
-    <string name="susfs_loop_path_restriction_warning">注意：只有不在 /storage/ 和 /sdcard/ 内的路径才能通过循环路径添加。</string>
-    <string name="susfs_loop_path_invalid_location">错误：循环路径不能位于 /storage/ 或 /sdcard/ 目录内</string>
-    <string name="loop_paths_section">循环路径</string>
-    <string name="add_loop_path">添加循环路径</string>
-    <!-- 循环路径功能描述 -->
-    <string name="sus_loop_paths_description_title">循环路径配置</string>
-    <string name="sus_loop_paths_description_text">循环路径会在每次非 root 用户应用或隔离服务启动时重新标记为 SUS_PATH。这有助于解决添加的路径可能因 inode 状态重置或内核中 inode 重新创建而失效的问题</string>
-    <string name="avc_log_spoofing">AVC 日志欺骗</string>
-    <string name="avc_log_spoofing_enabled">AVC 日志欺骗已启用</string>
-    <string name="avc_log_spoofing_disabled">AVC 日志欺骗已禁用</string>
-    <string name="avc_log_spoofing_description">禁用: 禁用在内核 AVC 日志中欺骗 \'su\' 的 sus tcontext。\n
-启用: 启用在内核 AVC 日志中将 \'su\' 的 sus tcontext 欺骗为 \'u:r:priv_app:s0:c512,c768\'</string>
-    <string name="avc_log_spoofing_warning">重要提示：\n
-- 内核中默认设置为 \'0\'\n
-- 启用此功能有时会使开发人员在调试权限或 SELinux 问题时难以识别原因，因此建议用户在调试时禁用此功能。</string>
-    <!-- 模块签名功能描述 -->
     <string name="home_hook_type">钩子类型</string>
     <!-- KPM patching related strings -->
     <string name="kpm_patch_options">KPM 修补</string>
@@ -635,23 +431,6 @@
     <string name="author">作者</string>
     <string name="description">描述</string>
     <string name="supported_devices">支持设备</string>
-    <!-- SUS Map related strings -->
-    <string name="susfs_tab_sus_maps">SUS映射</string>
-    <string name="susfs_sus_map_label">库文件路径</string>
-    <string name="susfs_sus_map_placeholder">/data/adb/modules/my_module/zygisk/arm64-v8a.so</string>
-    <string name="susfs_add_sus_map">添加SUS映射</string>
-    <string name="susfs_edit_sus_map">编辑SUS映射</string>
-    <string name="susfs_sus_map_added_success">SUS映射添加成功: %1$s</string>
-    <string name="susfs_sus_map_removed">SUS映射已移除: %1$s</string>
-    <string name="susfs_sus_map_updated">SUS映射已更新: %1$s -&gt; %2$s</string>
-    <string name="susfs_no_sus_maps_configured">未配置SUS映射</string>
-    <string name="susfs_reset_sus_maps_title">重置SUS映射</string>
-    <string name="susfs_reset_sus_maps_message">这将移除所有已配置的SUS映射。此操作无法撤销。</string>
-    <string name="sus_maps_section">内存映射隐藏</string>
-    <string name="sus_maps_description_title">隐藏/proc/self/中各种映射中的mmap真实文件</string>
-    <string name="sus_maps_description_text">从 /proc/self/[maps|smaps|smaps_rollup|map_files|mem|pagemap] 中隐藏内存映射的真实文件路径。请注意：此功能不支持隐藏匿名内存映射，也无法隐藏由注入库本身产生的内联钩子或 PLT 钩子。</string>
-    <string name="sus_maps_warning">重要提示：对于具备完善注入检测机制的应用，此功能可能无法有效绕过检测。</string>
-    <string name="sus_maps_debug_info">首先通过 ps -enf 查找目标应用的 PID 和 UID，然后检查 /proc/&lt;pid&gt;/maps 中的相关路径，并与 /proc/1/mountinfo 中的设备号进行比对以确保一致性。只有当设备号一致时，隐藏映射才能正常工作。</string>
     <!-- Log Viewer -->
     <string name="log_viewer_title">日志查看器</string>
     <string name="log_viewer_back">返回</string>
@@ -676,9 +455,7 @@
     <string name="log_viewer_too_many_logs">日志过多，仅显示最新 %1$d 条</string>
     <string name="log_viewer_load_more">加载更多日志</string>
     <string name="log_viewer_all_logs_loaded">已显示所有日志</string>
-    <!-- MiUI Uninstall Desc -->
-    <string name="miui_uninstall_title">真要走?</string>
-    <string name="miui_uninstall_content">哼，卸就卸。Root 功能可不会因为失去区区一个管理器就停止运作。别担心，zakozako 只卸载管理器可干不掉 Root 呢，zako~❤️</string>
+    <!-- Umount Path Manager -->
     <string name="incompatible_kernel_msg">    当前管理器与此内核不兼容！请将内核升级至版本 %2$d 或以上（当前 %1$d）</string>
     <string name="umount_path_manager">Umount 路径管理</string>
     <string name="umount_path_manager_summary">管理内核卸载路径</string>
@@ -727,5 +504,80 @@
     <string name="signature_bypass_title">仅超级密钥模式</string>
     <string name="signature_bypass_desc">禁用 APK 签名验证。管理器将仅通过超级密钥认证来识别。</string>
     <string name="gki_priority_title">GKI 优先模式</string>
-    <string name="gki_priority_desc">启用后，GKI 优先于 LKM。LKM 将不会触发 GKI 让位，两者独立运行。</string>
+    <string name="gki_priority_desc">启用后，GKI 优先于 LKM。LKM 将不会触发 GKI 让位，会自行退出。</string>
+
+    <!-- HymoFS Configuration -->
+    <string name="hymofs_title">HymoFS 配置</string>
+    <string name="hymofs_tab_status">状态</string>
+    <string name="hymofs_tab_modules">模块</string>
+    <string name="hymofs_tab_settings">设置</string>
+    <string name="hymofs_tab_rules">规则</string>
+    <string name="hymofs_tab_logs">日志</string>
+    <string name="hymofs_storage">存储</string>
+    <string name="hymofs_modules_count">模块数</string>
+    <string name="hymofs_system_info">系统信息</string>
+    <string name="hymofs_version">版本: %s</string>
+    <string name="hymofs_status_available">HymoFS 内核可用且正常运行</string>
+    <string name="hymofs_status_not_present">HymoFS 内核不存在</string>
+    <string name="hymofs_status_kernel_too_old">内核版本过低，不支持 HymoFS</string>
+    <string name="hymofs_status_module_too_old">模块版本过低，不兼容当前内核</string>
+    <string name="hymofs_builtin_mount">内置挂载</string>
+    <string name="hymofs_builtin_mount_desc">使用内置的 hymo 挂载而非外部元模块。如果您想使用其他元模块，请禁用此选项。</string>
+    <string name="hymofs_verbose">详细日志</string>
+    <string name="hymofs_verbose_desc">启用详细的守护进程日志</string>
+    <string name="hymofs_force_ext4">强制 EXT4</string>
+    <string name="hymofs_force_ext4_desc">始终使用 EXT4 镜像而非 tmpfs</string>
+    <string name="hymofs_prefer_erofs">优先 EROFS</string>
+    <string name="hymofs_prefer_erofs_desc">优先使用 EROFS（只读压缩格式，节省内存）</string>
+    <string name="hymofs_disable_umount">禁用卸载</string>
+    <string name="hymofs_disable_umount_desc">进程隔离时不卸载文件系统</string>
+    <string name="hymofs_kernel_debug">内核调试</string>
+    <string name="hymofs_kernel_debug_desc">启用 HymoFS 内核调试日志</string>
+    <string name="hymofs_stealth">隐身模式</string>
+    <string name="hymofs_stealth_desc">隐藏挂载痕迹并重新排序挂载 ID</string>
+    <string name="hymofs_avc_spoof">AVC 日志欺骗</string>
+    <string name="hymofs_avc_spoof_desc">伪造 SELinux AVC 拒绝日志</string>
+    <string name="hymofs_enable_nuke">启用 Nuke</string>
+    <string name="hymofs_enable_nuke_desc">允许清除 ext4 sysfs 条目</string>
+    <string name="hymofs_ignore_protocol">忽略协议不匹配</string>
+    <string name="hymofs_ignore_protocol_desc">即使内核/用户空间版本不匹配也继续运行</string>
+    <string name="hymofs_moduledir">模块目录</string>
+    <string name="hymofs_moduledir_desc">模块的基础目录（默认：/data/adb/modules）</string>
+    <string name="hymofs_tempdir">临时挂载基点</string>
+    <string name="hymofs_tempdir_desc">临时挂载的基础路径（留空则自动选择）</string>
+    <string name="hymofs_mountsource">OverlayFS 挂载源名称</string>
+    <string name="hymofs_mountsource_desc">overlayfs 挂载源名称（默认：KSU）</string>
+    <string name="hymofs_logs_copy">复制</string>
+    <string name="hymofs_logs_copy_success">日志已复制到剪贴板</string>
+    <string name="hymofs_logs_filter_all">全部</string>
+    <string name="hymofs_logs_filter_info">信息</string>
+    <string name="hymofs_logs_filter_warn">警告</string>
+    <string name="hymofs_logs_filter_error">错误</string>
+    <string name="hymofs_partitions">活跃分区</string>
+    <string name="hymofs_partitions_desc">需要扫描模块修改的分区（逗号分隔）</string>
+    <string name="hymofs_partitions_scan">扫描分区</string>
+    <string name="hymofs_partitions_add">添加分区</string>
+    <string name="hymofs_partitions_placeholder">输入分区名称（例如：mi_ext, my_stock）</string>
+    <string name="hymofs_general">常规</string>
+    <string name="hymofs_advanced">高级</string>
+    <string name="hymofs_fix_mounts">修复挂载 ID</string>
+    <string name="hymofs_rules_clear_all">清空规则</string>
+    <string name="hymofs_rules_clear_confirm">确定要清除所有活动的 HymoFS 规则吗？此操作将立即生效。</string>
+    <string name="hymofs_rules_clear">清除</string>
+    <string name="hymofs_rules_cancel">取消</string>
+    <string name="hymofs_rules_not_available">HymoFS 内核不可用。规则页面需要 HymoFS 内核支持。</string>
+    <string name="hymofs_rules_refresh">刷新</string>
+    <string name="hymofs_rules_count">%d 条活动规则</string>
+    <string name="hymofs_rules_empty">没有活动规则</string>
+    <string name="hymofs_logs_daemon">守护进程日志</string>
+    <string name="hymofs_logs_kernel">内核日志</string>
+    <string name="hymofs_kernel_title">HymoFS 内核</string>
+    <string name="hymofs_version_label">版本：%s</string>
+    <string name="hymofs_stats_hymofs">HymoFS</string>
+    <string name="hymofs_info_kernel">内核</string>
+    <string name="hymofs_info_selinux">SELinux</string>
+    <string name="hymofs_info_mount_base">挂载基点</string>
+    <string name="hymofs_info_active_mounts">活动挂载：</string>
+    <string name="hymofs_info_more_mounts">……还有 %d 个</string>
+    <string name="hymofs_mismatch_default">检测到协议不匹配。请更新内核或模块。</string>
 </resources>

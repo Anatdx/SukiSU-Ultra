@@ -94,6 +94,9 @@ class MoreSettingsHandlers(
 
         // 初始化 SELinux 状态
         state.selinuxEnabled = Shell.cmd("getenforce").exec().out.firstOrNull() == "Enforcing"
+
+        // 初始化弱BL隐藏状态
+        state.hideBlEnabled = Shell.cmd("ksud feature hide-bl").exec().out.firstOrNull()?.contains("enabled") == true
     }
 
     /**
@@ -144,6 +147,7 @@ class MoreSettingsHandlers(
             ThemeColors.Pink -> "pink"
             ThemeColors.Gray -> "gray"
             ThemeColors.Yellow -> "yellow"
+            ThemeColors.TransPride -> "trans"
             else -> "default"
         })
         ThemeConfig.updateTheme(theme = theme)
@@ -305,14 +309,6 @@ class MoreSettingsHandlers(
     }
 
     /**
-     * 处理隐藏SuSFS状态变更
-     */
-    fun handleHideSusfsStatusChange(newValue: Boolean) {
-        prefs.edit { putBoolean("is_hide_susfs_status", newValue) }
-        state.isHideSusfsStatus = newValue
-    }
-
-    /**
      * 处理隐藏Zygisk实现变更
      */
     fun handleHideZygiskImplementChange(newValue: Boolean) {
@@ -370,6 +366,30 @@ class MoreSettingsHandlers(
                 Toast.makeText(
                     context,
                     context.getString(R.string.selinux_change_failed),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    /**
+     * 处理弱BL隐藏变更
+     */
+    fun handleHideBlChange(enabled: Boolean) {
+        val command = if (enabled) "ksud feature hide-bl enable" else "ksud feature hide-bl disable"
+        Shell.getShell().newJob().add(command).exec().let { result ->
+            if (result.isSuccess) {
+                state.hideBlEnabled = enabled
+                val message = if (enabled)
+                    context.getString(R.string.hide_bl_enabled_toast)
+                else
+                    context.getString(R.string.hide_bl_disabled_toast)
+
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.hide_bl_change_failed),
                     Toast.LENGTH_SHORT
                 ).show()
             }

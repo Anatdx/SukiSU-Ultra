@@ -8,8 +8,6 @@
 void ksu_kernel_umount_init(void);
 void ksu_kernel_umount_exit(void);
 
-void try_umount(const char *mnt, int flags);
-
 // Handler function to be called from setresuid hook
 int ksu_handle_umount(uid_t old_uid, uid_t new_uid);
 
@@ -22,4 +20,6 @@ struct mount_entry {
 extern struct list_head mount_list;
 extern struct rw_semaphore mount_list_lock;
 
-#endif
+void try_umount(const char *mnt, int flags);
+
+#endif // #ifndef __KSU_H_KERNEL_UMOUNT

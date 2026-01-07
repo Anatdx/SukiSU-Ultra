@@ -93,10 +93,10 @@ class MainActivity : ComponentActivity() {
 
             super.onCreate(savedInstanceState)
 
-            val isManager = Natives.isManager
-            if (isManager && !Natives.requireNewKernel()) {
-                install()
-            }
+            // Note: ksud installation moved to KsuCli.refreshShells()
+            // which is called after SuperKey authentication succeeds.
+            // In SuperKey mode, isManager is false until authentication,
+            // so we can't install ksud here.
 
             // 使用标记控制初始化流程
             if (!isInitialized) {

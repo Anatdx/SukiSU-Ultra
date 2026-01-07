@@ -1,3 +1,13 @@
 .idea
 CLAUDE.md
 .DS_Store
+build-release.sh
+
+# Build outputs
+build/
+*.iml
+local.properties
+.gradle/
+
+# ksud build artifacts
+userspace/ksud/build-android/

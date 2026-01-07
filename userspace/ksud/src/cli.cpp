@@ -2,17 +2,19 @@
 #include "assets.hpp"
 #include "boot/boot_patch.hpp"
 #include "core/feature.hpp"
+#include "core/hide_bootloader.hpp"
 #include "core/ksucalls.hpp"
-#include "core/susfs.hpp"
+#include "core/restorecon.hpp"
 #include "debug.hpp"
 #include "defs.hpp"
+#include "flash/flash_ak3.hpp"
+#include "hymo/hymo_cli.hpp"
 #include "init_event.hpp"
 #include "kpm.hpp"
 #include "log.hpp"
 #include "module/module.hpp"
 #include "module/module_config.hpp"
 #include "profile/profile.hpp"
-#include "restorecon.hpp"
 #include "sepolicy/sepolicy.hpp"
 #include "su.hpp"
 #include "umount.hpp"
@@ -135,13 +137,14 @@ static void print_usage() {
     printf("  boot-patch     Patch boot image\n");
     printf("  boot-restore   Restore boot image\n");
     printf("  boot-info      Show boot information\n");
+    printf("  flash          Flash kernel packages (AK3)\n");
     printf("  umount         Manage umount paths\n");
     printf("  kernel         Kernel interface\n");
     printf("  debug          For developers\n");
+    printf("  hymo           HymoFS module manager\n");
 #ifdef __aarch64__
-    printf("  susfs          SUSFS status\n");
     printf("  kpm            KPM module manager\n");
-#endif
+#endif // #ifdef __aarch64__
     printf("  help           Show this help\n");
     printf("  version        Show version\n");
 }
@@ -211,6 +214,10 @@ static int cmd_feature(const std::vector<std::string>& args) {
         printf("  check <ID>      Check feature status\n");
         printf("  load            Load config from file\n");
         printf("  save            Save config to file\n");
+        printf("  hide-bl         Show bootloader hiding status\n");
+        printf("  hide-bl enable  Enable bootloader hiding\n");
+        printf("  hide-bl disable Disable bootloader hiding\n");
+        printf("  hide-bl run     Run bootloader hiding now\n");
         return 1;
     }
 
@@ -229,6 +236,28 @@ static int cmd_feature(const std::vector<std::string>& args) {
         return feature_load_config();
     } else if (subcmd == "save") {
         return feature_save_config();
+    } else if (subcmd == "hide-bl") {
+        // Bootloader hiding subcommand
+        if (args.size() > 1) {
+            const std::string& action = args[1];
+            if (action == "enable") {
+                set_bl_hiding_enabled(true);
+                printf("Bootloader hiding enabled. Will take effect on next boot.\n");
+                return 0;
+            } else if (action == "disable") {
+                set_bl_hiding_enabled(false);
+                printf("Bootloader hiding disabled.\n");
+                return 0;
+            } else if (action == "run") {
+                hide_bootloader_status();
+                printf("Bootloader hiding executed.\n");
+                return 0;
+            }
+        }
+        // Show status
+        bool enabled = is_bl_hiding_enabled();
+        printf("Bootloader hiding: %s\n", enabled ? "enabled" : "disabled");
+        return 0;
     }
 
     printf("Unknown feature subcommand: %s\n", subcmd.c_str());
@@ -440,32 +469,6 @@ static int cmd_boot_info(const std::vector<std::string>& args) {
 }
 
 #ifdef __aarch64__
-// SUSFS subcommand handlers
-static int cmd_susfs(const std::vector<std::string>& args) {
-    if (args.empty()) {
-        printf("USAGE: ksud susfs <SUBCOMMAND>\n\n");
-        printf("SUBCOMMANDS:\n");
-        printf("  status    Get SUSFS status\n");
-        printf("  version   Get SUSFS version\n");
-        printf("  features  Get enabled features\n");
-        return 1;
-    }
-
-    const std::string& subcmd = args[0];
-
-    if (subcmd == "status") {
-        printf("%s\n", susfs_get_status().c_str());
-    } else if (subcmd == "version") {
-        printf("%s\n", susfs_get_version().c_str());
-    } else if (subcmd == "features") {
-        printf("%s\n", susfs_get_features().c_str());
-    } else {
-        printf("Unknown susfs subcommand: %s\n", subcmd.c_str());
-        return 1;
-    }
-    return 0;
-}
-
 // KPM subcommand handlers
 static int cmd_kpm(const std::vector<std::string>& args) {
     if (args.empty()) {
@@ -506,7 +509,7 @@ static int cmd_kpm(const std::vector<std::string>& args) {
     printf("Unknown kpm subcommand: %s\n", subcmd.c_str());
     return 1;
 }
-#endif
+#endif // #ifdef __aarch64__
 
 int cli_run(int argc, char* argv[]) {
     // Initialize logging
@@ -608,12 +611,14 @@ int cli_run(int argc, char* argv[]) {
         return cmd_kernel(args);
     } else if (cmd == "debug") {
         return cmd_debug(args);
+    } else if (cmd == "hymo") {
+        return hymo::cmd_hymo(args);
+    } else if (cmd == "flash") {
+        return cmd_flash(args);
 #ifdef __aarch64__
-    } else if (cmd == "susfs") {
-        return cmd_susfs(args);
     } else if (cmd == "kpm") {
         return cmd_kpm(args);
-#endif
+#endif // #ifdef __aarch64__
     }
 
     printf("Unknown command: %s\n", cmd.c_str());

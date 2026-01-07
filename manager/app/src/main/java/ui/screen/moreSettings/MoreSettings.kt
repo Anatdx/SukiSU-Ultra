@@ -59,18 +59,18 @@ import kotlin.math.roundToInt
 fun MoreSettingsScreen(
     navigator: DestinationsNavigator
 ) {
-    // 顶部滚动行为
+
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val prefs = remember { context.getSharedPreferences("settings", Context.MODE_PRIVATE) }
     val systemIsDark = isSystemInDarkTheme()
 
-    // 创建设置状态管理器
+
     val settingsState = remember { MoreSettingsState(context, prefs, systemIsDark) }
     val settingsHandlers = remember { MoreSettingsHandlers(context, prefs, settingsState) }
 
-    // 图片选择器
+
     val pickImageLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -80,12 +80,12 @@ fun MoreSettingsScreen(
         }
     }
 
-    // 初始化设置
+
     LaunchedEffect(Unit) {
         settingsHandlers.initializeSettings()
     }
 
-    // 显示图片编辑对话框
+
     if (settingsState.showImageEditor && settingsState.selectedImageUri != null) {
         ImageEditorDialog(
             imageUri = settingsState.selectedImageUri!!,
@@ -101,7 +101,7 @@ fun MoreSettingsScreen(
         )
     }
 
-    // 各种设置对话框
+
     MoreSettingsDialogs(
         state = settingsState,
         handlers = settingsHandlers
@@ -143,7 +143,7 @@ fun MoreSettingsScreen(
                 .padding(horizontal = 16.dp)
                 .padding(top = 8.dp)
         ) {
-            // 外观设置
+
             AppearanceSettings(
                 state = settingsState,
                 handlers = settingsHandlers,
@@ -151,13 +151,13 @@ fun MoreSettingsScreen(
                 coroutineScope = coroutineScope
             )
 
-            // 自定义设置
+
             CustomizationSettings(
                 state = settingsState,
                 handlers = settingsHandlers
             )
 
-            // 高级设置
+
             KsuIsValid {
                 AdvancedSettings(
                     state = settingsState,
@@ -176,10 +176,10 @@ private fun AppearanceSettings(
     coroutineScope: CoroutineScope
 ) {
     SettingsCard(title = stringResource(R.string.appearance_settings)) {
-        // 语言设置
+
         LanguageSetting(state = state)
 
-        // 主题模式
+
         SettingItem(
             icon = Icons.Default.DarkMode,
             title = stringResource(R.string.theme_mode),
@@ -187,7 +187,7 @@ private fun AppearanceSettings(
             onClick = { state.showThemeModeDialog = true }
         )
 
-        // 动态颜色开关
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             SwitchSettingItem(
                 icon = Icons.Filled.ColorLens,
@@ -198,7 +198,7 @@ private fun AppearanceSettings(
             )
         }
 
-        // 主题色选择
+
         AnimatedVisibility(
             visible = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !state.useDynamicColor,
             enter = fadeIn() + expandVertically(),
@@ -209,12 +209,12 @@ private fun AppearanceSettings(
 
         SettingsDivider()
 
-        // DPI 设置
+
         DpiSettings(state = state, handlers = handlers)
 
         SettingsDivider()
 
-        // 自定义背景设置
+
         CustomBackgroundSettings(
             state = state,
             handlers = handlers,
@@ -230,7 +230,7 @@ private fun CustomizationSettings(
     handlers: MoreSettingsHandlers
 ) {
     SettingsCard(title = stringResource(R.string.custom_settings)) {
-        // 显示更多模块信息
+
         SwitchSettingItem(
             icon = Icons.Filled.Info,
             title = stringResource(R.string.show_more_module_info),
@@ -239,7 +239,7 @@ private fun CustomizationSettings(
             onChange = handlers::handleShowMoreModuleInfoChange
         )
 
-        // 简洁模式开关
+
         SwitchSettingItem(
             icon = Icons.Filled.Brush,
             title = stringResource(R.string.simple_mode),
@@ -256,7 +256,7 @@ private fun CustomizationSettings(
             onChange = handlers::handleKernelSimpleModeChange
         )
 
-        // 各种隐藏选项
+
         HideOptionsSettings(state = state, handlers = handlers)
     }
 }
@@ -266,7 +266,7 @@ private fun HideOptionsSettings(
     state: MoreSettingsState,
     handlers: MoreSettingsHandlers
 ) {
-    // 隐藏内核版本号
+
     SwitchSettingItem(
         icon = Icons.Filled.VisibilityOff,
         title = stringResource(R.string.hide_kernel_kernelsu_version),
@@ -275,7 +275,7 @@ private fun HideOptionsSettings(
         onChange = handlers::handleHideVersionChange
     )
 
-    // 隐藏模块数量等信息
+
     SwitchSettingItem(
         icon = Icons.Filled.VisibilityOff,
         title = stringResource(R.string.hide_other_info),
@@ -284,16 +284,7 @@ private fun HideOptionsSettings(
         onChange = handlers::handleHideOtherInfoChange
     )
 
-    // SuSFS 状态信息
-    SwitchSettingItem(
-        icon = Icons.Filled.VisibilityOff,
-        title = stringResource(R.string.hide_susfs_status),
-        summary = stringResource(R.string.hide_susfs_status_summary),
-        checked = state.isHideSusfsStatus,
-        onChange = handlers::handleHideSusfsStatusChange
-    )
 
-    // Zygisk 实现状态信息
     SwitchSettingItem(
         icon = Icons.Filled.VisibilityOff,
         title = stringResource(R.string.hide_zygisk_implement),
@@ -302,7 +293,7 @@ private fun HideOptionsSettings(
         onChange = handlers::handleHideZygiskImplementChange
     )
 
-    // 元模块实现状态信息
+
     SwitchSettingItem(
         icon = Icons.Filled.VisibilityOff,
         title = stringResource(R.string.hide_meta_module_implement),
@@ -311,7 +302,7 @@ private fun HideOptionsSettings(
         onChange = handlers::handleHideMetaModuleImplementChange
     )
 
-    // KPM 状态信息隐藏
+
     if (Natives.version >= Natives.MINIMAL_SUPPORTED_KPM) {
         SwitchSettingItem(
             icon = Icons.Filled.VisibilityOff,
@@ -322,7 +313,7 @@ private fun HideOptionsSettings(
         )
     }
 
-    // 隐藏链接信息
+
     SwitchSettingItem(
         icon = Icons.Filled.VisibilityOff,
         title = stringResource(R.string.hide_link_card),
@@ -331,7 +322,7 @@ private fun HideOptionsSettings(
         onChange = handlers::handleHideLinkCardChange
     )
 
-    // 隐藏标签行
+
     SwitchSettingItem(
         icon = Icons.Filled.VisibilityOff,
         title = stringResource(R.string.hide_tag_card),
@@ -352,7 +343,7 @@ private fun AdvancedSettings(
     val prefs = remember { context.getSharedPreferences("settings", Context.MODE_PRIVATE) }
 
     SettingsCard(title = stringResource(R.string.advanced_settings)) {
-        // SELinux 开关
+
         SwitchSettingItem(
             icon = Icons.Filled.Security,
             title = stringResource(R.string.selinux),
@@ -361,6 +352,16 @@ private fun AdvancedSettings(
                 stringResource(R.string.selinux_disabled),
             checked = state.selinuxEnabled,
             onChange = handlers::handleSelinuxChange
+        )
+
+        SwitchSettingItem(
+            icon = Icons.Filled.Lock,
+            title = stringResource(R.string.hide_bl_title),
+            summary = if (state.hideBlEnabled)
+                stringResource(R.string.hide_bl_enabled) else
+                stringResource(R.string.hide_bl_disabled),
+            checked = state.hideBlEnabled,
+            onChange = handlers::handleHideBlChange
         )
     }
 }
@@ -377,6 +378,7 @@ private fun ThemeColorSelection(state: MoreSettingsState) {
             is ThemeColors.Pink -> stringResource(R.string.color_pink)
             is ThemeColors.Gray -> stringResource(R.string.color_gray)
             is ThemeColors.Yellow -> stringResource(R.string.color_yellow)
+            is ThemeColors.TransPride -> stringResource(R.string.color_trans_pride)  // 🏳️‍⚧️
             else -> stringResource(R.string.color_default)
         },
         onClick = { state.showThemeColorDialog = true },
@@ -427,7 +429,7 @@ private fun DpiSettings(
         }
     )
 
-    // DPI 滑动条和控制
+
     DpiSliderControls(state = state, handlers = handlers)
 }
 

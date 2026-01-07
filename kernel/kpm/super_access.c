@@ -44,6 +44,7 @@ struct DynamicStructInfo {
 
 #define DYNAMIC_STRUCT_BEGIN(struct_name)                                      \
 	static struct DynamicStructMember struct_name##_members[] = {
+
 #define DEFINE_MEMBER(struct_name, member)                                     \
 	{.name = #member,                                                      \
 	 .size = sizeof(((struct struct_name *)0)->member),                    \
@@ -82,7 +83,7 @@ DEFINE_MEMBER(mnt_namespace, seq)
 DEFINE_MEMBER(mnt_namespace, mounts)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 0)
 DEFINE_MEMBER(mnt_namespace, count)
-#endif
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
 DYNAMIC_STRUCT_END(mnt_namespace)
 
 #ifdef CONFIG_KPROBES
@@ -94,10 +95,10 @@ DEFINE_MEMBER(kprobe, pre_handler)
 DEFINE_MEMBER(kprobe, post_handler)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 0)
 DEFINE_MEMBER(kprobe, fault_handler)
-#endif
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
 DEFINE_MEMBER(kprobe, flags)
 DYNAMIC_STRUCT_END(kprobe)
-#endif
+#endif // #ifdef CONFIG_KPROBES
 
 DYNAMIC_STRUCT_BEGIN(vm_area_struct)
 DEFINE_MEMBER(vm_area_struct, vm_start)
@@ -109,7 +110,7 @@ DEFINE_MEMBER(vm_area_struct, vm_file)
 DEFINE_MEMBER(vm_area_struct, vm_private_data)
 #ifdef CONFIG_ANON_VMA_NAME
 DEFINE_MEMBER(vm_area_struct, anon_name)
-#endif
+#endif // #ifdef CONFIG_ANON_VMA_NAME
 DEFINE_MEMBER(vm_area_struct, vm_ops)
 DYNAMIC_STRUCT_END(vm_area_struct)
 
@@ -124,12 +125,14 @@ DYNAMIC_STRUCT_BEGIN(netlink_kernel_cfg)
 DEFINE_MEMBER(netlink_kernel_cfg, groups)
 DEFINE_MEMBER(netlink_kernel_cfg, flags)
 DEFINE_MEMBER(netlink_kernel_cfg, input)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 DEFINE_MEMBER(netlink_kernel_cfg, cb_mutex)
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
 DEFINE_MEMBER(netlink_kernel_cfg, bind)
 DEFINE_MEMBER(netlink_kernel_cfg, unbind)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0)
 DEFINE_MEMBER(netlink_kernel_cfg, compare)
-#endif
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
 DYNAMIC_STRUCT_END(netlink_kernel_cfg)
 
 DYNAMIC_STRUCT_BEGIN(task_struct)
@@ -146,18 +149,20 @@ DEFINE_MEMBER(task_struct, active_mm)
 DEFINE_MEMBER(task_struct, pids[PIDTYPE_PID].pid)
 #else
 DEFINE_MEMBER(task_struct, thread_pid)
-#endif
+#endif // #if LINUX_VERSION_CODE < KERNEL_VERSION...
 DEFINE_MEMBER(task_struct, files)
 DEFINE_MEMBER(task_struct, seccomp)
 #ifdef CONFIG_THREAD_INFO_IN_TASK
 DEFINE_MEMBER(task_struct, thread_info)
-#endif
+#endif // #ifdef CONFIG_THREAD_INFO_IN_TASK
 #ifdef CONFIG_CGROUPS
 DEFINE_MEMBER(task_struct, cgroups)
-#endif
+#endif // #ifdef CONFIG_CGROUPS
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 12, 0)
 #ifdef CONFIG_SECURITY
 DEFINE_MEMBER(task_struct, security)
-#endif
+#endif // #ifdef CONFIG_SECURITY
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 DEFINE_MEMBER(task_struct, thread)
 DYNAMIC_STRUCT_END(task_struct)
 
@@ -169,7 +174,7 @@ static struct DynamicStructInfo *dynamic_struct_infos[] = {
     STRUCT_INFO(mnt_namespace),
 #ifdef CONFIG_KPROBES
     STRUCT_INFO(kprobe),
-#endif
+#endif // #ifdef CONFIG_KPROBES
     STRUCT_INFO(vm_area_struct),
     STRUCT_INFO(vm_operations_struct),
     STRUCT_INFO(netlink_kernel_cfg),

@@ -38,7 +38,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.InstallScreenDestination
-import com.ramcosta.composedestinations.generated.destinations.SuSFSConfigScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.HymoFSConfigScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.anatdx.yukisu.KernelVersion
 import com.anatdx.yukisu.Natives
@@ -50,9 +50,7 @@ import com.anatdx.yukisu.ui.theme.CardConfig.cardAlpha
 import com.anatdx.yukisu.ui.theme.CardConfig.cardElevation
 import com.anatdx.yukisu.ui.theme.getCardColors
 import com.anatdx.yukisu.ui.theme.getCardElevation
-import com.anatdx.yukisu.ui.susfs.util.SuSFSManager
 import com.anatdx.yukisu.ui.util.checkNewVersion
-import com.anatdx.yukisu.ui.util.getSuSFSStatus
 import com.anatdx.yukisu.ui.util.module.LatestVersionInfo
 import com.anatdx.yukisu.ui.util.reboot
 import com.anatdx.yukisu.ui.viewmodel.HomeViewModel
@@ -278,7 +276,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     InfoCard(
                         systemInfo = viewModel.systemInfo,
                         isSimpleMode = viewModel.isSimpleMode,
-                        isHideSusfsStatus = viewModel.isHideSusfsStatus,
                         isHideZygiskImplement = viewModel.isHideZygiskImplement,
                         isHideMetaModuleImplement = viewModel.isHideMetaModuleImplement,
                         showKpmInfo = viewModel.showKpmInfo,
@@ -394,16 +391,14 @@ private fun TopBar(
         ),
         actions = {
             if (isDataLoaded) {
-                // SuSFS 配置按钮
-                if (getSuSFSStatus().equals("true", ignoreCase = true) && SuSFSManager.isBinaryAvailable(context)) {
-                    IconButton(onClick = {
-                        navigator.navigate(SuSFSConfigScreenDestination)
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.Tune,
-                            contentDescription = stringResource(R.string.susfs_config_setting_title)
-                        )
-                    }
+                // HymoFS 配置按钮
+                IconButton(onClick = {
+                    navigator.navigate(HymoFSConfigScreenDestination)
+                }) {
+                    Icon(
+                        imageVector = Icons.Filled.Tune,
+                        contentDescription = stringResource(R.string.hymofs_title)
+                    )
                 }
 
                 // 重启按钮
@@ -812,7 +807,6 @@ fun DonateCard() {
 private fun InfoCard(
     systemInfo: HomeViewModel.SystemInfo,
     isSimpleMode: Boolean,
-    isHideSusfsStatus: Boolean,
     isHideZygiskImplement: Boolean,
     isHideMetaModuleImplement: Boolean,
     showKpmInfo: Boolean,
@@ -942,28 +936,8 @@ private fun InfoCard(
                     icon = Icons.Default.Archive
                 )
             }
-
-            if (!isSimpleMode && !isHideSusfsStatus &&
-                systemInfo.suSFSStatus == "Supported" &&
-                systemInfo.suSFSVersion.isNotEmpty()
-            ) {
-
-                val infoText = SuSFSInfoText(systemInfo)
-
-                InfoCardItem(
-                    stringResource(R.string.home_susfs_version),
-                    infoText,
-                    icon = Icons.Default.Storage
-                )
-            }
         }
     }
-}
-
-@SuppressLint("ComposableNaming")
-@Composable
-private fun SuSFSInfoText(systemInfo: HomeViewModel.SystemInfo): String = buildString {
-    append(systemInfo.suSFSVersion)
 }
 
 fun getManagerVersion(context: Context): Pair<String, Long> {
@@ -989,7 +963,7 @@ private fun StatusCardPreview() {
         StatusCard(
             HomeViewModel.SystemStatus(
                 isManager = true,
-                ksuVersion = 40000,
+                ksuVersion = 10000,
                 lkmMode = true,
                 kernelVersion = KernelVersion(5, 10, 101),
                 isRootAvailable = true

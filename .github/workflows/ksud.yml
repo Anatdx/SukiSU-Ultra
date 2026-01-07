@@ -1,4 +1,4 @@
-name: Build ksud (C++)
+name: Build ksud
 on:
   workflow_call:
     inputs:

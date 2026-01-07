@@ -131,7 +131,7 @@ static char *ksu_generate_auth_token(void)
 #else
 	strlcpy(auth_tokens[token_count].token, token_buffer,
 		KSU_TOKEN_LENGTH + 1);
-#endif
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 	auth_tokens[token_count].expire_time =
 	    jiffies + KSU_TOKEN_EXPIRE_TIME * HZ;
 	auth_tokens[token_count].used = false;
@@ -160,6 +160,7 @@ static bool ksu_verify_auth_token(const char *token)
 		if (!auth_tokens[i].used &&
 		    time_before(jiffies, auth_tokens[i].expire_time) &&
 		    strcmp(auth_tokens[i].token, token) == 0) {
+
 			auth_tokens[i].used = true;
 			valid = true;
 			pr_info(
@@ -218,7 +219,7 @@ static int handle_token_generation(struct manual_su_request *request)
 	strscpy(request->token_buffer, new_token, KSU_TOKEN_LENGTH + 1);
 #else
 	strlcpy(request->token_buffer, new_token, KSU_TOKEN_LENGTH + 1);
-#endif
+#endif // #if LINUX_VERSION_CODE >= KERNEL_VERSIO...
 
 	pr_info("manual_su: auth token generated successfully\n");
 	return 0;
@@ -314,7 +315,8 @@ static bool is_current_verified(void)
 
 bool is_pending_root(uid_t uid)
 {
-	for (int i = 0; i < pending_cnt; i++) {
+	int i;
+	for (i = 0; i < pending_cnt; i++) {
 		if (pending_uids[i].uid == uid) {
 			pending_uids[i].use_count++;
 			pending_uids[i].remove_calls++;
@@ -326,7 +328,8 @@ bool is_pending_root(uid_t uid)
 
 void remove_pending_root(uid_t uid)
 {
-	for (int i = 0; i < pending_cnt; i++) {
+	int i;
+	for (i = 0; i < pending_cnt; i++) {
 		if (pending_uids[i].uid == uid) {
 			pending_uids[i].remove_calls++;
 
@@ -350,11 +353,12 @@ void remove_pending_root(uid_t uid)
 
 static void add_pending_root(uid_t uid)
 {
+	int i;
 	if (pending_cnt >= MAX_PENDING) {
 		pr_warn("pending_root: cache full\n");
 		return;
 	}
-	for (int i = 0; i < pending_cnt; i++) {
+	for (i = 0; i < pending_cnt; i++) {
 		if (pending_uids[i].uid == uid) {
 			pending_uids[i].use_count = 0;
 			pending_uids[i].remove_calls = 0;

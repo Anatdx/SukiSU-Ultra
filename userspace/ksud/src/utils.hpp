@@ -51,6 +51,7 @@ struct ExecResult {
     std::string stderr_str;
 };
 ExecResult exec_command(const std::vector<std::string>& args);
+ExecResult exec_command(const std::vector<std::string>& args, const std::string& workdir);
 int exec_command_async(const std::vector<std::string>& args);
 
 }  // namespace ksud

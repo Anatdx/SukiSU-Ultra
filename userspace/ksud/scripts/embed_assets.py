@@ -238,6 +238,18 @@ int ensure_binaries(bool ignore_if_exist) {
         }
         chmod(dest.c_str(), 0755);
     }
+    
+    // Ensure ksud symlink exists (like Rust version's link_ksud_to_bin)
+    struct stat st;
+    if (stat(DAEMON_PATH, &st) == 0 && stat(DAEMON_LINK_PATH, &st) != 0) {
+        unlink(DAEMON_LINK_PATH);  // Remove if broken symlink
+        if (symlink(DAEMON_PATH, DAEMON_LINK_PATH) != 0) {
+            LOGW("Failed to create ksud symlink: %s", strerror(errno));
+        } else {
+            LOGI("Created ksud symlink: %s -> %s", DAEMON_LINK_PATH, DAEMON_PATH);
+        }
+    }
+    
     return 0;
 }
 

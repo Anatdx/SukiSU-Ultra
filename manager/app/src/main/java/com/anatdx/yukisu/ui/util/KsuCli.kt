@@ -35,6 +35,11 @@ private fun getKsuDaemonPath(): String {
     return ksuApp.applicationInfo.nativeLibraryDir + File.separator + "libksud.so"
 }
 
+/**
+ * Public function to get ksud path for other modules
+ */
+fun getKsud(): String = getKsuDaemonPath()
+
 object KsuCli {
     var SHELL: Shell = createRootShell()
         private set
@@ -45,6 +50,9 @@ object KsuCli {
      * Recreate shell instances after SuperKey authentication.
      * This is necessary because the initial shells were created before
      * the app had root permission.
+     * 
+     * Also checks and installs ksud if needed (SuperKey mode: manager authenticates first,
+     * then we can install ksud with proper permissions).
      */
     fun refreshShells() {
         Log.d(TAG, "refreshShells: starting, old SHELL.isRoot=${SHELL.isRoot}")
@@ -67,6 +75,73 @@ object KsuCli {
         SHELL = createRootShell()
         GLOBAL_MNT_SHELL = createRootShell(true)
         Log.d(TAG, "Shells refreshed, SHELL.isRoot=${SHELL.isRoot}, GLOBAL_MNT_SHELL.isRoot=${GLOBAL_MNT_SHELL.isRoot}")
+        
+        // After authentication, check if ksud needs to be installed/updated
+        if (isManagerNow && SHELL.isRoot) {
+            checkAndInstallKsud()
+        }
+    }
+    
+    /**
+     * Check if ksud needs to be installed or updated.
+     * Called after SuperKey authentication succeeds.
+     */
+    private fun checkAndInstallKsud() {
+        try {
+            val apkKsudVersion = getApkKsudVersion()
+            val installedKsudVersion = getInstalledKsudVersion()
+            
+            Log.i(TAG, "checkAndInstallKsud: apk=$apkKsudVersion, installed=$installedKsudVersion")
+            
+            // Install if: ksud not installed, or version mismatch
+            if (installedKsudVersion == null || apkKsudVersion != installedKsudVersion) {
+                Log.i(TAG, "Installing ksud: apk=$apkKsudVersion, installed=$installedKsudVersion")
+                install()
+            } else {
+                Log.d(TAG, "ksud is up-to-date: $installedKsudVersion")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "checkAndInstallKsud failed, falling back to install", e)
+            // Fallback: always install on error
+            install()
+        }
+    }
+    
+    /**
+     * Get ksud version from APK's native library.
+     */
+    private fun getApkKsudVersion(): String? {
+        return try {
+            val ksudPath = getKsuDaemonPath()
+            // Run ksud from APK to get its version
+            val process = ProcessBuilder(ksudPath, "version")
+                .redirectErrorStream(true)
+                .start()
+            val output = process.inputStream.bufferedReader().readText().trim()
+            process.waitFor()
+            // Parse version from output like "ksud version 1.2.3-abc (code: 12345)"
+            val match = Regex("""version\s+([^\s]+)""").find(output)
+            match?.groupValues?.get(1)
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to get APK ksud version", e)
+            null
+        }
+    }
+    
+    /**
+     * Get installed ksud version from /data/adb/ksud.
+     */
+    private fun getInstalledKsudVersion(): String? {
+        return try {
+            val result = ShellUtils.fastCmd(SHELL, "/data/adb/ksud version 2>/dev/null")
+            if (result.isBlank()) return null
+            // Parse version from output
+            val match = Regex("""version\s+([^\s]+)""").find(result)
+            match?.groupValues?.get(1)
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to get installed ksud version", e)
+            null
+        }
     }
 }
 
@@ -144,7 +219,10 @@ suspend fun getFeatureStatus(feature: String): String = withContext(Dispatchers.
 
 fun install() {
     val start = SystemClock.elapsedRealtime()
+    val ksudPath = getKsuDaemonPath()
     val magiskboot = File(ksuApp.applicationInfo.nativeLibraryDir, "libmagiskboot.so").absolutePath
+    Log.i(TAG, "install: ksud=$ksudPath, magiskboot=$magiskboot")
+    Log.i(TAG, "install: ksud exists=${File(ksudPath).exists()}, magiskboot exists=${File(magiskboot).exists()}")
     val result = execKsud("install --magiskboot $magiskboot", true)
     Log.w(TAG, "install result: $result, cost: ${SystemClock.elapsedRealtime() - start}ms")
 }
@@ -223,8 +301,12 @@ private fun flashWithIO(
         }
     }
 
+    // Set TMPDIR to app cache directory so ksud can create temp files without root
+    val tmpDir = ksuApp.cacheDir.absolutePath
+    val cmdWithEnv = "TMPDIR=$tmpDir $cmd"
+
     return withNewRootShell {
-        newJob().add(cmd).to(stdoutCallback, stderrCallback).exec()
+        newJob().add(cmdWithEnv).to(stdoutCallback, stderrCallback).exec()
     }
 }
 

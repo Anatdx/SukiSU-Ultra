@@ -9,7 +9,7 @@
 		barrier();                                                     \
 		__preempt_count_dec();                                         \
 	} while (0)
-#endif
+#endif // #ifndef preempt_enable_no_resched_notrace...
 
 #ifndef preempt_disable_notrace
 #define preempt_disable_notrace()                                              \
@@ -17,8 +17,16 @@
 		__preempt_count_inc();                                         \
 		barrier();                                                     \
 	} while (0)
-#endif
+#endif // #ifndef preempt_disable_notrace
 
+#if defined(CONFIG_KSU_HYMOFS) || defined(KSU_MANUAL_HOOK)
+// Stub for HymoFS/Manual Hook modes
+static inline bool try_set_access_flag(unsigned long addr)
+{
+	return true;
+}
+#else
 bool try_set_access_flag(unsigned long addr);
+#endif // #if defined(CONFIG_KSU_HYMOFS) || defin...
 
-#endif
+#endif // #ifndef __KSU_UTIL_H

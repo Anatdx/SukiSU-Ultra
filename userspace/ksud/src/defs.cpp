@@ -2,8 +2,8 @@
 
 namespace ksud {
 
-// These will be defined at build time
-const char* VERSION_CODE = "12000";
-const char* VERSION_NAME = "1.2.0";
+// Auto-generated at build time
+const char* VERSION_CODE = "13189";
+const char* VERSION_NAME = "1.1.1-38-ga345f25e";
 
 }  // namespace ksud
