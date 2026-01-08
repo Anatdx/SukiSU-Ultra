@@ -114,6 +114,8 @@ jobs:
           -DCMAKE_SYSTEM_NAME=Android \
           -DCMAKE_ANDROID_ARCH_ABI=${{ steps.target.outputs.abi }} \
           -DCMAKE_ANDROID_NDK=$ANDROID_NDK_HOME \
+          -DANDROID_PLATFORM=android-29 \
+          -DCMAKE_ANDROID_API=29 \
           -DCMAKE_C_COMPILER=$CC \
           -DCMAKE_CXX_COMPILER=$CXX \
           -DCMAKE_BUILD_TYPE=Release

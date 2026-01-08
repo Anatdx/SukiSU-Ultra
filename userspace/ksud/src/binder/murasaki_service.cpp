@@ -22,6 +22,8 @@
 namespace ksud {
 namespace murasaki {
 
+using namespace hymo;  // For HymoFS and HymoFSStatus
+
 // Murasaki 服务版本
 static constexpr int MURASAKI_VERSION = 1;
 
@@ -198,11 +200,7 @@ int MurasakiService::hymoFixMounts() {
 }
 
 std::string MurasakiService::hymoGetActiveRules() {
-    auto result = HymoFS::get_active_rules();
-    if (std::holds_alternative<std::string>(result)) {
-        return std::get<std::string>(result);
-    }
-    return "";
+    return HymoFS::get_active_rules();
 }
 
 // ==================== KSU 操作 ====================
