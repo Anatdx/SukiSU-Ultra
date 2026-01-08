@@ -13,7 +13,7 @@ namespace hymo {
 class Logger {
 public:
     static Logger& getInstance();
-    void init(bool verbose, const fs::path& log_path);
+    void init(bool verbose, const fs::path& log_path, bool truncate = false);
     void log(const std::string& level, const std::string& message);
 
 private:

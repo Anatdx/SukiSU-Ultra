@@ -34,6 +34,25 @@ constexpr const char* DEFAULT_SELINUX_CONTEXT = "u:object_r:system_file:s0";
 const std::vector<std::string> BUILTIN_PARTITIONS = {"system",     "vendor", "product",
                                                      "system_ext", "odm",    "oem"};
 
+// Helper function to merge partitions with deduplication
+inline std::vector<std::string> get_all_partitions(
+    const std::vector<std::string>& extra_partitions) {
+    std::vector<std::string> result = BUILTIN_PARTITIONS;
+    for (const auto& part : extra_partitions) {
+        bool exists = false;
+        for (const auto& bp : BUILTIN_PARTITIONS) {
+            if (bp == part) {
+                exists = true;
+                break;
+            }
+        }
+        if (!exists) {
+            result.push_back(part);
+        }
+    }
+    return result;
+}
+
 // KSU IOCTLs
 constexpr uint32_t KSU_INSTALL_MAGIC1 = 0xDEADBEEF;
 constexpr uint32_t KSU_INSTALL_MAGIC2 = 0xCAFEBABE;

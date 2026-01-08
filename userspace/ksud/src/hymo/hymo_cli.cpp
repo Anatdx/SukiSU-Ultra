@@ -230,13 +230,7 @@ int cmd_hymo(const std::vector<std::string>& args) {
             return 1;
         }
 
-        std::vector<std::string> all_partitions = BUILTIN_PARTITIONS;
-        all_partitions.insert(all_partitions.end(), config.partitions.begin(),
-                              config.partitions.end());
-
-        std::sort(all_partitions.begin(), all_partitions.end());
-        all_partitions.erase(std::unique(all_partitions.begin(), all_partitions.end()),
-                             all_partitions.end());
+        std::vector<std::string> all_partitions = get_all_partitions(config.partitions);
 
         int success_count = 0;
         for (const auto& part : all_partitions) {
@@ -278,13 +272,7 @@ int cmd_hymo(const std::vector<std::string>& args) {
         std::string module_id = subargs[0];
         fs::path module_path = config.moduledir / module_id;
 
-        std::vector<std::string> all_partitions = BUILTIN_PARTITIONS;
-        all_partitions.insert(all_partitions.end(), config.partitions.begin(),
-                              config.partitions.end());
-
-        std::sort(all_partitions.begin(), all_partitions.end());
-        all_partitions.erase(std::unique(all_partitions.begin(), all_partitions.end()),
-                             all_partitions.end());
+        std::vector<std::string> all_partitions = get_all_partitions(config.partitions);
 
         int success_count = 0;
         for (const auto& part : all_partitions) {
@@ -406,9 +394,7 @@ int cmd_hymo(const std::vector<std::string>& args) {
         auto module_list = scan_modules(config.moduledir, config);
 
         std::vector<Module> active_modules;
-        std::vector<std::string> all_partitions = BUILTIN_PARTITIONS;
-        for (const auto& part : config.partitions)
-            all_partitions.push_back(part);
+        std::vector<std::string> all_partitions = get_all_partitions(config.partitions);
 
         for (const auto& mod : module_list) {
             if (fs::exists("/data/adb/hymo/run/hot_unmounted/" + mod.id)) {
@@ -527,7 +513,8 @@ static void segregate_custom_rules(MountPlan& plan, const fs::path& mirror_dir) 
 // Full mount operation
 static int cmd_mount() {
     Config config = load_default_config();
-    Logger::getInstance().init(config.verbose, DAEMON_LOG_FILE);
+    // Truncate log file on boot/mount to avoid accumulation
+    Logger::getInstance().init(config.verbose, DAEMON_LOG_FILE, true);
 
     // Camouflage process
     if (!camouflage_process("kworker/u9:1")) {
@@ -636,9 +623,7 @@ static int cmd_mount() {
 
             // Filter modules with content
             std::vector<Module> active_modules;
-            std::vector<std::string> all_partitions = BUILTIN_PARTITIONS;
-            for (const auto& part : config.partitions)
-                all_partitions.push_back(part);
+            std::vector<std::string> all_partitions = get_all_partitions(config.partitions);
 
             for (const auto& mod : module_list) {
                 bool has_content = false;
@@ -719,9 +704,7 @@ static int cmd_mount() {
             plan.hymofs_module_ids.clear();
             plan.magic_module_paths.clear();
 
-            std::vector<std::string> all_partitions = BUILTIN_PARTITIONS;
-            for (const auto& part : config.partitions)
-                all_partitions.push_back(part);
+            std::vector<std::string> all_partitions = get_all_partitions(config.partitions);
 
             for (const auto& mod : module_list) {
                 bool has_content = false;
@@ -803,9 +786,7 @@ static int cmd_mount() {
 
     // Populate active mounts
     if (!plan.hymofs_module_ids.empty()) {
-        std::vector<std::string> all_parts = BUILTIN_PARTITIONS;
-        for (const auto& p : config.partitions)
-            all_parts.push_back(p);
+        std::vector<std::string> all_parts = get_all_partitions(config.partitions);
 
         for (const auto& part : all_parts) {
             bool active = false;
@@ -843,9 +824,7 @@ static int cmd_mount() {
 
     // Add Magic Mount targets
     if (!plan.magic_module_paths.empty()) {
-        std::vector<std::string> all_parts = BUILTIN_PARTITIONS;
-        for (const auto& p : config.partitions)
-            all_parts.push_back(p);
+        std::vector<std::string> all_parts = get_all_partitions(config.partitions);
 
         for (const auto& part : all_parts) {
             bool active = false;

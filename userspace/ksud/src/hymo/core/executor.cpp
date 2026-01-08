@@ -42,10 +42,7 @@ ExecutionResult execute_plan(const MountPlan& plan, const Config& config) {
         LOG_DEBUG("Mounting " + op.target + " [OVERLAY] (" +
                   std::to_string(lowerdir_strings.size()) + " layers)");
 
-        std::vector<std::string> all_partitions = BUILTIN_PARTITIONS;
-        for (const auto& part : config.partitions) {
-            all_partitions.push_back(part);
-        }
+        std::vector<std::string> all_partitions = get_all_partitions(config.partitions);
 
         if (!mount_overlay(op.target, lowerdir_strings, config.mountsource, std::nullopt,
                            std::nullopt, config.disable_umount, all_partitions)) {

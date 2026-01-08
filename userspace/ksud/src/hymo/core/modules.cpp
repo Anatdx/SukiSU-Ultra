@@ -51,11 +51,8 @@ static bool has_content(const fs::path& module_path,
 void print_module_list(const Config& config) {
     auto modules = scan_modules(config.moduledir, config);
 
-    // Build complete partition list (builtin + extra)
-    std::vector<std::string> all_partitions = BUILTIN_PARTITIONS;
-    for (const auto& part : config.partitions) {
-        all_partitions.push_back(part);
-    }
+    // Build complete partition list (builtin + extra, deduplicated)
+    std::vector<std::string> all_partitions = get_all_partitions(config.partitions);
 
     // Filter modules with actual content (including extra partitions)
     std::vector<Module> filtered_modules;

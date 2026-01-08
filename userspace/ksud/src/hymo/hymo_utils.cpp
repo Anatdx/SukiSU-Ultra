@@ -23,14 +23,16 @@ Logger& Logger::getInstance() {
     return instance;
 }
 
-void Logger::init(bool verbose, const fs::path& log_path) {
+void Logger::init(bool verbose, const fs::path& log_path, bool truncate) {
     verbose_ = verbose;
 
     if (!log_path.empty()) {
         if (log_path.has_parent_path()) {
             fs::create_directories(log_path.parent_path());
         }
-        log_file_ = std::make_unique<std::ofstream>(log_path, std::ios::app);
+        // Truncate log file if requested (default on boot), otherwise append
+        auto mode = truncate ? (std::ios::out | std::ios::trunc) : std::ios::app;
+        log_file_ = std::make_unique<std::ofstream>(log_path, mode);
     }
 }
 

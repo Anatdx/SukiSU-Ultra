@@ -148,11 +148,8 @@ void perform_sync(const std::vector<Module>& modules, const fs::path& storage_ro
                   const Config& config) {
     LOG_INFO("Starting smart module sync to " + storage_root.string());
 
-    // Build complete partition list (builtin + extra)
-    std::vector<std::string> all_partitions = BUILTIN_PARTITIONS;
-    for (const auto& part : config.partitions) {
-        all_partitions.push_back(part);
-    }
+    // Build complete partition list (builtin + extra, deduplicated)
+    std::vector<std::string> all_partitions = get_all_partitions(config.partitions);
 
     // 1. Prune orphaned directories (clean disabled/removed modules)
     prune_orphaned_modules(modules, storage_root);

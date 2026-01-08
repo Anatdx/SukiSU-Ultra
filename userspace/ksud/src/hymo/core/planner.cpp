@@ -103,10 +103,8 @@ MountPlan generate_plan(const Config& config, const std::vector<Module>& modules
     std::set<std::string> overlay_ids;
     std::set<std::string> magic_ids;
 
-    std::vector<std::string> target_partitions = BUILTIN_PARTITIONS;
-    for (const auto& part : config.partitions) {
-        target_partitions.push_back(part);
-    }
+    // Build target partitions list with deduplication
+    std::vector<std::string> target_partitions = get_all_partitions(config.partitions);
 
     HymoFSStatus status = HymoFS::check_status();
     bool use_hymofs = (status == HymoFSStatus::Available) ||
@@ -306,10 +304,8 @@ void update_hymofs_mappings(const Config& config, const std::vector<Module>& mod
     // Clear existing mappings
     HymoFS::clear_rules();
 
-    std::vector<std::string> target_partitions = BUILTIN_PARTITIONS;
-    for (const auto& part : config.partitions) {
-        target_partitions.push_back(part);
-    }
+    // Build target partitions list with deduplication
+    std::vector<std::string> target_partitions = get_all_partitions(config.partitions);
 
     std::vector<AddRule> add_rules;
     std::vector<AddRule> merge_rules;
