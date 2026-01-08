@@ -1,6 +1,8 @@
 #include "init_event.hpp"
 #include "assets.hpp"
+#ifdef __ANDROID__
 #include "binder/murasaki_binder.hpp"
+#endif // #ifdef __ANDROID__
 #include "core/feature.hpp"
 #include "core/hide_bootloader.hpp"
 #include "core/ksucalls.hpp"
@@ -233,8 +235,10 @@ void on_services() {
 
     // Start Murasaki Binder service (in background)
     // 使用真正的 Android Binder 向 ServiceManager 注册
+#ifdef __ANDROID__
     LOGI("Starting Murasaki Binder service...");
     murasaki::start_murasaki_binder_service_async();
+#endif // #ifdef __ANDROID__
 
     run_stage("service", false);
     LOGI("services completed");

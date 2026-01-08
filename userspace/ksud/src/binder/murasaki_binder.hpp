@@ -7,9 +7,22 @@
 
 #ifdef __ANDROID__
 #include <android/binder_ibinder.h>
-#include <android/binder_manager.h>
-#include <android/binder_process.h>
 #include <android/binder_status.h>
+
+// These functions are in libbinder_ndk.so but not exposed in NDK headers
+// We declare them manually here
+extern "C" {
+// From binder_manager.h (not in public NDK)
+binder_status_t AServiceManager_addService(AIBinder* binder, const char* instance)
+    __attribute__((weak));
+AIBinder* AServiceManager_checkService(const char* instance) __attribute__((weak));
+AIBinder* AServiceManager_getService(const char* instance) __attribute__((weak));
+
+// From binder_process.h (not in public NDK)
+void ABinderProcess_startThreadPool(void) __attribute__((weak));
+void ABinderProcess_joinThreadPool(void) __attribute__((weak));
+bool ABinderProcess_setThreadPoolMaxThreadCount(uint32_t numThreads) __attribute__((weak));
+}
 #endif // #ifdef __ANDROID__
 
 #include <atomic>
