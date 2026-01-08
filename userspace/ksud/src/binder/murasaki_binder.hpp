@@ -25,43 +25,50 @@ static constexpr const char* MURASAKI_SERVICE_NAME = "io.murasaki.IMurasakiServi
 
 #ifdef __ANDROID__
 
-// Transaction codes (must match AIDL generated)
+// Transaction codes - MUST match AIDL definitions in Murasaki API
+// See: aidl/io/murasaki/server/IMurasakiService.aidl
 enum TransactionCode {
+    // IMurasakiService (main)
     TRANSACTION_getVersion = 1,
-    TRANSACTION_getKsuVersion = 2,
-    TRANSACTION_getPrivilegeLevel = 3,
-    TRANSACTION_isKernelModeAvailable = 4,
-    TRANSACTION_getSelinuxContext = 5,
-    TRANSACTION_getHymoFsService = 6,
-    TRANSACTION_getKernelService = 7,
-    TRANSACTION_newProcess = 8,
-    TRANSACTION_checkPermission = 9,
+    TRANSACTION_getPrivilegeLevel = 2,
+    TRANSACTION_isKernelModeAvailable = 3,
+    TRANSACTION_getKernelSuVersion = 4,
+    TRANSACTION_getHymoFsService = 10,
+    TRANSACTION_getKernelService = 11,
+    TRANSACTION_getSelinuxContext = 20,
+    TRANSACTION_setSelinuxContext = 21,
+    TRANSACTION_requestPrivilegeLevel = 30,
+    TRANSACTION_checkPrivilegeLevel = 31,
 
-    // HymoFS transactions (100+)
-    TRANSACTION_hymoAddHideRule = 100,
-    TRANSACTION_hymoAddRedirectRule = 101,
-    TRANSACTION_hymoRemoveRule = 102,
-    TRANSACTION_hymoClearRules = 103,
-    TRANSACTION_hymoSetStealthMode = 104,
-    TRANSACTION_hymoIsStealthMode = 105,
-    TRANSACTION_hymoSetDebugMode = 106,
-    TRANSACTION_hymoIsDebugMode = 107,
-    TRANSACTION_hymoSetMirrorPath = 108,
-    TRANSACTION_hymoGetMirrorPath = 109,
-    TRANSACTION_hymoFixMounts = 110,
-    TRANSACTION_hymoGetActiveRules = 111,
-    TRANSACTION_hymoGetStatus = 112,
+    // IHymoFsService - See: aidl/io/murasaki/server/IHymoFsService.aidl
+    TRANSACTION_hymoGetProtocolVersion = 1,
+    TRANSACTION_hymoIsAvailable = 2,
+    TRANSACTION_hymoAddHideRule = 10,
+    TRANSACTION_hymoAddRedirectRule = 11,
+    TRANSACTION_hymoAddMergeRule = 12,
+    TRANSACTION_hymoDeleteRule = 13,
+    TRANSACTION_hymoClearAllRules = 14,
+    TRANSACTION_hymoGetActiveRules = 15,
+    TRANSACTION_hymoSetStealthMode = 20,
+    TRANSACTION_hymoGetStealthMode = 21,
+    TRANSACTION_hymoSetDebugMode = 22,
+    TRANSACTION_hymoGetDebugMode = 23,
+    TRANSACTION_hymoSetMirrorPath = 24,
+    TRANSACTION_hymoGetMirrorPath = 25,
+    TRANSACTION_hymoFixMounts = 30,
+    TRANSACTION_hymoGetStatus = 31,
 
-    // Kernel transactions (200+)
-    TRANSACTION_kernelGetAppProfile = 200,
-    TRANSACTION_kernelSetAppProfile = 201,
-    TRANSACTION_kernelIsUidGrantedRoot = 202,
-    TRANSACTION_kernelShouldUmountForUid = 203,
-    TRANSACTION_kernelInjectSepolicy = 204,
-    TRANSACTION_kernelLoadSepolicyFromFile = 205,
-    TRANSACTION_kernelAddTryUmount = 206,
-    TRANSACTION_kernelNukeExt4Sysfs = 207,
-    TRANSACTION_kernelRawIoctl = 208,
+    // IKernelService - See: aidl/io/murasaki/server/IKernelService.aidl
+    TRANSACTION_kernelGetAppProfile = 1,
+    TRANSACTION_kernelSetAppProfile = 2,
+    TRANSACTION_kernelIsUidGrantedRoot = 10,
+    TRANSACTION_kernelShouldUmountForUid = 11,
+    TRANSACTION_kernelInjectSepolicy = 20,
+    TRANSACTION_kernelLoadSepolicyFromFile = 21,
+    TRANSACTION_kernelAddTryUmount = 30,
+    TRANSACTION_kernelClearTryUmount = 31,
+    TRANSACTION_kernelNukeExt4Sysfs = 40,
+    TRANSACTION_kernelRawIoctl = 50,
 };
 
 /**

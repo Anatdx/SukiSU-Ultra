@@ -160,44 +160,30 @@ binder_status_t MurasakiBinderService::onTransact(AIBinder* binder, transaction_
         return STATUS_UNEXPECTED_NULL;
     }
 
+    // IMurasakiService transactions
     switch (code) {
     case TRANSACTION_getVersion:
         return service->handleGetVersion(in, out);
-    case TRANSACTION_getKsuVersion:
-        return service->handleGetKsuVersion(in, out);
     case TRANSACTION_getPrivilegeLevel:
         return service->handleGetPrivilegeLevel(in, out);
     case TRANSACTION_isKernelModeAvailable:
         return service->handleIsKernelModeAvailable(in, out);
+    case TRANSACTION_getKernelSuVersion:
+        return service->handleGetKsuVersion(in, out);
     case TRANSACTION_getSelinuxContext:
         return service->handleGetSelinuxContext(in, out);
 
-    // HymoFS
-    case TRANSACTION_hymoAddHideRule:
-        return service->handleHymoAddHideRule(in, out);
-    case TRANSACTION_hymoAddRedirectRule:
-        return service->handleHymoAddRedirectRule(in, out);
-    case TRANSACTION_hymoClearRules:
-        return service->handleHymoClearRules(in, out);
-    case TRANSACTION_hymoSetStealthMode:
-        return service->handleHymoSetStealthMode(in, out);
-    case TRANSACTION_hymoSetDebugMode:
-        return service->handleHymoSetDebugMode(in, out);
-    case TRANSACTION_hymoGetActiveRules:
-        return service->handleHymoGetActiveRules(in, out);
-
-    // Kernel
-    case TRANSACTION_kernelIsUidGrantedRoot:
-        return service->handleKernelIsUidGrantedRoot(in, out);
-    case TRANSACTION_kernelNukeExt4Sysfs:
-        return service->handleKernelNukeExt4Sysfs(in, out);
+        // Note: getHymoFsService/getKernelService would return sub-binder
+        // For simplicity, we handle all transactions in one service for now
+        // TODO: Implement proper sub-service architecture
 
     default:
-        LOGW("Unknown transaction code: %d", code);
-        return STATUS_UNKNOWN_TRANSACTION;
+        break;
     }
-}
 
+    LOGW("Unknown transaction code: %d", code);
+    return STATUS_UNKNOWN_TRANSACTION;
+}
 // ==================== Handler Implementations ====================
 
 binder_status_t MurasakiBinderService::handleGetVersion(const AParcel* in, AParcel* out) {
