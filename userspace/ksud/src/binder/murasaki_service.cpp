@@ -95,25 +95,7 @@ int MurasakiService::init() {
     return 0;
 }
 
-void MurasakiService::run() {
-    if (!initialized_) {
-        LOGE("MurasakiService: Not initialized!");
-        return;
-    }
-
-    running_ = true;
-    LOGI("MurasakiService: Starting service loop...");
-
-    // TODO: 实际的 Binder 消息循环
-    // IPCThreadState::self()->joinThreadPool();
-
-    // 临时：简单的等待循环
-    while (running_) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-
-    LOGI("MurasakiService: Service loop ended");
-}
+// run() 实现在 murasaki_ipc.cpp 里
 
 void MurasakiService::stop() {
     running_ = false;

@@ -80,8 +80,8 @@ public:
     int nukeExt4Sysfs();
 
 private:
-    MurasakiService() = default;
-    ~MurasakiService();
+    MurasakiService();   // 定义在 murasaki_ipc.cpp
+    ~MurasakiService();  // 定义在 murasaki_ipc.cpp
     MurasakiService(const MurasakiService&) = delete;
     MurasakiService& operator=(const MurasakiService&) = delete;
 
