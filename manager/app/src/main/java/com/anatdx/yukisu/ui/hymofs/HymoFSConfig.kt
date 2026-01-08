@@ -920,18 +920,6 @@ private fun SettingsTab(
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 
                 SettingSwitch(
-                    title = stringResource(R.string.hymofs_avc_spoof),
-                    subtitle = stringResource(R.string.hymofs_avc_spoof_desc),
-                    checked = config.avcSpoof,
-                    enabled = hymofsAvailable,
-                    onCheckedChange = {
-                        updateAndSave(config.copy(avcSpoof = it))
-                    }
-                )
-                
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                
-                SettingSwitch(
                     title = stringResource(R.string.hymofs_enable_nuke),
                     subtitle = stringResource(R.string.hymofs_enable_nuke_desc),
                     checked = config.enableNuke,

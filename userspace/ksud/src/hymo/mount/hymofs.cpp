@@ -309,15 +309,4 @@ bool HymoFS::hide_overlay_xattrs(const std::string& path) {
     return ret;
 }
 
-bool HymoFS::set_avc_log_spoofing(bool enabled) {
-    struct hymo_syscall_arg arg = {.src = NULL, .target = NULL, .type = enabled ? 1 : 0};
-
-    LOG_INFO("HymoFS: Setting AVC log spoofing=" + std::string(enabled ? "true" : "false"));
-    bool ret = hymo_execute_cmd(HYMO_CMD_SET_AVC_LOG_SPOOFING, &arg) == 0;
-    if (!ret) {
-        LOG_ERROR("HymoFS: set_avc_log_spoofing failed: " + std::string(strerror(errno)));
-    }
-    return ret;
-}
-
 }  // namespace hymo

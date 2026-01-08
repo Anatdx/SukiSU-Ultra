@@ -1,13 +1,15 @@
 package com.anatdx.yukisu.ui.viewmodel
 
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.murasaki.HymoFs
-import io.murasaki.KsuService
 import io.murasaki.Murasaki
+import io.murasaki.server.IHymoFsService
+import io.murasaki.server.IKernelService
+import io.murasaki.server.IMurasakiService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -37,9 +39,11 @@ class MurasakiViewModel : ViewModel() {
      * HymoFS 状态
      */
     data class HymoFsStatus(
-        val activeRules: String? = null,
-        val stealthEnabled: Boolean? = null,
-        val debugEnabled: Boolean? = null
+        val isAvailable: Boolean = false,
+        val version: Int = -1,
+        val stealthEnabled: Boolean = false,
+        val hideRulesCount: Int = 0,
+        val redirectRulesCount: Int = 0
     )
 
     // 状态
@@ -52,15 +56,20 @@ class MurasakiViewModel : ViewModel() {
     var isLoading by mutableStateOf(false)
         private set
 
+    // 服务引用
+    private var murasakiService: IMurasakiService? = null
+    private var hymoFsService: IHymoFsService? = null
+    private var kernelService: IKernelService? = null
+
     /**
      * 初始化连接
      */
-    fun connect() {
+    fun connect(packageName: String) {
         viewModelScope.launch {
             isLoading = true
             try {
                 val result = withContext(Dispatchers.IO) {
-                    val level = Murasaki.init()
+                    val level = Murasaki.init(packageName)
                     if (level < 0) {
                         return@withContext MurasakiStatus(
                             isConnected = false,
@@ -68,17 +77,27 @@ class MurasakiViewModel : ViewModel() {
                         )
                     }
 
+                    // 获取服务引用
+                    murasakiService = Murasaki.getMurasakiService()
+                    hymoFsService = Murasaki.getHymoFsService()
+                    kernelService = Murasaki.getKernelService()
+
                     MurasakiStatus(
                         isConnected = true,
-                        serviceVersion = Murasaki.getVersion(),
-                        ksuVersion = Murasaki.getKsuVersion(),
+                        serviceVersion = murasakiService?.version ?: -1,
+                        ksuVersion = Murasaki.getKernelSuVersion(),
                         privilegeLevel = level,
                         privilegeLevelName = getPrivilegeLevelName(level),
                         isKernelModeAvailable = Murasaki.isKernelModeAvailable(),
-                        selinuxContext = Murasaki.getSelinuxContext()
+                        selinuxContext = Murasaki.getSELinuxContext()
                     )
                 }
                 murasakiStatus = result
+                
+                // 连接成功后刷新 HymoFS 状态
+                if (result.isConnected) {
+                    refreshHymoFsStatus()
+                }
             } catch (e: Exception) {
                 murasakiStatus = MurasakiStatus(
                     isConnected = false,
@@ -96,10 +115,18 @@ class MurasakiViewModel : ViewModel() {
     fun refreshHymoFsStatus() {
         viewModelScope.launch {
             try {
-                val rules = withContext(Dispatchers.IO) {
-                    HymoFs.getActiveRules()
+                val status = withContext(Dispatchers.IO) {
+                    val service = hymoFsService ?: return@withContext HymoFsStatus()
+                    
+                    HymoFsStatus(
+                        isAvailable = service.isAvailable,
+                        version = service.version,
+                        stealthEnabled = service.isStealthMode,
+                        hideRulesCount = service.hideRules?.size ?: 0,
+                        redirectRulesCount = service.redirectRules?.size ?: 0
+                    )
                 }
-                hymoFsStatus = hymoFsStatus.copy(activeRules = rules)
+                hymoFsStatus = status
             } catch (e: Exception) {
                 // Ignore
             }
@@ -113,7 +140,7 @@ class MurasakiViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val success = withContext(Dispatchers.IO) {
-                    HymoFs.setStealth(enabled)
+                    hymoFsService?.setStealthMode(enabled) ?: false
                 }
                 if (success) {
                     hymoFsStatus = hymoFsStatus.copy(stealthEnabled = enabled)
@@ -125,51 +152,69 @@ class MurasakiViewModel : ViewModel() {
     }
 
     /**
-     * 设置调试模式
+     * 添加隐藏规则
      */
-    fun setDebugMode(enabled: Boolean) {
+    fun addHideRule(path: String): Int {
+        var ruleId = -1
         viewModelScope.launch {
             try {
-                val success = withContext(Dispatchers.IO) {
-                    HymoFs.setDebug(enabled)
+                ruleId = withContext(Dispatchers.IO) {
+                    hymoFsService?.addHideRule(path) ?: -1
                 }
-                if (success) {
-                    hymoFsStatus = hymoFsStatus.copy(debugEnabled = enabled)
-                }
-            } catch (e: Exception) {
-                // Ignore
-            }
-        }
-    }
-
-    /**
-     * 添加 HymoFS 规则
-     */
-    fun addHymoRule(src: String, target: String, type: Int = HymoFs.RuleType.FILE): Boolean {
-        var success = false
-        viewModelScope.launch {
-            try {
-                success = withContext(Dispatchers.IO) {
-                    HymoFs.addRule(src, target, type)
-                }
-                if (success) {
+                if (ruleId >= 0) {
                     refreshHymoFsStatus()
                 }
             } catch (e: Exception) {
                 // Ignore
             }
         }
-        return success
+        return ruleId
     }
 
     /**
-     * 清除所有 HymoFS 规则
+     * 添加重定向规则
      */
-    fun clearHymoRules() {
+    fun addRedirectRule(sourcePath: String, targetPath: String, flags: Int = 0): Int {
+        var ruleId = -1
+        viewModelScope.launch {
+            try {
+                ruleId = withContext(Dispatchers.IO) {
+                    hymoFsService?.addRedirectRule(sourcePath, targetPath, flags) ?: -1
+                }
+                if (ruleId >= 0) {
+                    refreshHymoFsStatus()
+                }
+            } catch (e: Exception) {
+                // Ignore
+            }
+        }
+        return ruleId
+    }
+
+    /**
+     * 清除所有隐藏规则
+     */
+    fun clearHideRules() {
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    HymoFs.clearRules()
+                    hymoFsService?.clearHideRules()
+                }
+                refreshHymoFsStatus()
+            } catch (e: Exception) {
+                // Ignore
+            }
+        }
+    }
+
+    /**
+     * 清除所有重定向规则
+     */
+    fun clearRedirectRules() {
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    hymoFsService?.clearRedirectRules()
                 }
                 refreshHymoFsStatus()
             } catch (e: Exception) {
@@ -183,43 +228,60 @@ class MurasakiViewModel : ViewModel() {
      */
     suspend fun checkUidHasRoot(uid: Int): Boolean {
         return withContext(Dispatchers.IO) {
-            KsuService.isUidGrantedRoot(uid)
+            murasakiService?.isUidGrantedRoot(uid) ?: false
         }
     }
 
     /**
-     * 执行 Paw Pad (清除 ext4 sysfs 痕迹)
+     * 授予 UID root 权限
      */
-    fun nukeExt4Sysfs(): Boolean {
-        var success = false
-        viewModelScope.launch {
-            try {
-                success = withContext(Dispatchers.IO) {
-                    KsuService.nukeExt4Sysfs()
-                }
-            } catch (e: Exception) {
-                // Ignore
-            }
+    suspend fun grantRoot(uid: Int): Boolean {
+        return withContext(Dispatchers.IO) {
+            murasakiService?.grantRoot(uid) ?: false
         }
-        return success
     }
 
     /**
-     * 断开连接
+     * 撤销 UID root 权限
      */
-    fun disconnect() {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                Murasaki.disconnect()
-            }
-            murasakiStatus = MurasakiStatus()
-            hymoFsStatus = HymoFsStatus()
+    suspend fun revokeRoot(uid: Int): Boolean {
+        return withContext(Dispatchers.IO) {
+            murasakiService?.revokeRoot(uid) ?: false
         }
+    }
+
+    /**
+     * 注入 SEPolicy 规则
+     */
+    suspend fun injectSepolicy(rule: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            kernelService?.injectSepolicy(rule) ?: false
+        }
+    }
+
+    /**
+     * 执行 root 命令
+     */
+    suspend fun execCommand(command: String): String? {
+        return withContext(Dispatchers.IO) {
+            kernelService?.execCommand(command)
+        }
+    }
+
+    /**
+     * 重置状态
+     */
+    fun reset() {
+        murasakiStatus = MurasakiStatus()
+        hymoFsStatus = HymoFsStatus()
+        murasakiService = null
+        hymoFsService = null
+        kernelService = null
     }
 
     override fun onCleared() {
         super.onCleared()
-        Murasaki.disconnect()
+        reset()
     }
 
     private fun getPrivilegeLevelName(level: Int): String {

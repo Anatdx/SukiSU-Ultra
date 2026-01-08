@@ -535,8 +535,6 @@
     <string name="hymofs_kernel_debug_desc">启用 HymoFS 内核调试日志</string>
     <string name="hymofs_stealth">隐身模式</string>
     <string name="hymofs_stealth_desc">隐藏挂载痕迹并重新排序挂载 ID</string>
-    <string name="hymofs_avc_spoof">AVC 日志欺骗</string>
-    <string name="hymofs_avc_spoof_desc">伪造 SELinux AVC 拒绝日志</string>
     <string name="hymofs_enable_nuke">启用 Nuke</string>
     <string name="hymofs_enable_nuke_desc">允许清除 ext4 sysfs 条目</string>
     <string name="hymofs_ignore_protocol">忽略协议不匹配</string>

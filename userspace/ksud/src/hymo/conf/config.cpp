@@ -67,8 +67,6 @@ Config Config::from_file(const fs::path& path) {
                 config.enable_kernel_debug = (value == "true");
             else if (key == "enable_stealth")
                 config.enable_stealth = (value == "true");
-            else if (key == "avc_spoof")
-                config.avc_spoof = (value == "true");
             else if (key == "mirror_path")
                 config.mirror_path = value;
             else if (key == "partitions") {
@@ -110,7 +108,6 @@ bool Config::save_to_file(const fs::path& path) const {
     file << "ignore_protocol_mismatch = " << (ignore_protocol_mismatch ? "true" : "false") << "\n";
     file << "enable_kernel_debug = " << (enable_kernel_debug ? "true" : "false") << "\n";
     file << "enable_stealth = " << (enable_stealth ? "true" : "false") << "\n";
-    file << "avc_spoof = " << (avc_spoof ? "true" : "false") << "\n";
     if (!mirror_path.empty()) {
         file << "mirror_path = \"" << mirror_path << "\"\n";
     }

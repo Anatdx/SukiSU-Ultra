@@ -30,21 +30,20 @@ import io.murasaki.Murasaki
 @Composable
 fun MurasakiStatusCard(
     viewModel: MurasakiViewModel,
+    packageName: String,
     modifier: Modifier = Modifier
 ) {
     val status = viewModel.murasakiStatus
     val hymoFsStatus = viewModel.hymoFsStatus
     val isLoading = viewModel.isLoading
 
-    // 自动连接
-    LaunchedEffect(Unit) {
-        viewModel.connect()
-    }
+    // 自动连接 (需要 packageName)
+    // LaunchedEffect 由外部调用 viewModel.connect(packageName) 触发
 
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = getCardColors(),
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -94,7 +93,7 @@ fun MurasakiStatusCard(
                 MurasakiDetails(status, hymoFsStatus, viewModel)
             } else {
                 // 连接失败
-                ConnectionError(status.error, onRetry = { viewModel.connect() })
+                ConnectionError(status.error, onRetry = { viewModel.connect(packageName) })
             }
         }
     }
@@ -192,30 +191,17 @@ private fun MurasakiDetails(
             ActionChip(
                 icon = Icons.Default.Visibility,
                 label = "隐身",
-                isActive = hymoFsStatus.stealthEnabled == true,
-                onClick = { viewModel.setStealthMode(hymoFsStatus.stealthEnabled != true) }
-            )
-            ActionChip(
-                icon = Icons.Default.BugReport,
-                label = "调试",
-                isActive = hymoFsStatus.debugEnabled == true,
-                onClick = { viewModel.setDebugMode(hymoFsStatus.debugEnabled != true) }
-            )
-            ActionChip(
-                icon = Icons.Default.CleaningServices,
-                label = "Paw Pad",
-                isActive = false,
-                onClick = { viewModel.nukeExt4Sysfs() }
+                isActive = hymoFsStatus.stealthEnabled,
+                onClick = { viewModel.setStealthMode(!hymoFsStatus.stealthEnabled) }
             )
         }
 
         // 规则统计
-        hymoFsStatus.activeRules?.let { rules ->
-            val ruleCount = rules.lines().filter { it.isNotBlank() }.size
+        if (hymoFsStatus.hideRulesCount > 0 || hymoFsStatus.redirectRulesCount > 0) {
             InfoRow(
                 icon = Icons.Default.Rule,
                 label = "活跃规则",
-                value = "$ruleCount 条"
+                value = "${hymoFsStatus.hideRulesCount} 隐藏 / ${hymoFsStatus.redirectRulesCount} 重定向"
             )
         }
     }

@@ -532,8 +532,6 @@
     <string name="hymofs_kernel_debug_desc">Enable HymoFS kernel debug logging</string>
     <string name="hymofs_stealth">Stealth Mode</string>
     <string name="hymofs_stealth_desc">Hide mount traces and reorder mount IDs</string>
-    <string name="hymofs_avc_spoof">AVC Log Spoofing</string>
-    <string name="hymofs_avc_spoof_desc">Spoof SELinux AVC deny logs</string>
     <string name="hymofs_enable_nuke">Enable Nuke</string>
     <string name="hymofs_enable_nuke_desc">Allow nuking ext4 sysfs entries</string>
     <string name="hymofs_ignore_protocol">Ignore Protocol Mismatch</string>

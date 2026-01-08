@@ -100,7 +100,6 @@ object HymoFSManager {
         val ignoreProtocolMismatch: Boolean = false,
         val enableKernelDebug: Boolean = false,
         val enableStealth: Boolean = true,
-        val avcSpoof: Boolean = false,
         val hymofsAvailable: Boolean = false,
         val hymofsStatus: HymoFSStatus = HymoFSStatus.NOT_PRESENT
     )
@@ -181,7 +180,6 @@ object HymoFSManager {
                     ignoreProtocolMismatch = json.optBoolean("ignore_protocol_mismatch", false),
                     enableKernelDebug = json.optBoolean("enable_kernel_debug", false),
                     enableStealth = json.optBoolean("enable_stealth", true),
-                    avcSpoof = json.optBoolean("avc_spoof", false),
                     hymofsAvailable = json.optBoolean("hymofs_available", false),
                     hymofsStatus = HymoFSStatus.fromCode(json.optInt("hymofs_status", 1))
                 )
@@ -214,7 +212,6 @@ object HymoFSManager {
                 appendLine("ignore_protocol_mismatch = ${config.ignoreProtocolMismatch}")
                 appendLine("enable_kernel_debug = ${config.enableKernelDebug}")
                 appendLine("enable_stealth = ${config.enableStealth}")
-                appendLine("avc_spoof = ${config.avcSpoof}")
                 if (config.partitions.isNotEmpty()) {
                     appendLine("partitions = \"${config.partitions.joinToString(",")}\"")
                 }

@@ -23,7 +23,6 @@ public:
     static bool add_rule(const std::string& src, const std::string& target, int type = 0);
     static bool delete_rule(const std::string& src);
     static bool set_mirror_path(const std::string& path);
-    static bool set_avc_log_spoofing(bool enabled);
     static bool hide_path(const std::string& path);
     static bool add_merge_rule(const std::string& src, const std::string& target);
 
