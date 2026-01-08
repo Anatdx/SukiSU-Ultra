@@ -135,7 +135,7 @@ PrivilegeLevel MurasakiService::getPrivilegeLevel(int callingUid) {
     // 检查是否有 Root 权限
     if (is_uid_granted_root(callingUid)) {
         // 进一步检查是否支持内核级
-        if (is_ksu_available() && HymoFS::check_status() == HymoFS::Status::Available) {
+        if (is_ksu_available() && HymoFS::check_status() == HymoFSStatus::Available) {
             return PrivilegeLevel::KERNEL;
         }
         return PrivilegeLevel::ROOT;
@@ -144,7 +144,7 @@ PrivilegeLevel MurasakiService::getPrivilegeLevel(int callingUid) {
 }
 
 bool MurasakiService::isKernelModeAvailable() {
-    return is_ksu_available() && HymoFS::check_status() == HymoFS::Status::Available;
+    return is_ksu_available() && HymoFS::check_status() == HymoFSStatus::Available;
 }
 
 std::string MurasakiService::getSelinuxContext(int pid) {

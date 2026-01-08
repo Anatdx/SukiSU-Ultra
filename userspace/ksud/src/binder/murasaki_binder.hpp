@@ -7,22 +7,23 @@
 
 #ifdef __ANDROID__
 #include <android/binder_ibinder.h>
+#include <android/binder_parcel.h>
 #include <android/binder_status.h>
 
-// These functions are in libbinder_ndk.so but not exposed in NDK headers
-// We declare them manually here
+// NDK 29+ has these in public headers, but we need to declare for older NDK versions
+// that might be used for building. At runtime on Android 10+, these will be available.
+#if __ANDROID_API__ >= 29
+// binder_manager.h and binder_process.h are available in API 29+
 extern "C" {
-// From binder_manager.h (not in public NDK)
-binder_status_t AServiceManager_addService(AIBinder* binder, const char* instance)
-    __attribute__((weak));
-AIBinder* AServiceManager_checkService(const char* instance) __attribute__((weak));
-AIBinder* AServiceManager_getService(const char* instance) __attribute__((weak));
-
-// From binder_process.h (not in public NDK)
-void ABinderProcess_startThreadPool(void) __attribute__((weak));
-void ABinderProcess_joinThreadPool(void) __attribute__((weak));
-bool ABinderProcess_setThreadPoolMaxThreadCount(uint32_t numThreads) __attribute__((weak));
+binder_status_t AServiceManager_addService(AIBinder* binder, const char* instance);
+AIBinder* AServiceManager_checkService(const char* instance);
+AIBinder* AServiceManager_getService(const char* instance);
+void ABinderProcess_startThreadPool(void);
+void ABinderProcess_joinThreadPool(void);
+bool ABinderProcess_setThreadPoolMaxThreadCount(uint32_t numThreads);
 }
+#endif // #if __ANDROID_API__ >= 29
+
 #endif // #ifdef __ANDROID__
 
 #include <atomic>

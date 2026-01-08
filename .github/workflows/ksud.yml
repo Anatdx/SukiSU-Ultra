@@ -79,17 +79,17 @@ jobs:
           aarch64-linux-android|aarch64)
             echo "arch=aarch64" >> $GITHUB_OUTPUT
             echo "abi=arm64-v8a" >> $GITHUB_OUTPUT
-            echo "android_target=aarch64-linux-android26" >> $GITHUB_OUTPUT
+            echo "android_target=aarch64-linux-android29" >> $GITHUB_OUTPUT
             ;;
           x86_64-linux-android|x86_64)
             echo "arch=x86_64" >> $GITHUB_OUTPUT
             echo "abi=x86_64" >> $GITHUB_OUTPUT
-            echo "android_target=x86_64-linux-android26" >> $GITHUB_OUTPUT
+            echo "android_target=x86_64-linux-android29" >> $GITHUB_OUTPUT
             ;;
           armv7-linux-androideabi|armv7)
             echo "arch=armv7" >> $GITHUB_OUTPUT
             echo "abi=armeabi-v7a" >> $GITHUB_OUTPUT
-            echo "android_target=armv7a-linux-androideabi26" >> $GITHUB_OUTPUT
+            echo "android_target=armv7a-linux-androideabi29" >> $GITHUB_OUTPUT
             ;;
           *)
             echo "Unknown target: ${{ inputs.target }}"

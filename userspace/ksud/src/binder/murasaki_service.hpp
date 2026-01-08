@@ -87,10 +87,6 @@ private:
 
     bool running_ = false;
     bool initialized_ = false;
-
-    // Binder 服务内部实现
-    class Impl;
-    std::unique_ptr<Impl> impl_;
 };
 
 /**
