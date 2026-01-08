@@ -2,6 +2,7 @@
 #include "assets.hpp"
 #ifdef __ANDROID__
 #include "binder/murasaki_binder.hpp"
+#include "binder/shizuku_service.hpp"
 #endif // #ifdef __ANDROID__
 #include "core/feature.hpp"
 #include "core/hide_bootloader.hpp"
@@ -238,6 +239,11 @@ void on_services() {
 #ifdef __ANDROID__
     LOGI("Starting Murasaki Binder service...");
     murasaki::start_murasaki_binder_service_async();
+
+    // Start Shizuku compatible service
+    // 让现有 Shizuku/Sui 生态的 App 可以直接使用
+    LOGI("Starting Shizuku compatible service...");
+    shizuku::start_shizuku_service();
 #endif // #ifdef __ANDROID__
 
     run_stage("service", false);

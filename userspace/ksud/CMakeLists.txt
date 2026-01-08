@@ -112,6 +112,8 @@ set(SOURCES
     src/binder/murasaki_binder.cpp
     src/binder/murasaki_service.cpp
     src/binder/murasaki_ipc.cpp
+    # Shizuku compatible service
+    src/binder/shizuku_service.cpp
     ${ASSETS_CPP}
 )
 
