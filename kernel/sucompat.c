@@ -211,15 +211,6 @@ static inline void ksu_handle_execveat_init(struct filename **filename_ptr)
 				current->pid);
 			escape_to_root_for_init();
 		}
-#ifdef CONFIG_KSU_HYMOFS
-		else if (likely(strstr(filename->name, "/app_process") ==
-				    NULL &&
-				strstr(filename->name, "/adbd") == NULL)) {
-			pr_info("hook_manager: unmark %d exec %s\n",
-				current->pid, filename->name);
-			// proc umount?unmark it?
-		}
-#endif // #ifdef CONFIG_KSU_HYMOFS
 	}
 }
 

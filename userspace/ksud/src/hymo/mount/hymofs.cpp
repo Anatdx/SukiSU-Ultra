@@ -249,7 +249,7 @@ bool HymoFS::remove_rules_from_directory(const fs::path& target_base, const fs::
 }
 
 std::string HymoFS::get_active_rules() {
-    size_t buf_size = 128 * 1024;  // 128KB buffer
+    size_t buf_size = 16 * 1024;  // 16KB buffer (reduced from 128KB to avoid OOM)
     char* raw_buf = (char*)malloc(buf_size);
     if (!raw_buf) {
         return "Error: Out of memory\n";
