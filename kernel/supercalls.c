@@ -949,14 +949,21 @@ static int do_hymo_cmd(void __user *arg)
 	struct ksu_hymo_cmd cmd;
 	int ret;
 
+	pr_info("do_hymo_cmd: entry, arg=%px\n", arg);
+
 	if (copy_from_user(&cmd, arg, sizeof(cmd))) {
 		pr_err("hymo_cmd: copy_from_user failed\n");
 		return -EFAULT;
 	}
 
+	pr_info("do_hymo_cmd: cmd.cmd=0x%x, cmd.arg=0x%llx\n", cmd.cmd,
+		cmd.arg);
+
 	// Dispatch to HymoFS
 	ret = hymo_dispatch_cmd(cmd.cmd, (void __user *)(unsigned long)cmd.arg);
 	cmd.result = ret;
+
+	pr_info("do_hymo_cmd: hymo_dispatch_cmd returned %d\n", ret);
 
 	if (copy_to_user(arg, &cmd, sizeof(cmd))) {
 		pr_err("hymo_cmd: copy_to_user failed\n");

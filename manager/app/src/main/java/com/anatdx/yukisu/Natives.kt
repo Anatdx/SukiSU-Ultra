@@ -10,16 +10,8 @@ import kotlinx.parcelize.Parcelize
  * @date 2022/12/8.
  */
 object Natives {
-    // minimal supported kernel version
-    // 10915: allowlist breaking change, add app profile
-    // 10931: app profile struct add 'version' field
-    // 10946: add capabilities
-    // 10977: change groups_count and groups to avoid overflow write
-    // 11071: Fix the issue of failing to set a custom SELinux type.
-    // 12143: breaking: new supercall impl
     const val MINIMAL_SUPPORTED_KERNEL = 10000
 
-    // 12040: Support disable sucompat mode
     const val KERNEL_SU_DOMAIN = "u:r:su:s0"
 
     const val MINIMAL_SUPPORTED_KERNEL_FULL = "v1.0.0"

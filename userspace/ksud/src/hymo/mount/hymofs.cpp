@@ -19,28 +19,39 @@ static bool s_status_checked = false;
 // KSU ioctl definitions (must match kernel supercalls.h)
 #define KSU_IOCTL_HYMO_CMD _IOC(_IOC_READ | _IOC_WRITE, 'K', 150, 0)
 
+// Structure must match kernel's ksu_hymo_cmd exactly!
+// Note: __aligned_u64 in kernel forces 8-byte alignment for arg
 struct ksu_hymo_cmd {
     uint32_t cmd;    // HYMO_CMD_* from hymo_magic.h
+    uint32_t _pad;   // Padding to align arg to 8 bytes (matches __aligned_u64)
     uint64_t arg;    // Pointer to command-specific argument
     int32_t result;  // Return value from hymo_dispatch_cmd
-};
+} __attribute__((packed, aligned(8)));
 
 // Execute HymoFS command via KSU fd
 static int hymo_execute_cmd(unsigned int cmd, void* arg) {
     int fd = grab_ksu_fd();
+    LOG_INFO("HymoFS: hymo_execute_cmd: fd=" + std::to_string(fd) + ", cmd=0x" +
+             std::to_string(cmd) + ", arg=" + std::to_string(reinterpret_cast<uint64_t>(arg)));
     if (fd < 0) {
         LOG_ERROR("HymoFS: grab_ksu_fd failed, cannot execute command");
         return -ENOENT;
     }
 
-    ksu_hymo_cmd ksu_cmd = {.cmd = cmd, .arg = reinterpret_cast<uint64_t>(arg), .result = 0};
+    ksu_hymo_cmd ksu_cmd = {
+        .cmd = cmd, ._pad = 0, .arg = reinterpret_cast<uint64_t>(arg), .result = 0};
 
+    LOG_INFO("HymoFS: hymo_execute_cmd: ioctl cmd=0x" + std::to_string(KSU_IOCTL_HYMO_CMD) +
+             ", ksu_cmd.cmd=0x" + std::to_string(ksu_cmd.cmd));
     int ret = ioctl(fd, KSU_IOCTL_HYMO_CMD, &ksu_cmd);
     if (ret < 0) {
-        LOG_ERROR("HymoFS: ioctl(KSU_IOCTL_HYMO_CMD) failed: " + std::string(strerror(errno)));
+        LOG_ERROR("HymoFS: ioctl(KSU_IOCTL_HYMO_CMD) failed: " + std::string(strerror(errno)) +
+                  ", errno=" + std::to_string(errno));
         return ret;
     }
 
+    LOG_INFO("HymoFS: hymo_execute_cmd: ioctl returned " + std::to_string(ret) +
+             ", ksu_cmd.result=" + std::to_string(ksu_cmd.result));
     return ksu_cmd.result;
 }
 

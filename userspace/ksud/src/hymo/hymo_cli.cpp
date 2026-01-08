@@ -39,6 +39,8 @@ void print_hymo_help() {
     printf("  modules         List active modules\n");
     printf("  storage         Show storage status\n");
     printf("  debug <on|off>  Enable/Disable kernel debug logging\n");
+    printf("  stealth <on|off> Enable/Disable stealth mode\n");
+    printf("  avc <on|off>    Enable/Disable AVC log spoofing\n");
     printf("  add <mod_id>    Add module rules to HymoFS\n");
     printf("  delete <mod_id> Delete module rules from HymoFS\n");
     printf("  set-mode <mod_id> <mode>  Set mount mode for a module\n");
@@ -145,6 +147,50 @@ int cmd_hymo(const std::vector<std::string>& args) {
                 printf("Kernel debug logging %s.\n", enable ? "enabled" : "disabled");
             } else {
                 fprintf(stderr, "Failed to set kernel debug logging.\n");
+                return 1;
+            }
+        } else {
+            fprintf(stderr, "HymoFS not available.\n");
+            return 1;
+        }
+        return 0;
+    }
+
+    if (subcmd == "stealth") {
+        if (subargs.empty()) {
+            fprintf(stderr, "Usage: ksud hymo stealth <on|off>\n");
+            return 1;
+        }
+        std::string state = subargs[0];
+        bool enable = (state == "on" || state == "1" || state == "true");
+
+        if (HymoFS::is_available()) {
+            if (HymoFS::set_stealth(enable)) {
+                printf("Stealth mode %s.\n", enable ? "enabled" : "disabled");
+            } else {
+                fprintf(stderr, "Failed to set stealth mode.\n");
+                return 1;
+            }
+        } else {
+            fprintf(stderr, "HymoFS not available.\n");
+            return 1;
+        }
+        return 0;
+    }
+
+    if (subcmd == "avc") {
+        if (subargs.empty()) {
+            fprintf(stderr, "Usage: ksud hymo avc <on|off>\n");
+            return 1;
+        }
+        std::string state = subargs[0];
+        bool enable = (state == "on" || state == "1" || state == "true");
+
+        if (HymoFS::is_available()) {
+            if (HymoFS::set_avc_log_spoofing(enable)) {
+                printf("AVC log spoofing %s.\n", enable ? "enabled" : "disabled");
+            } else {
+                fprintf(stderr, "Failed to set AVC log spoofing.\n");
                 return 1;
             }
         } else {

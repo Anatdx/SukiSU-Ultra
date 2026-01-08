@@ -1,5 +1,6 @@
 #include "init_event.hpp"
 #include "assets.hpp"
+#include "binder/murasaki_service.hpp"
 #include "core/feature.hpp"
 #include "core/hide_bootloader.hpp"
 #include "core/ksucalls.hpp"
@@ -204,6 +205,10 @@ void on_services() {
     // Hide bootloader unlock status (soft BL hiding)
     // Service stage is the correct timing - after boot_completed is set
     hide_bootloader_status();
+
+    // Start Murasaki Binder service (in background)
+    LOGI("Starting Murasaki service...");
+    murasaki::start_murasaki_service_async();
 
     run_stage("service", false);
     LOGI("services completed");
