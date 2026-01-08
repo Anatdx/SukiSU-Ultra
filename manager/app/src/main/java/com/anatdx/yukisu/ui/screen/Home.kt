@@ -251,7 +251,10 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     )
 
                     // Murasaki API 状态卡片
-                    MurasakiStatusCard(viewModel = murasakiViewModel)
+                    MurasakiStatusCard(
+                        viewModel = murasakiViewModel,
+                        packageName = context.packageName
+                    )
 
                     // 警告信息
                     if (viewModel.systemStatus.requireNewKernel) {
