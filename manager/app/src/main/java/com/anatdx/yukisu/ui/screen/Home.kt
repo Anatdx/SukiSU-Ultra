@@ -54,6 +54,8 @@ import com.anatdx.yukisu.ui.util.checkNewVersion
 import com.anatdx.yukisu.ui.util.module.LatestVersionInfo
 import com.anatdx.yukisu.ui.util.reboot
 import com.anatdx.yukisu.ui.viewmodel.HomeViewModel
+import com.anatdx.yukisu.ui.viewmodel.MurasakiViewModel
+import com.anatdx.yukisu.ui.component.MurasakiStatusCard
 import com.anatdx.yukisu.ui.component.SuperKeyDialog
 import com.anatdx.yukisu.ui.component.rememberSuperKeyDialog
 import com.anatdx.yukisu.ui.component.SuperKeyAuthResult
@@ -75,6 +77,7 @@ import kotlin.random.Random
 fun HomeScreen(navigator: DestinationsNavigator) {
     val context = LocalContext.current
     val viewModel = viewModel<HomeViewModel>()
+    val murasakiViewModel = viewModel<MurasakiViewModel>()
     val coroutineScope = rememberCoroutineScope()
 
     val pullRefreshState = rememberPullRefreshState(
@@ -246,6 +249,9 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                             superKeyDialog.show()
                         }
                     )
+
+                    // Murasaki API 状态卡片
+                    MurasakiStatusCard(viewModel = murasakiViewModel)
 
                     // 警告信息
                     if (viewModel.systemStatus.requireNewKernel) {
