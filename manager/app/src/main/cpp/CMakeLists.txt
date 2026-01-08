@@ -11,6 +11,7 @@ add_library(kernelsu
         jni.c
         ksu.c
         legacy.c
+        murasaki_client.c
 )
 
 find_library(log-lib log)
