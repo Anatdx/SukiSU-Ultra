@@ -11,14 +11,16 @@ word4=$(tr -dc 'a-z' </dev/urandom | head -c6)
 export word1 word2 word3 word4
 
 # Rename directories (updated for com.anatdx.yukisu)
-find . -depth -type d -name 'com' -execdir mv {} "$word1" \;
-find . -depth -type d -name 'anatdx' -execdir mv {} "$word2" \;
-find . -depth -type d -name 'yukisu' -execdir mv {} "$word3" \;
-find . -depth -type d -name 'io' -execdir mv {} "$word4" \;
+# Exclude murasaki-api which is a submodule library
+find app -depth -type d -name 'com' -execdir mv {} "$word1" \;
+find app -depth -type d -name 'anatdx' -execdir mv {} "$word2" \;
+find app -depth -type d -name 'yukisu' -execdir mv {} "$word3" \;
+find app -depth -type d -name 'io' -execdir mv {} "$word4" \;
 
 
 # Replace inside files (updated for com.anatdx.yukisu)
-find . -type f -exec sed -i \
+# Also restrict to app directory to avoid touching submodules
+find app -type f -exec sed -i \
     -e "s/com\.anatdx\.yukisu/$word1.$word2.$word3/g" \
     -e "s/io\.anatdx\.yukisu/$word4.$word2.$word3/g" \
     -e "s/com\/anatdx\/yukisu/$word1\/$word2\/$word3/g" \
