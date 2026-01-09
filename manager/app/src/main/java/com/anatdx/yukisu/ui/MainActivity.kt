@@ -56,6 +56,7 @@ import com.anatdx.yukisu.ui.viewmodel.HomeViewModel
 import com.anatdx.yukisu.ui.viewmodel.SuperUserViewModel
 import com.anatdx.yukisu.ui.webui.initPlatform
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ui.screen.moreSettings.util.LocaleHelper
 
@@ -97,6 +98,10 @@ class MainActivity : ComponentActivity() {
             // which is called after SuperKey authentication succeeds.
             // In SuperKey mode, isManager is false until authentication,
             // so we can't install ksud here.
+
+            // Dispatch Shizuku Binder on startup
+            startShizukuDispatcher()
+
 
             // 使用标记控制初始化流程
             if (!isInitialized) {
@@ -328,6 +333,26 @@ class MainActivity : ComponentActivity() {
             super.onDestroy()
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    private fun startShizukuDispatcher() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val apkPath = applicationInfo.sourceDir
+                // Class name: com.anatdx.yukisu.ui.shizuku.BinderDispatcher
+                val cmd = "app_process -Djava.class.path=$apkPath /system/bin com.anatdx.yukisu.ui.shizuku.BinderDispatcher"
+                
+                // Execute as root
+                val process = Runtime.getRuntime().exec("su")
+                val os = java.io.DataOutputStream(process.outputStream)
+                os.writeBytes("$cmd\n")
+                os.writeBytes("exit\n")
+                os.flush()
+                process.waitFor()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }
