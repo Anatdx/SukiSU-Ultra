@@ -1,2 +1,0 @@
-# Hashes of file build rules.
-4d74b97f8327cba07f7d9b02d6417589 generated/assets_data.cpp
