@@ -134,7 +134,7 @@ static void monitor_thread_func() {
     LOGI("Zygisk monitor thread started");
 
     // Get KSU fd (ksud already has it via hymo_utils)
-    int ksu_fd = grab_ksu_fd();
+    int ksu_fd = hymo::grab_ksu_fd();
     if (ksu_fd < 0) {
         LOGE("Cannot get KSU fd, zygisk disabled");
         return;
