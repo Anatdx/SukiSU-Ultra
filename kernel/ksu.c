@@ -42,6 +42,7 @@
 #include "superkey.h"
 #include "throne_tracker.h"
 #include "sulog.h"
+#include "zygisk.h"
 
 struct cred *ksu_cred;
 #ifdef CONFIG_KSU_LKM
@@ -284,6 +285,9 @@ int __init kernelsu_init(void)
 
 	ksu_throne_tracker_init();
 
+	// Initialize Zygisk kernel support
+	ksu_zygisk_init();
+
 #ifdef CONFIG_KSU_HYMOFS
 	hymofs_init();
 #endif // #ifdef CONFIG_KSU_HYMOFS
@@ -323,6 +327,9 @@ void kernelsu_exit(void)
 	ksu_allowlist_exit();
 
 	ksu_throne_tracker_exit();
+
+	// Cleanup Zygisk
+	ksu_zygisk_exit();
 
 #ifdef CONFIG_KSU_LKM
 	ksu_observer_exit();

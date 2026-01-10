@@ -43,6 +43,7 @@ static bool is_boot_phase = true;
 #include "selinux/selinux.h"
 #include "throne_tracker.h"
 #include "util.h"
+#include "zygisk.h"
 
 bool ksu_module_mounted __read_mostly = false;
 bool ksu_boot_completed __read_mostly = false;
@@ -378,22 +379,40 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 	}
 #endif // #ifndef CONFIG_KSU_LKM
 
-	if (unlikely(first_app_process && !memcmp(filename->name, app_process,
-						  sizeof(app_process) - 1))) {
-		first_app_process = false;
-		pr_info("exec app_process, /data prepared, second_stage: %d\n",
-			init_second_stage_executed);
-		struct task_struct *init_task;
-		rcu_read_lock();
-		init_task = rcu_dereference(current->real_parent);
-		// fallback for initial installation, ksud is not there
-		if (init_task) {
-			task_work_add(init_task, &on_post_fs_data_cb,
-				      TWA_RESUME);
-		}
-		rcu_read_unlock();
+	// Detect app_process for both post-fs-data trigger AND zygisk support
+	if (unlikely(!memcmp(filename->name, app_process,
+			     sizeof(app_process) - 1))) {
+		// Determine if 64-bit
+		static const char app_process64[] = "/system/bin/app_process64";
+		bool is_64bit = !memcmp(filename->name, app_process64,
+					sizeof(app_process64) - 1);
 
-		stop_execve_hook();
+		// First time: trigger post-fs-data
+		if (first_app_process) {
+			first_app_process = false;
+			pr_info("exec app_process, /data prepared, "
+				"second_stage: %d\n",
+				init_second_stage_executed);
+			struct task_struct *init_task;
+			rcu_read_lock();
+			init_task = rcu_dereference(current->real_parent);
+			// fallback for initial installation, ksud is not there
+			if (init_task) {
+				task_work_add(init_task, &on_post_fs_data_cb,
+					      TWA_RESUME);
+			}
+			rcu_read_unlock();
+
+			// Only stop execve hook if zygisk is NOT enabled
+			// If zygisk is enabled, we need to keep detecting
+			// app_process
+			if (!ksu_zygisk_is_enabled()) {
+				stop_execve_hook();
+			}
+		}
+
+		// Notify zygisk subsystem (will pause if zygisk enabled)
+		ksu_zygisk_on_app_process(current->pid, is_64bit);
 	}
 
 	return 0;

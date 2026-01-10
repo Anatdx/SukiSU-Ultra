@@ -42,6 +42,7 @@
 #include "selinux/selinux.h"
 #include "sulog.h"
 #include "supercalls.h"
+#include "zygisk.h"
 
 #ifndef CONFIG_KSU_LKM
 // kcompat for older kernel
@@ -942,6 +943,57 @@ static int do_superkey_status(void __user *arg)
 }
 #endif // #ifdef CONFIG_KSU_SUPERKEY
 
+// Zygisk IOCTL handlers
+static int do_zygisk_wait_zygote(void __user *arg)
+{
+	struct ksu_zygisk_wait_cmd cmd;
+	int pid;
+	bool is_64bit;
+	int ret;
+
+	if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+		return -EFAULT;
+	}
+
+	ret = ksu_zygisk_wait_zygote(&pid, &is_64bit, cmd.timeout_ms);
+	if (ret == 0) {
+		cmd.pid = pid;
+		cmd.is_64bit = is_64bit ? 1 : 0;
+	} else {
+		cmd.pid = 0;
+		cmd.is_64bit = 0;
+	}
+
+	if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+		return -EFAULT;
+	}
+
+	return ret;
+}
+
+static int do_zygisk_resume_zygote(void __user *arg)
+{
+	struct ksu_zygisk_resume_cmd cmd;
+
+	if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+		return -EFAULT;
+	}
+
+	return ksu_zygisk_resume_zygote(cmd.pid);
+}
+
+static int do_zygisk_enable(void __user *arg)
+{
+	struct ksu_zygisk_enable_cmd cmd;
+
+	if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+		return -EFAULT;
+	}
+
+	ksu_zygisk_set_enabled(cmd.enable != 0);
+	return 0;
+}
+
 #ifdef CONFIG_KSU_HYMOFS
 // 150. HYMO_CMD - HymoFS command dispatch (integrated)
 static int do_hymo_cmd(void __user *arg)
@@ -1086,6 +1138,19 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
      .name = "LIST_TRY_UMOUNT",
      .handler = list_try_umount,
      .perm_check = manager_or_root},
+    // Zygisk support
+    {.cmd = KSU_IOCTL_ZYGISK_WAIT_ZYGOTE,
+     .name = "ZYGISK_WAIT_ZYGOTE",
+     .handler = do_zygisk_wait_zygote,
+     .perm_check = only_root},
+    {.cmd = KSU_IOCTL_ZYGISK_RESUME_ZYGOTE,
+     .name = "ZYGISK_RESUME_ZYGOTE",
+     .handler = do_zygisk_resume_zygote,
+     .perm_check = only_root},
+    {.cmd = KSU_IOCTL_ZYGISK_ENABLE,
+     .name = "ZYGISK_ENABLE",
+     .handler = do_zygisk_enable,
+     .perm_check = only_root},
 #ifdef CONFIG_KSU_HYMOFS
     {.cmd = KSU_IOCTL_HYMO_CMD,
      .name = "HYMO_CMD",
