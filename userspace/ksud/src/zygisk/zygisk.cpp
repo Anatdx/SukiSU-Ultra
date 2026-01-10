@@ -36,15 +36,15 @@ struct ksu_zygisk_wait_cmd {
     int32_t pid;
     uint8_t is_64bit;
     uint32_t timeout_ms;
-} __attribute__((packed));
+};
 
 struct ksu_zygisk_resume_cmd {
     int32_t pid;
-} __attribute__((packed));
+};
 
 struct ksu_zygisk_enable_cmd {
     uint8_t enable;
-} __attribute__((packed));
+};
 
 // Tracer paths
 static constexpr const char* TRACER_PATH_64 = "/data/adb/yukizygisk/bin/zygisk-ptrace64";
