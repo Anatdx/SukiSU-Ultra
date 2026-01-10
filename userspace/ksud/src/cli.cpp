@@ -20,6 +20,7 @@
 #include "umount.hpp"
 #include "utils.hpp"
 
+#include <sys/stat.h>
 #include <unistd.h>
 #include <algorithm>
 #include <cstdlib>
@@ -28,6 +29,46 @@
 #include <vector>
 
 namespace ksud {
+
+// Check for self update on startup
+static void check_and_apply_update(int argc, char* argv[]) {
+    const char* update_file = "/data/adb/ksud_update/ksud";
+
+    // Only check if update file exists and is executable
+    if (access(update_file, X_OK) != 0) {
+        return;
+    }
+
+    LOGI("Found pending update: %s", update_file);
+
+    // Make sure we are rooted to perform update
+    if (geteuid() != 0) {
+        LOGW("Not root, cannot perform self-update");
+        return;
+    }
+
+    // Atomic rename
+    if (rename(update_file, "/data/adb/ksud") != 0) {
+        LOGE("Failed to update ksud: rename failed: %s", strerror(errno));
+        // Try to remove it to prevent loop if it's broken
+        unlink(update_file);
+        return;
+    }
+
+    if (chmod("/data/adb/ksud", 0755) != 0) {
+        LOGW("Failed to chmod new ksud: %s", strerror(errno));
+    }
+
+    LOGI("Successfully updated to new version, restarting process...");
+
+    // Re-execute with new binary
+    // argv[0] might be old path or "ksud". Safer to use absolute path
+    execv("/data/adb/ksud", argv);
+
+    // If execv returns, it failed
+    LOGE("Failed to re-execute ksud: %s", strerror(errno));
+    _exit(127);
+}
 
 void CliParser::add_option(const CliOption& opt) {
     options_.push_back(opt);
@@ -513,6 +554,9 @@ static int cmd_kpm(const std::vector<std::string>& args) {
 #endif // #ifdef __aarch64__
 
 int cli_run(int argc, char* argv[]) {
+    // Check for self update first
+    check_and_apply_update(argc, argv);
+
     // Initialize logging
     log_init("KernelSU");
 

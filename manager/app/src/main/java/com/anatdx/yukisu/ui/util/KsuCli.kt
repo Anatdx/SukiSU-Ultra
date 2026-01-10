@@ -93,48 +93,84 @@ object KsuCli {
             
             Log.i(TAG, "checkAndInstallKsud: apk=$apkKsudVersion, installed=$installedKsudVersion")
             
-            // Install if: ksud not installed, or version mismatch
-            if (installedKsudVersion == null || apkKsudVersion != installedKsudVersion) {
-                Log.i(TAG, "Installing ksud: apk=$apkKsudVersion, installed=$installedKsudVersion")
-                // Kill daemon first to allow file replacement
-                stopKsudDaemon()
+    /**
+     * Check if ksud needs to be installed or updated.
+     * Called after SuperKey authentication succeeds.
+     */
+    private fun checkAndInstallKsud() {
+        try {
+            val apkKsudVersion = getApkKsudVersion()
+            val installedKsudVersion = getInstalledKsudVersion()
+            
+            Log.i(TAG, "checkAndInstallKsud check: apk=$apkKsudVersion, installed=$installedKsudVersion")
+            
+            if (installedKsudVersion == null) {
+                // Case 1: Not installed. Install directly and start daemon.
+                Log.i(TAG, "ksud not found. Installing...")
                 install()
-                // Restart daemon after install
                 startKsudDaemon()
+            } else if (apkKsudVersion != installedKsudVersion) {
+                // Case 2: Update available. Stage update for next reboot.
+                // Do NOT restart daemon to avoid killing Zygote or causing instability.
+                Log.i(TAG, "ksud update available. Staging update...")
+                stageUpdate()
             } else {
-                Log.d(TAG, "ksud is up-to-date: $installedKsudVersion")
+                // Case 3: Up to date. Cleanup any stale update files.
+                Log.d(TAG, "ksud is up-to-date.")
+                cleanupUpdate()
             }
         } catch (e: Exception) {
-            Log.e(TAG, "checkAndInstallKsud failed, falling back to install", e)
-            // Fallback: always install on error
-            stopKsudDaemon()
-            install()
-            startKsudDaemon()
+            Log.e(TAG, "checkAndInstallKsud failed", e)
         }
     }
-    
+
     /**
-     * Stop ksud daemon before updating.
+     * Stage ksud update for next reboot.
      */
-    private fun stopKsudDaemon() {
+    private fun stageUpdate() {
         try {
-            Log.i(TAG, "Stopping ksud daemon for update...")
-            ShellUtils.fastCmd(SHELL, "pkill -9 -f 'ksud daemon' 2>/dev/null || true")
-            // Give it a moment to die
-            Thread.sleep(100)
+            val updateDir = "/data/adb/ksud_update"
+            val libKsudPath = File(ksuApp.applicationInfo.nativeLibraryDir, "libksud.so").absolutePath
+            
+            Log.i(TAG, "Staging ksud update to $updateDir...")
+            
+            // Ensure dir exists
+            ShellUtils.fastCmd(SHELL, "mkdir -p $updateDir")
+            
+            // Copy new ksud
+            val result = ShellUtils.fastCmdResult(SHELL, "cp '$libKsudPath' '$updateDir/ksud' && chmod 755 '$updateDir/ksud'")
+            if (result) {
+                Log.i(TAG, "ksud staged successfully. Will update on next reboot.")
+                // Optionally notify use to reboot
+            } else {
+                Log.e(TAG, "Failed to stage ksud update")
+            }
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to stop ksud daemon", e)
+            Log.w(TAG, "stageUpdate failed", e)
+        }
+    }
+
+    /**
+     * Cleanup update directory.
+     */
+    private fun cleanupUpdate() {
+        try {
+            ShellUtils.fastCmd(SHELL, "rm -rf /data/adb/ksud_update")
+        } catch (e: Exception) {
+            // ignore
         }
     }
     
     /**
-     * Start ksud daemon after updating.
+     * Start ksud daemon.
      */
     private fun startKsudDaemon() {
         try {
-            Log.i(TAG, "Starting ksud daemon after update...")
-            // Start daemon in background
-            ShellUtils.fastCmd(SHELL, "/data/adb/ksud daemon &")
+            Log.i(TAG, "Starting ksud daemon...")
+            // Check if running first
+             if (!ShellUtils.fastCmdResult(SHELL, "pgrep -f 'ksud daemon'")) {
+                ShellUtils.fastCmd(SHELL, "/data/adb/ksud daemon &")
+             }
         } catch (e: Exception) {
             Log.w(TAG, "Failed to start ksud daemon", e)
         }
