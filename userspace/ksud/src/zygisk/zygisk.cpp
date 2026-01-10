@@ -74,7 +74,9 @@ static bool kernel_wait_zygote(int ksu_fd, int* pid, bool* is_64bit, uint32_t ti
 
     int ret = ioctl(ksu_fd, KSU_IOCTL_ZYGISK_WAIT_ZYGOTE, &cmd);
     if (ret < 0) {
-        if (errno == ETIMEDOUT) {
+        // EINTR: interrupted by signal, caller should retry
+        // ETIMEDOUT: timeout (expected, not an error)
+        if (errno == ETIMEDOUT || errno == EINTR) {
             return false;
         }
         LOGE("IOCTL ZYGISK_WAIT_ZYGOTE failed: %s", strerror(errno));
