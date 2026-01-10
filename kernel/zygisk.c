@@ -48,15 +48,34 @@ static DECLARE_WAIT_QUEUE_HEAD(zygisk_wait_queue);
 void ksu_zygisk_init(void)
 {
 	pr_info("ksu_zygisk: initializing\n");
+
+	// CRITICAL: Reset enable state on init
+	// This ensures clean state even if module is hot-reloaded
+	zygisk_enabled = false;
+
 	init_completion(&pending_zygote32.done);
 	init_completion(&pending_zygote64.done);
+
+	// Clear any stale zygote info
+	pending_zygote32.valid = false;
+	pending_zygote32.pid = 0;
+	pending_zygote64.valid = false;
+	pending_zygote64.pid = 0;
+
+	pr_info("ksu_zygisk: initialized (enabled=false)\n");
 }
 
 void ksu_zygisk_exit(void)
 {
 	pr_info("ksu_zygisk: exiting\n");
+
+	// CRITICAL: Disable zygisk on module exit
+	zygisk_enabled = false;
+
 	// Wake up any waiting processes
 	wake_up_all(&zygisk_wait_queue);
+
+	pr_info("ksu_zygisk: exited (forced disabled)\n");
 }
 
 void ksu_zygisk_set_enabled(bool enable)

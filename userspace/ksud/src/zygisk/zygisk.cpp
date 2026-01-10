@@ -121,9 +121,11 @@ static bool inject_zygote_builtin(int target_pid, bool is_64bit) {
     LOGI("inject_zygote_builtin: target_pid=%d is_64bit=%d payload=%s", target_pid, is_64bit,
          payload);
 
+    // Check payload exists BEFORE attaching to avoid leaving process stopped
     if (access(payload, R_OK) != 0) {
-        LOGE("Payload not accessible: %s (errno=%d: %s)", payload, errno, strerror(errno));
-        return false;
+        LOGE("Payload not accessible: %s (errno=%d: %s) - ABORT injection", payload, errno,
+             strerror(errno));
+        return false;  // Don't attach if we can't inject
     }
 
     // Use YukiZygisk's injector directly
@@ -308,6 +310,7 @@ static void injection_thread_func() {
     // Wait for and inject BOTH zygotes (32 + 64)
     int injected_count = 0;
     const int MAX_ZYGOTES = 2;
+    std::vector<int> resumed_pids;  // Track resumed PIDs to avoid double-resume
 
     while (injected_count < MAX_ZYGOTES) {
         int zygote_pid;
@@ -323,18 +326,36 @@ static void injection_thread_func() {
         LOGI("Kernel detected zygote #%d: pid=%d is_64bit=%d", injected_count + 1, zygote_pid,
              is_64bit);
 
-        // Verify stopped
-        if (!is_process_stopped(zygote_pid)) {
-            LOGW("Zygote pid=%d not stopped - skipping", zygote_pid);
+        // Check if already resumed (avoid duplicate processing)
+        if (std::find(resumed_pids.begin(), resumed_pids.end(), zygote_pid) != resumed_pids.end()) {
+            LOGW("Zygote pid=%d already processed - skipping", zygote_pid);
             continue;
         }
 
-        // Inject
+        // Verify stopped
+        if (!is_process_stopped(zygote_pid)) {
+            LOGW("Zygote pid=%d not stopped - skipping", zygote_pid);
+            // CRITICAL: Must resume even if we skip injection
+            LOGI("Resuming skipped zygote pid=%d", zygote_pid);
+            kernel_resume_zygote(ksu_fd, zygote_pid);
+            resumed_pids.push_back(zygote_pid);
+            continue;
+        }
+
+        // Inject (try both methods)
+        LOGI("Starting injection for zygote pid=%d...", zygote_pid);
         inject_zygote(zygote_pid, is_64bit);
 
-        // Resume
-        LOGI("Resuming zygote pid=%d", zygote_pid);
-        kernel_resume_zygote(ksu_fd, zygote_pid);
+        // CRITICAL: Always resume zygote after injection attempt
+        // Even if injection fails, we MUST resume to avoid boot hang
+        LOGI("Resuming zygote pid=%d (post-injection)", zygote_pid);
+        if (!kernel_resume_zygote(ksu_fd, zygote_pid)) {
+            LOGE("Failed to resume zygote pid=%d - system will hang!", zygote_pid);
+            // Last resort: send SIGCONT directly
+            LOGW("Sending SIGCONT directly to pid=%d as fallback", zygote_pid);
+            kill(zygote_pid, SIGCONT);
+        }
+        resumed_pids.push_back(zygote_pid);
 
         injected_count++;
     }
