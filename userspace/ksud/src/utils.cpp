@@ -468,18 +468,38 @@ int install(const std::optional<std::string>& magiskboot_path) {
     }
     self_path[len] = '\0';
 
-    // Copy binary
+    // Copy binary atomically to avoid ETXTBSY
+    std::string tmp_path = std::string(DAEMON_PATH) + ".tmp";
     std::ifstream src(self_path, std::ios::binary);
-    std::ofstream dst(DAEMON_PATH, std::ios::binary);
+    std::ofstream dst(tmp_path, std::ios::binary);
+
     if (!src || !dst) {
-        LOGE("Failed to copy ksud");
+        LOGE("Failed to open streams for copy: %s -> %s (src_fail=%d, dst_fail=%d)", self_path,
+             tmp_path.c_str(), !src, !dst);
         return 1;
     }
+
     dst << src.rdbuf();
+
+    if (src.fail() || dst.fail()) {
+        LOGE("Failed to copy data");
+        src.close();
+        dst.close();
+        unlink(tmp_path.c_str());
+        return 1;
+    }
+
     src.close();
     dst.close();
 
-    chmod(DAEMON_PATH, 0755);
+    chmod(tmp_path.c_str(), 0755);
+
+    // Rename tmp to target (Atomic replace)
+    if (rename(tmp_path.c_str(), DAEMON_PATH) != 0) {
+        LOGE("Failed to rename %s to %s: %s", tmp_path.c_str(), DAEMON_PATH, strerror(errno));
+        unlink(tmp_path.c_str());
+        return 1;
+    }
 
     // Restore SELinux contexts
     if (!restorecon()) {
