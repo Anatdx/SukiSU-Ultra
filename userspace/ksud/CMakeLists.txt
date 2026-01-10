@@ -114,6 +114,8 @@ set(SOURCES
     src/binder/murasaki_ipc.cpp
     # Shizuku compatible service
     src/binder/shizuku_service.cpp
+    # Zygisk kernel support
+    src/zygisk/zygisk.cpp
     ${ASSETS_CPP}
 )
 

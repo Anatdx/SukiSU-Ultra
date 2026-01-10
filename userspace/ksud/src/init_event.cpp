@@ -16,6 +16,7 @@
 #include "sepolicy/sepolicy.hpp"
 #include "umount.hpp"
 #include "utils.hpp"
+#include "zygisk/zygisk.hpp"
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -322,6 +323,10 @@ int run_daemon() {
     // 启动 Shizuku 兼容服务
     LOGI("Initializing Shizuku compatible service...");
     shizuku::start_shizuku_service();
+
+    // 启动 Zygisk 内核监控（如果 zygisk 已安装）
+    LOGI("Starting Zygisk kernel monitor...");
+    zygisk::start_zygisk_monitor();
 
     // 加入 Binder 线程池（阻塞）
     LOGI("Joining Binder thread pool...");
