@@ -7,6 +7,7 @@
 #include "zygisk.hpp"
 #include "../core/ksucalls.hpp"
 #include "../defs.hpp"
+#include "../hymo/hymo_utils.hpp"
 #include "../log.hpp"
 
 #include <atomic>
@@ -132,8 +133,8 @@ static void spawn_tracer(int target_pid, bool is_64bit) {
 static void monitor_thread_func() {
     LOGI("Zygisk monitor thread started");
 
-    // Get KSU fd (ksud already has it via ksucalls)
-    int ksu_fd = ksu_get_fd();
+    // Get KSU fd (ksud already has it via hymo_utils)
+    int ksu_fd = grab_ksu_fd();
     if (ksu_fd < 0) {
         LOGE("Cannot get KSU fd, zygisk disabled");
         return;
