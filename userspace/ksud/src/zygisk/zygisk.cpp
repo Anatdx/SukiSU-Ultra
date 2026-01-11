@@ -351,19 +351,54 @@ static void injection_thread_func() {
     int injected_count = 0;
     const int MAX_ZYGOTES = 2;
 
+    // DEBUG: Entering wait loop
+    int fd6 = open("/data/local/tmp/zygisk_entering_wait_loop", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    if (fd6 >= 0) {
+        close(fd6);
+    }
+
     while (injected_count < MAX_ZYGOTES) {
         int zygote_pid;
         bool is_64bit;
 
         LOGI("Waiting for zygote #%d/%d (timeout=10s)...", injected_count + 1, MAX_ZYGOTES);
 
+        // DEBUG: Before wait
+        int fd7 = open("/data/local/tmp/zygisk_before_wait", O_WRONLY | O_CREAT | O_APPEND, 0666);
+        if (fd7 >= 0) {
+            char buf[32];
+            snprintf(buf, sizeof(buf), "wait_%d\n", injected_count + 1);
+            write(fd7, buf, strlen(buf));
+            close(fd7);
+        }
+
         if (!kernel_wait_zygote(ksu_fd, &zygote_pid, &is_64bit, 10000)) {
             LOGW("Timeout waiting for zygote #%d", injected_count + 1);
+
+            // DEBUG: Timeout
+            int fd8 =
+                open("/data/local/tmp/zygisk_wait_timeout", O_WRONLY | O_CREAT | O_APPEND, 0666);
+            if (fd8 >= 0) {
+                char buf[32];
+                snprintf(buf, sizeof(buf), "timeout_%d\n", injected_count + 1);
+                write(fd8, buf, strlen(buf));
+                close(fd8);
+            }
             break;
         }
 
         LOGI("Kernel detected zygote #%d: pid=%d is_64bit=%d", injected_count + 1, zygote_pid,
              is_64bit);
+
+        // DEBUG: Got zygote PID
+        int fd9 =
+            open("/data/local/tmp/zygisk_got_zygote_pid", O_WRONLY | O_CREAT | O_APPEND, 0666);
+        if (fd9 >= 0) {
+            char buf[64];
+            snprintf(buf, sizeof(buf), "pid=%d is_64bit=%d\n", zygote_pid, is_64bit);
+            write(fd9, buf, strlen(buf));
+            close(fd9);
+        }
 
         // Verify stopped (sanity check - kernel should have stopped it)
         if (!is_process_stopped(zygote_pid)) {
@@ -391,6 +426,16 @@ static void injection_thread_func() {
     kernel_enable_zygisk(ksu_fd, false);
     LOGI("Zygisk injection complete (%d/%d zygotes injected), thread exiting", injected_count,
          MAX_ZYGOTES);
+
+    // DEBUG: Thread exiting normally
+    int fd_exit =
+        open("/data/local/tmp/zygisk_thread_exit_normal", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    if (fd_exit >= 0) {
+        char buf[64];
+        snprintf(buf, sizeof(buf), "injected=%d/%d\n", injected_count, MAX_ZYGOTES);
+        write(fd_exit, buf, strlen(buf));
+        close(fd_exit);
+    }
 }
 
 // Enable zygisk and start injection in background (called from Phase 0)
