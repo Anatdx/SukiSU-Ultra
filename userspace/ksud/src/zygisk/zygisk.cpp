@@ -336,11 +336,8 @@ static void injection_thread_func() {
             continue;
         }
 
-        // Inject
-        bool inject_success = inject_zygote(zygote_pid, is_64bit);
-        if (!inject_success) {
-            LOGW("Injection failed for zygote pid=%d, resuming anyway", zygote_pid);
-        }
+        // Inject (logs success/failure internally)
+        inject_zygote(zygote_pid, is_64bit);
 
         // CRITICAL: Always resume zygote, even if injection failed
         // Trust kernel IOCTL - do NOT use kill(SIGCONT) as fallback
