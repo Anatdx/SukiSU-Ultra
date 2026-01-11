@@ -193,6 +193,7 @@ struct ksu_superkey_status_cmd {
 #define KSU_IOCTL_ENABLE_KPM _IOC(_IOC_READ, 'K', 102, 0)
 #define KSU_IOCTL_LIST_TRY_UMOUNT _IOC(_IOC_READ | _IOC_WRITE, 'K', 200, 0)
 
+#ifdef CONFIG_KSU_ZYGISK
 // Zygisk support IOCTLs
 #define KSU_IOCTL_ZYGISK_WAIT_ZYGOTE _IOC(_IOC_READ, 'K', 120, 0)
 #define KSU_IOCTL_ZYGISK_RESUME_ZYGOTE _IOC(_IOC_WRITE, 'K', 121, 0)
@@ -211,6 +212,7 @@ struct ksu_zygisk_resume_cmd {
 struct ksu_zygisk_enable_cmd {
 	__u8 enable; // Input: 1 to enable, 0 to disable
 };
+#endif // #ifdef CONFIG_KSU_ZYGISK
 
 #ifdef CONFIG_KSU_MANUAL_SU
 #define KSU_IOCTL_MANUAL_SU _IOC(_IOC_READ | _IOC_WRITE, 'K', 106, 0)

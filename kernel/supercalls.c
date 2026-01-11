@@ -943,6 +943,7 @@ static int do_superkey_status(void __user *arg)
 }
 #endif // #ifdef CONFIG_KSU_SUPERKEY
 
+#ifdef CONFIG_KSU_ZYGISK
 // Zygisk IOCTL handlers
 static int do_zygisk_wait_zygote(void __user *arg)
 {
@@ -993,6 +994,7 @@ static int do_zygisk_enable(void __user *arg)
 	ksu_zygisk_set_enabled(cmd.enable != 0);
 	return 0;
 }
+#endif // #ifdef CONFIG_KSU_ZYGISK
 
 #ifdef CONFIG_KSU_HYMOFS
 // 150. HYMO_CMD - HymoFS command dispatch (integrated)
@@ -1138,6 +1140,7 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
      .name = "LIST_TRY_UMOUNT",
      .handler = list_try_umount,
      .perm_check = manager_or_root},
+#ifdef CONFIG_KSU_ZYGISK
     // Zygisk support
     {.cmd = KSU_IOCTL_ZYGISK_WAIT_ZYGOTE,
      .name = "ZYGISK_WAIT_ZYGOTE",
@@ -1151,6 +1154,7 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
      .name = "ZYGISK_ENABLE",
      .handler = do_zygisk_enable,
      .perm_check = only_root},
+#endif // #ifdef CONFIG_KSU_ZYGISK
 #ifdef CONFIG_KSU_HYMOFS
     {.cmd = KSU_IOCTL_HYMO_CMD,
      .name = "HYMO_CMD",
