@@ -43,9 +43,7 @@ static bool is_boot_phase = true;
 #include "selinux/selinux.h"
 #include "throne_tracker.h"
 #include "util.h"
-#ifdef CONFIG_KSU_ZYGISK
 #include "zygisk.h"
-#endif // #ifdef CONFIG_KSU_ZYGISK
 
 bool ksu_module_mounted __read_mostly = false;
 bool ksu_boot_completed __read_mostly = false;

@@ -13,6 +13,8 @@
 
 #include <linux/types.h>
 
+#ifdef CONFIG_KSU_ZYGISK
+
 // Initialize zygisk support
 void ksu_zygisk_init(void);
 
@@ -33,5 +35,36 @@ int ksu_zygisk_resume_zygote(pid_t pid);
 // Enable/disable zygisk support
 void ksu_zygisk_set_enabled(bool enable);
 bool ksu_zygisk_is_enabled(void);
+
+#else // CONFIG_KSU_ZYGISK not defined - provide stub functions
+
+static inline void ksu_zygisk_init(void)
+{
+}
+static inline void ksu_zygisk_exit(void)
+{
+}
+static inline bool ksu_zygisk_on_app_process(pid_t pid, bool is_64bit)
+{
+	return false;
+}
+static inline int ksu_zygisk_wait_zygote(int *pid, bool *is_64bit,
+					 unsigned int timeout_ms)
+{
+	return -1;
+}
+static inline int ksu_zygisk_resume_zygote(pid_t pid)
+{
+	return -1;
+}
+static inline void ksu_zygisk_set_enabled(bool enable)
+{
+}
+static inline bool ksu_zygisk_is_enabled(void)
+{
+	return false;
+}
+
+#endif // #ifdef CONFIG_KSU_ZYGISK
 
 #endif // #ifndef __KSU_ZYGISK_H
