@@ -30,7 +30,7 @@ ccflags-y += -DCONFIG_KSU_ZYGISK
 endif
 
 # GKI mode only: lsm_hooks, embed_ksud
-ifeq ($(CONFIG_KSU), y)
+ifneq ($(CONFIG_KSU_LKM), y)
 kernelsu-objs += kernel_compat.o
 kernelsu-objs += lsm_hooks.o
 kernelsu-objs += embed_ksud.o
