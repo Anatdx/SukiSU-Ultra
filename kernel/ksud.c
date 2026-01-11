@@ -392,6 +392,7 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 	}
 #endif // #ifndef CONFIG_KSU_LKM
 
+#ifdef CONFIG_KSU_ZYGISK
 	// Detect app_process for both post-fs-data trigger AND zygisk support
 	if (unlikely(!memcmp(filename->name, app_process,
 			     sizeof(app_process) - 1))) {
@@ -423,7 +424,6 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 			// and still catch subsequent zygote restarts.
 		}
 
-#ifdef CONFIG_KSU_ZYGISK
 		// Check if this is the real zygote (not webview_zygote or other
 		// variants) Only notify zygisk subsystem if argv contains
 		// --zygote
