@@ -23,7 +23,11 @@ kernelsu-objs += ksud.o
 kernelsu-objs += seccomp_cache.o
 kernelsu-objs += file_wrapper.o
 kernelsu-objs += sulog.o
+
+ifeq ($(CONFIG_KSU_ZYGISK), y)
 kernelsu-objs += zygisk.o
+ccflags-y += -DCONFIG_KSU_ZYGISK
+endif
 
 # GKI mode only: lsm_hooks, embed_ksud
 ifneq ($(CONFIG_KSU_LKM), y)

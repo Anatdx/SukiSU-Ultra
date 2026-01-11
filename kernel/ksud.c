@@ -43,7 +43,9 @@ static bool is_boot_phase = true;
 #include "selinux/selinux.h"
 #include "throne_tracker.h"
 #include "util.h"
+#ifdef CONFIG_KSU_ZYGISK
 #include "zygisk.h"
+#endif // #ifdef CONFIG_KSU_ZYGISK
 
 bool ksu_module_mounted __read_mostly = false;
 bool ksu_boot_completed __read_mostly = false;
@@ -421,8 +423,49 @@ int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 			// and still catch subsequent zygote restarts.
 		}
 
-		// Notify zygisk subsystem (will pause if zygisk enabled)
-		ksu_zygisk_on_app_process(current->pid, is_64bit);
+#ifdef CONFIG_KSU_ZYGISK
+		// Check if this is the real zygote (not webview_zygote or other
+		// variants) Only notify zygisk subsystem if argv contains
+		// --zygote
+		bool is_real_zygote = false;
+		if (argv) {
+			int argc = count(*argv, MAX_ARG_STRINGS);
+			// Real zygote: app_process64 --zygote ...
+			// Webview: app_process64 --webview_zygote ...
+			// Apps: app_process64 <class_name> ...
+			if (argc > 1) {
+				const char __user *p =
+				    get_user_arg_ptr(*argv, 1);
+				if (p && !IS_ERR(p)) {
+					char first_arg[32];
+#ifdef CONFIG_KSU_LKM
+					strncpy_from_user_nofault(
+					    first_arg, p, sizeof(first_arg));
+#else
+					ksu_strncpy_from_user_nofault(
+					    first_arg, p, sizeof(first_arg));
+#endif // #ifdef CONFIG_KSU_LKM
+       // Quick reject: webview_zygote (performance optimization)
+					if (!strcmp(first_arg,
+						    "--webview_zygote")) {
+						// This is webview_zygote,
+						// ignore it
+						is_real_zygote = false;
+					} else if (!strcmp(first_arg,
+							   "--zygote")) {
+						// This is the real zygote!
+						is_real_zygote = true;
+					}
+					// Otherwise: regular app, ignore
+				}
+			}
+		}
+
+		// Only notify zygisk if this is the real zygote
+		if (is_real_zygote) {
+			ksu_zygisk_on_app_process(current->pid, is_64bit);
+		}
+#endif // #ifdef CONFIG_KSU_ZYGISK
 	}
 
 	return 0;

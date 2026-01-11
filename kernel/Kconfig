@@ -82,4 +82,15 @@ config KSU_SUPERKEY
 	  The SuperKey can be set at compile time via KSU_SUPERKEY="your_key"
 	  or patched into the LKM binary by ksud.
 
+config KSU_ZYGISK
+	bool "Enable Zygisk support"
+	depends on KSU
+	default y
+	help
+	  Enable Zygisk support for injecting code into Android app processes.
+	  This allows modules to hook into the Zygote process and modify app behavior.
+	  
+	  When enabled, the kernel will detect zygote process execution and coordinate
+	  with ksud daemon for libzygisk.so injection.
+
 endmenu
