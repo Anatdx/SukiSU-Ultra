@@ -358,6 +358,13 @@ static void injection_thread_func() {
 
 // Enable zygisk and start injection in background (called from Phase 0)
 void enable_and_inject_async() {
+    // DEBUG: Prove function is called
+    int fd =
+        open("/data/local/tmp/zygisk_enable_and_inject_called", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    if (fd >= 0) {
+        close(fd);
+    }
+
     LOGI("=== enable_and_inject_async called ===");
 
     if (g_injection_thread.joinable()) {
@@ -370,12 +377,27 @@ void enable_and_inject_async() {
         (access(TRACER_PATH_64, X_OK) == 0 || access(TRACER_PATH_32, X_OK) == 0);
     bool has_payload = (access(PAYLOAD_PATH_64, R_OK) == 0 || access(PAYLOAD_PATH_32, R_OK) == 0);
 
+    // DEBUG: File check result
+    int fd2 = open("/data/local/tmp/zygisk_file_check", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    if (fd2 >= 0) {
+        char buf[64];
+        snprintf(buf, sizeof(buf), "tracer=%d payload=%d\n", has_external_tracer, has_payload);
+        write(fd2, buf, strlen(buf));
+        close(fd2);
+    }
+
     LOGI("Zygisk file check: tracer=%d payload=%d", has_external_tracer, has_payload);
 
     if (!has_external_tracer && !has_payload) {
         LOGE("Zygisk files not found - need tracer binary OR payload .so");
         LOGE("Checked paths: %s %s %s %s", TRACER_PATH_64, TRACER_PATH_32, PAYLOAD_PATH_64,
              PAYLOAD_PATH_32);
+
+        // DEBUG: Mark early return
+        int fd3 = open("/data/local/tmp/zygisk_no_files", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (fd3 >= 0) {
+            close(fd3);
+        }
         return;
     }
 
@@ -393,9 +415,22 @@ void enable_and_inject_async() {
         g_injection_thread = std::thread(injection_thread_func);
         g_injection_thread.detach();  // Detach before ANY potential blocking
         LOGI("Zygisk injection thread started (async, detached)");
+
+        // DEBUG: Thread created successfully
+        int fd4 = open("/data/local/tmp/zygisk_thread_created", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (fd4 >= 0) {
+            close(fd4);
+        }
     } catch (const std::exception& e) {
         LOGE("Failed to start injection thread: %s", e.what());
         g_injection_active = false;
+
+        // DEBUG: Thread creation failed
+        int fd5 = open("/data/local/tmp/zygisk_thread_failed", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (fd5 >= 0) {
+            write(fd5, e.what(), strlen(e.what()));
+            close(fd5);
+        }
     }
 }
 

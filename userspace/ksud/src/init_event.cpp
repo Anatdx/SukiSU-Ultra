@@ -274,6 +274,14 @@ void on_boot_completed() {
 }
 
 int run_daemon() {
+    // DEBUG: Prove this function is called
+    int fd = open("/data/local/tmp/ksud_daemon_started", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    if (fd >= 0) {
+        const char* msg = "run_daemon() called\n";
+        write(fd, msg, strlen(msg));
+        close(fd);
+    }
+
     LOGI("=== YukiSU Daemon Starting ===");
     LOGI("Version: %s", VERSION_NAME);
 
@@ -285,10 +293,32 @@ int run_daemon() {
     // If no: Skip zygisk completely
     // CRITICAL: Enable must happen BEFORE post-fs-data ends, because zygote
     // forks immediately after post-fs-data completes.
+
+    // DEBUG: Prove Phase 0 executes
+    int fd_p0 = open("/data/local/tmp/ksud_phase0_executed", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    if (fd_p0 >= 0) {
+        close(fd_p0);
+    }
+
     const char* enable_flag = "/data/adb/.yukizenable";
     if (access(enable_flag, F_OK) == 0) {
         LOGI("[Phase 0] Found %s - enabling Zygisk injection", enable_flag);
+
+        // DEBUG: Prove this branch is taken
+        int fd_en =
+            open("/data/local/tmp/ksud_zygisk_enabled_path", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (fd_en >= 0) {
+            close(fd_en);
+        }
+
         zygisk::enable_and_inject_async();
+
+        // DEBUG: Prove function returns
+        int fd_ret =
+            open("/data/local/tmp/ksud_zygisk_async_returned", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (fd_ret >= 0) {
+            close(fd_ret);
+        }
     } else {
         LOGI("[Phase 0] No %s - Zygisk disabled", enable_flag);
     }
