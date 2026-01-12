@@ -282,7 +282,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                         isSimpleMode = viewModel.isSimpleMode,
                         isHideZygiskImplement = viewModel.isHideZygiskImplement,
                         isHideMetaModuleImplement = viewModel.isHideMetaModuleImplement,
-                        showKpmInfo = viewModel.showKpmInfo,
                         lkmMode = viewModel.systemStatus.lkmMode,
                     )
 
@@ -813,7 +812,6 @@ private fun InfoCard(
     isSimpleMode: Boolean,
     isHideZygiskImplement: Boolean,
     isHideMetaModuleImplement: Boolean,
-    showKpmInfo: Boolean,
     lkmMode: Boolean?
 ) {
     ElevatedCard(
@@ -921,26 +919,6 @@ private fun InfoCard(
                 )
             }
 
-            if (!isSimpleMode) {
-                val displayVersion =
-                    if (systemInfo.kpmVersion.isEmpty() || systemInfo.kpmVersion.startsWith("Error")) {
-                        val statusText = if (Natives.isKPMEnabled()) {
-                            stringResource(R.string.kernel_patched)
-                        } else {
-                            stringResource(R.string.kernel_not_enabled)
-                        }
-                        "${stringResource(R.string.not_supported)} ($statusText)"
-                    } else {
-                        "${stringResource(R.string.supported)} (${systemInfo.kpmVersion})"
-                    }
-
-                InfoCardItem(
-                    stringResource(R.string.home_kpm_version),
-                    displayVersion,
-                    icon = Icons.Default.Archive
-                )
-            }
-        }
     }
 }
 

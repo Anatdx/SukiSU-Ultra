@@ -30,17 +30,6 @@ config KSU_MANUAL_SU
 	help
 	  Use manual su and authorize the corresponding command line and application via fd
 
-config KPM
-	  bool "Enable YukiSU KPM"
-	  depends on KSU && 64BIT
-	  select KALLSYMS
-	  select KALLSYMS_ALL
-	  default n
-	  help
-		Enabling this option will activate the KPM feature of YukiSU.
-		This option is suitable for scenarios where you need to force KPM to be enabled.
-		but it may affect system stability.
-
 config KSU_MANUAL_HOOK
 	bool "Hook KernelSU manually"
 	depends on KSU != m && !KSU_HYMOFS

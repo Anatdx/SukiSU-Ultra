@@ -76,10 +76,4 @@ CONFIG_KPROBE_EVENTS=y
 ```
 # 启用 HymoFS（内核级文件系统隐藏）
 CONFIG_KSU_HYMOFS=y
-
-# 启用 HymoFS LSM BPF 支持（需要 LSM BPF）
-CONFIG_KSU_HYMOFS_LSMBPS=y
-
-# 启用 KPM（KernelPatch 模块）支持
-CONFIG_KPM=y
 ```

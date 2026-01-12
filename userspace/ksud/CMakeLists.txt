@@ -89,7 +89,6 @@ set(SOURCES
     src/init_event.cpp
     src/umount.cpp
     src/debug.cpp
-    src/kpm.cpp
     # Core features
     src/core/hide_bootloader.cpp
     # Flash kernel packages

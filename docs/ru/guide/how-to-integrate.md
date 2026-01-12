@@ -76,10 +76,4 @@ CONFIG_KPROBE_EVENTS=y
 ```
 # Включить HymoFS (скрытие файловой системы на уровне ядра)
 CONFIG_KSU_HYMOFS=y
-
-# Включить поддержку HymoFS LSM BPF (требуется LSM BPF)
-CONFIG_KSU_HYMOFS_LSMBPS=y
-
-# Включить поддержку KPM (модуль KernelPatch)
-CONFIG_KPM=y
 ```
