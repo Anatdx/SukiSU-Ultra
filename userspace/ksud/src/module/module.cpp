@@ -195,6 +195,101 @@ static void mark_remove(const std::string& path) {
     mknod(path.c_str(), S_IFCHR | 0644, makedev(0, 0));
 }
 
+// Check if module is metamodule
+static bool is_metamodule(const std::map<std::string, std::string>& props) {
+    auto it = props.find("metamodule");
+    if (it == props.end())
+        return false;
+    std::string val = it->second;
+    return val == "1" || val == "true" || val == "TRUE";
+}
+
+// Get current metamodule ID if exists
+static std::string get_metamodule_id() {
+    std::string link_path =
+        std::string(METAMODULE_DIR).substr(0, std::string(METAMODULE_DIR).length() - 1);
+
+    struct stat st;
+    if (lstat(link_path.c_str(), &st) == 0 && S_ISLNK(st.st_mode)) {
+        char target[PATH_MAX];
+        ssize_t len = readlink(link_path.c_str(), target, sizeof(target) - 1);
+        if (len > 0) {
+            target[len] = '\0';
+            std::string target_path(target);
+            size_t pos = target_path.find_last_of('/');
+            if (pos != std::string::npos) {
+                return target_path.substr(pos + 1);
+            }
+        }
+    }
+    return "";
+}
+
+// Check if it's safe to install module
+// Returns: 0 = safe, 1 = disabled metamodule, 2 = pending changes
+static int check_install_safety(bool installing_metamodule) {
+    if (installing_metamodule)
+        return 0;
+
+    std::string metamodule_id = get_metamodule_id();
+    if (metamodule_id.empty())
+        return 0;
+
+    std::string metamodule_path = std::string(MODULE_DIR) + metamodule_id;
+
+    // Check for marker files
+    bool has_update = file_exists(metamodule_path + "/" + UPDATE_FILE_NAME);
+    bool has_remove = file_exists(metamodule_path + "/" + REMOVE_FILE_NAME);
+    bool has_disable = file_exists(metamodule_path + "/" + DISABLE_FILE_NAME);
+
+    // Stable state - safe to install
+    if (!has_update && !has_remove && !has_disable)
+        return 0;
+
+    // Return appropriate error code
+    if (has_disable && !has_update && !has_remove)
+        return 1;  // disabled
+    return 2;      // pending changes
+}
+
+// Create metamodule symlink
+static bool create_metamodule_symlink(const std::string& module_id) {
+    std::string link_path =
+        std::string(METAMODULE_DIR).substr(0, std::string(METAMODULE_DIR).length() - 1);
+    std::string target_path = std::string(MODULE_DIR) + module_id;
+
+    // Remove existing symlink/directory
+    struct stat st;
+    if (lstat(link_path.c_str(), &st) == 0) {
+        if (S_ISLNK(st.st_mode)) {
+            unlink(link_path.c_str());
+        } else if (S_ISDIR(st.st_mode)) {
+            exec_command({"rm", "-rf", link_path});
+        }
+    }
+
+    // Create symlink
+    if (symlink(target_path.c_str(), link_path.c_str()) != 0) {
+        LOGE("Failed to create metamodule symlink: %s", strerror(errno));
+        return false;
+    }
+
+    LOGI("Created metamodule symlink: %s -> %s", link_path.c_str(), target_path.c_str());
+    return true;
+}
+
+// Remove metamodule symlink
+static void remove_metamodule_symlink() {
+    std::string link_path =
+        std::string(METAMODULE_DIR).substr(0, std::string(METAMODULE_DIR).length() - 1);
+
+    struct stat st;
+    if (lstat(link_path.c_str(), &st) == 0 && S_ISLNK(st.st_mode)) {
+        unlink(link_path.c_str());
+        LOGI("Removed metamodule symlink");
+    }
+}
+
 // Execute customize.sh if present
 static bool exec_customize_sh(const std::string& modpath, const std::string& zipfile) {
     std::string customize = modpath + "/customize.sh";
@@ -372,6 +467,51 @@ static bool exec_install_script(const std::string& zip_path) {
     printf("******************************\n");
     printf("\n");
 
+    // Check if this is a metamodule
+    bool installing_metamodule = is_metamodule(props);
+
+    // Check install safety for regular modules
+    if (!installing_metamodule) {
+        int safety = check_install_safety(false);
+        if (safety != 0) {
+            printf("\n❌ Installation Blocked\n");
+            printf("┌────────────────────────────────\n");
+            printf("│ A metamodule is active\n");
+            printf("│\n");
+            if (safety == 1) {
+                printf("│ Current state: Disabled\n");
+                printf("│ Action required: Re-enable or uninstall it, then reboot\n");
+            } else {
+                printf("│ Current state: Pending changes\n");
+                printf("│ Action required: Reboot to apply changes first\n");
+            }
+            printf("└─────────────────────────────────\n\n");
+            exec_command({"rm", "-rf", tmpdir});
+            return false;
+        }
+    }
+
+    // Check for duplicate metamodule
+    if (installing_metamodule) {
+        std::string existing_id = get_metamodule_id();
+        if (!existing_id.empty() && existing_id != mod_id) {
+            printf("\n❌ Installation Failed\n");
+            printf("┌────────────────────────────────\n");
+            printf("│ A metamodule is already installed\n");
+            printf("│   Current metamodule: %s\n", existing_id.c_str());
+            printf("│\n");
+            printf("│ Only one metamodule can be active at a time.\n");
+            printf("│\n");
+            printf("│ To install this metamodule:\n");
+            printf("│   1. Uninstall the current metamodule\n");
+            printf("│   2. Reboot your device\n");
+            printf("│   3. Install the new metamodule\n");
+            printf("└─────────────────────────────────\n\n");
+            exec_command({"rm", "-rf", tmpdir});
+            return false;
+        }
+    }
+
     // Determine module root path
     std::string modroot = std::string(MODULE_DIR) + "../modules_update";
     exec_command({"mkdir", "-p", modroot});
@@ -449,6 +589,17 @@ static bool exec_install_script(const std::string& zip_path) {
     exec_command({"rm", "-f", final_module + "/disable"});
     exec_command({"cp", "-f", modpath + "/module.prop", final_module + "/module.prop"});
 
+    // Create metamodule symlink if needed
+    if (installing_metamodule) {
+        printf("- Creating metamodule symlink\n");
+        if (!create_metamodule_symlink(mod_id)) {
+            printf("! Failed to create metamodule symlink\n");
+            exec_command({"rm", "-rf", modpath});
+            exec_command({"rm", "-rf", tmpdir});
+            return false;
+        }
+    }
+
     // Clean up
     exec_command({"rm", "-f", modpath + "/customize.sh"});
     exec_command({"rm", "-f", modpath + "/README.md"});
@@ -493,54 +644,6 @@ int module_install(const std::string& zip_path) {
     }
 
     LOGI("Module installed successfully");
-
-    // Ensure metamodule directory exists
-    mkdir(METAMODULE_DIR, 0755);
-
-    // After successful installation, check all modules and create metamodule links if needed
-    DIR* dir = opendir(MODULE_DIR);
-    if (dir) {
-        struct dirent* entry;
-        while ((entry = readdir(dir)) != nullptr) {
-            if (entry->d_name[0] == '.')
-                continue;
-            if (entry->d_type != DT_DIR)
-                continue;
-
-            std::string module_path = std::string(MODULE_DIR) + entry->d_name;
-            std::string prop_path = module_path + "/module.prop";
-
-            // Skip if no module.prop
-            if (!file_exists(prop_path))
-                continue;
-
-            // Parse module properties
-            auto props = parse_module_prop(prop_path);
-            std::string metamodule_val = props.count("metamodule") ? props["metamodule"] : "";
-            bool is_metamodule =
-                (metamodule_val == "1" || metamodule_val == "true" || metamodule_val == "TRUE");
-
-            if (is_metamodule) {
-                // Create symlink in metamodule directory
-                std::string link_path = std::string(METAMODULE_DIR) + entry->d_name;
-
-                // Remove existing symlink if any
-                unlink(link_path.c_str());
-
-                // Create symlink
-                if (symlink(module_path.c_str(), link_path.c_str()) == 0) {
-                    LOGI("Created metamodule symlink: %s -> %s", link_path.c_str(),
-                         module_path.c_str());
-                    printf("- Created metamodule symlink for %s\n", entry->d_name);
-                } else {
-                    LOGE("Failed to create metamodule symlink for %s: %s", entry->d_name,
-                         strerror(errno));
-                }
-            }
-        }
-        closedir(dir);
-    }
-
     return 0;
 }
 
@@ -550,6 +653,14 @@ int module_uninstall(const std::string& id) {
     if (!file_exists(module_dir)) {
         printf("Module %s not found\n", id.c_str());
         return 1;
+    }
+
+    // Check if this is the current metamodule
+    std::string current_metamodule = get_metamodule_id();
+    if (!current_metamodule.empty() && current_metamodule == id) {
+        // Remove metamodule symlink when uninstalling
+        remove_metamodule_symlink();
+        printf("Metamodule symlink removed\n");
     }
 
     // Create remove flag
