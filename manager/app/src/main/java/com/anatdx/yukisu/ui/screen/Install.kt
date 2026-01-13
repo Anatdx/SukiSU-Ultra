@@ -391,8 +391,9 @@ fun InstallScreen(
                             )
                         }
                     }
+                }
 
-                    // SuperKey 输入卡片 (仅在 LKM 安装模式下显示)
+                // SuperKey 输入卡片 (仅在 LKM 安装模式下显示)
                 AnimatedVisibility(
                     visible = installMethod is InstallMethod.DirectInstall || 
                               installMethod is InstallMethod.DirectInstallToInactiveSlot ||

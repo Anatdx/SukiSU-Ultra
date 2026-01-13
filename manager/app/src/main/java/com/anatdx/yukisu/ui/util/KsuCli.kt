@@ -599,7 +599,7 @@ fun getAppProfileTemplate(id: String): String {
 fun setAppProfileTemplate(id: String, template: String): Boolean {
     val shell = getRootShell()
     val escapedTemplate = template.replace("\"", "\\\"")
-    val cmd = """${getKsuDaemonPath()} profile set-template "$id" "$escapedTemplate'""""
+    val cmd = """${getKsuDaemonPath()} profile set-template "$id" "$escapedTemplate""""
     return shell.newJob().add(cmd)
         .to(ArrayList(), null).exec().isSuccess
 }
@@ -631,22 +631,15 @@ fun restartApp(packageName: String) {
     launchApp(packageName)
 }
 
-fun getSuSFSStatus(): String {
-    val shell = getRootShell()
-    return ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} susfs status").trim()
+
+fun runCmd(shell: Shell, cmd: String): String {
+    return shell.newJob()
+        .add(cmd)
+        .to(mutableListOf<String>(), null)
+        .exec().out
+        .joinToString("\n")
 }
 
-fun getSuSFSVersion(): String {
-    val shell = getRootShell()
-    val result = ShellUtils.fastCmd(shell, "${getKsuDaemonPath()} susfs version")
-    return result
-}
-
-fun getSuSFSFeatures(): String {
-    val shell = getRootShell()
-    val cmd = "${getKsuDaemonPath()} susfs features"
-    return runCmd(shell, cmd)
-}
 
 fun getMetaModuleImplement(): String {
     try {

@@ -918,7 +918,7 @@ private fun InfoCard(
                     icon = Icons.Default.Extension,
                 )
             }
-
+        }
     }
 }
 
