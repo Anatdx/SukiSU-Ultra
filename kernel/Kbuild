@@ -74,8 +74,6 @@ ccflags-y += -I$(objtree)/security/selinux -include $(srctree)/include/uapi/asm-
 
 obj-$(CONFIG_KSU) += kernelsu.o
 
-obj-$(CONFIG_KPM) += kpm/
-
 REPO_OWNER := Anatdx
 REPO_NAME := YukiSU
 REPO_BRANCH := HEAD
@@ -168,12 +166,6 @@ endif
 $(info -- KERNEL_VERSION: $(KERNEL_VERSION))
 $(info -- KERNEL_TYPE: $(KERNEL_TYPE))
 
-# Check if KPM is enabled
-ifeq ($(CONFIG_KPM), y)
-$(info -- KPM is enabled)
-else
-$(info -- KPM is disabled)
-endif
 
 # SELinux drivers check
 ifeq ($(shell grep -q "current_sid(void)" $(srctree)/security/selinux/include/objsec.h; echo $$?),0)

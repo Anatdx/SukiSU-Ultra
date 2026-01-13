@@ -76,10 +76,4 @@ CONFIG_KPROBE_EVENTS=y
 ```
 # Enable HymoFS (kernel-level filesystem hiding)
 CONFIG_KSU_HYMOFS=y
-
-# Enable HymoFS LSM BPF support (requires LSM BPF)
-CONFIG_KSU_HYMOFS_LSMBPS=y
-
-# Enable KPM (KernelPatch Module) support
-CONFIG_KPM=y
 ```

@@ -10,7 +10,6 @@
 #include "flash/flash_ak3.hpp"
 #include "hymo/hymo_cli.hpp"
 #include "init_event.hpp"
-#include "kpm.hpp"
 #include "log.hpp"
 #include "module/module.hpp"
 #include "module/module_config.hpp"
@@ -142,9 +141,6 @@ static void print_usage() {
     printf("  kernel         Kernel interface\n");
     printf("  debug          For developers\n");
     printf("  hymo           HymoFS module manager\n");
-#ifdef __aarch64__
-    printf("  kpm            KPM module manager\n");
-#endif // #ifdef __aarch64__
     printf("  help           Show this help\n");
     printf("  version        Show version\n");
 }
@@ -468,49 +464,6 @@ static int cmd_boot_info(const std::vector<std::string>& args) {
     return 1;
 }
 
-#ifdef __aarch64__
-// KPM subcommand handlers
-static int cmd_kpm(const std::vector<std::string>& args) {
-    if (args.empty()) {
-        printf("USAGE: ksud kpm <SUBCOMMAND>\n\n");
-        printf("SUBCOMMANDS:\n");
-        printf("  load <PATH> [ARGS]   Load KPM module\n");
-        printf("  unload <NAME>        Unload KPM module\n");
-        printf("  num                  Get module count\n");
-        printf("  list                 List loaded modules\n");
-        printf("  info <NAME>          Get module info\n");
-        printf("  control <NAME> <ARG> Send control command\n");
-        printf("  version              Print KPM version\n");
-        return 1;
-    }
-
-    const std::string& subcmd = args[0];
-
-    if (subcmd == "load" && args.size() > 1) {
-        std::optional<std::string> kpm_args;
-        if (args.size() > 2) {
-            kpm_args = args[2];
-        }
-        return kpm_load_module(args[1], kpm_args);
-    } else if (subcmd == "unload" && args.size() > 1) {
-        return kpm_unload_module(args[1]);
-    } else if (subcmd == "num") {
-        return kpm_num();
-    } else if (subcmd == "list") {
-        return kpm_list();
-    } else if (subcmd == "info" && args.size() > 1) {
-        return kpm_info(args[1]);
-    } else if (subcmd == "control" && args.size() > 2) {
-        return kpm_control(args[1], args[2]);
-    } else if (subcmd == "version") {
-        return kpm_version();
-    }
-
-    printf("Unknown kpm subcommand: %s\n", subcmd.c_str());
-    return 1;
-}
-#endif // #ifdef __aarch64__
-
 int cli_run(int argc, char* argv[]) {
     // Initialize logging
     log_init("KernelSU");
@@ -615,10 +568,6 @@ int cli_run(int argc, char* argv[]) {
         return hymo::cmd_hymo(args);
     } else if (cmd == "flash") {
         return cmd_flash(args);
-#ifdef __aarch64__
-    } else if (cmd == "kpm") {
-        return cmd_kpm(args);
-#endif // #ifdef __aarch64__
     }
 
     printf("Unknown command: %s\n", cmd.c_str());
