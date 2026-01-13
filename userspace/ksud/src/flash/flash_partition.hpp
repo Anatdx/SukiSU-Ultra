@@ -7,10 +7,16 @@
 namespace ksud {
 namespace flash {
 
-// Partition types that can be flashed
-constexpr const char* PARTITION_NAMES[] = {"boot",        "dtbo",        "init_boot",
-                                           "recovery",    "system_dlkm", "vbmeta",
-                                           "vendor_boot", "vendor_dlkm", "vendor_kernel_boot"};
+// Common partition names (shown by default)
+constexpr const char* COMMON_PARTITIONS[] = {"boot",   "init_boot",   "recovery",          "dtbo",
+                                             "vbmeta", "vendor_boot", "vendor_kernel_boot"};
+
+// Dangerous partitions that require confirmation
+constexpr const char* DANGEROUS_PARTITIONS[] = {"persist", "modem", "fsg",      "bluetooth",
+                                                "dsp",     "nvram", "prodinfo", "seccfg"};
+
+// Partitions to exclude from batch backup (logical partitions are excluded automatically)
+constexpr const char* EXCLUDED_FROM_BATCH[] = {"userdata", "data"};
 
 struct PartitionInfo {
     std::string name;
@@ -47,9 +53,31 @@ PartitionInfo get_partition_info(const std::string& partition_name,
 
 /**
  * Get list of available partitions on device
+ * @param scan_all If true, scan all partitions; if false, only check common partitions
  * @return Vector of available partition names
  */
-std::vector<std::string> get_available_partitions();
+std::vector<std::string> get_available_partitions(bool scan_all = false);
+
+/**
+ * Scan all partitions from /dev/block/by-name
+ * @param slot_suffix Current slot suffix
+ * @return Vector of all partition names found
+ */
+std::vector<std::string> get_all_partitions(const std::string& slot_suffix = "");
+
+/**
+ * Check if a partition is dangerous (requires confirmation)
+ * @param partition_name Name of the partition
+ * @return True if partition is in dangerous list
+ */
+bool is_dangerous_partition(const std::string& partition_name);
+
+/**
+ * Check if a partition should be excluded from batch backup
+ * @param partition_name Name of the partition
+ * @return True if partition should be excluded
+ */
+bool is_excluded_from_batch(const std::string& partition_name);
 
 /**
  * Flash image to physical partition (non-logical)

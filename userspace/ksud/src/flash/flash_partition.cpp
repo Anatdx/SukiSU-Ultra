@@ -4,8 +4,11 @@
 #include "../utils.hpp"
 
 #include <fcntl.h>
+#include <linux/fs.h>
+#include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
@@ -31,12 +34,35 @@ static std::string bytes_to_hex(const unsigned char* data, size_t len) {
     return result;
 }
 
-// Helper: Get file size
+// Helper: Get file size (handles both regular files and block devices)
 static uint64_t get_file_size(const std::string& path) {
     struct stat st;
     if (stat(path.c_str(), &st) != 0) {
+        LOGE("Failed to stat %s: %s", path.c_str(), strerror(errno));
         return 0;
     }
+
+    // For block devices, use ioctl to get the size
+    if (S_ISBLK(st.st_mode)) {
+        int fd = open(path.c_str(), O_RDONLY);
+        if (fd < 0) {
+            LOGE("Failed to open block device %s: %s", path.c_str(), strerror(errno));
+            return 0;
+        }
+
+        uint64_t size = 0;
+        if (ioctl(fd, BLKGETSIZE64, &size) < 0) {
+            LOGE("Failed to get block device size for %s: %s", path.c_str(), strerror(errno));
+            close(fd);
+            return 0;
+        }
+
+        close(fd);
+        LOGD("Block device %s size: %lu bytes", path.c_str(), (unsigned long)size);
+        return size;
+    }
+
+    // For regular files, use st_size
     return st.st_size;
 }
 
@@ -110,14 +136,79 @@ PartitionInfo get_partition_info(const std::string& partition_name,
     return info;
 }
 
-std::vector<std::string> get_available_partitions() {
+std::vector<std::string> get_all_partitions(const std::string& slot_suffix) {
+    std::vector<std::string> partitions;
+    std::string suffix = slot_suffix.empty() ? get_current_slot_suffix() : slot_suffix;
+
+    // Scan /dev/block/by-name directory
+    std::string by_name_dir = "/dev/block/by-name";
+    if (!fs::exists(by_name_dir)) {
+        LOGW("Directory %s does not exist", by_name_dir.c_str());
+        return partitions;
+    }
+
+    for (const auto& entry : fs::directory_iterator(by_name_dir)) {
+        std::string name = entry.path().filename().string();
+
+        // Remove slot suffix if present
+        if (!suffix.empty() && name.length() > suffix.length()) {
+            size_t pos = name.find(suffix);
+            if (pos != std::string::npos && pos == name.length() - suffix.length()) {
+                name = name.substr(0, pos);
+            }
+        }
+
+        // Avoid duplicates
+        if (std::find(partitions.begin(), partitions.end(), name) == partitions.end()) {
+            partitions.push_back(name);
+        }
+    }
+
+    // Sort alphabetically
+    std::sort(partitions.begin(), partitions.end());
+
+    LOGD("Found %zu partitions in total", partitions.size());
+    return partitions;
+}
+
+bool is_dangerous_partition(const std::string& partition_name) {
+    for (const char* dangerous : DANGEROUS_PARTITIONS) {
+        if (partition_name == dangerous) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool is_excluded_from_batch(const std::string& partition_name) {
+    for (const char* excluded : EXCLUDED_FROM_BATCH) {
+        if (partition_name == excluded) {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::vector<std::string> get_available_partitions(bool scan_all) {
     std::vector<std::string> available;
     std::string slot_suffix = get_current_slot_suffix();
 
-    for (const char* name : PARTITION_NAMES) {
-        std::string block_dev = find_partition_block_device(name, slot_suffix);
-        if (!block_dev.empty() && fs::exists(block_dev)) {
-            available.push_back(name);
+    if (scan_all) {
+        // Scan all partitions from /dev/block/by-name
+        auto all_partitions = get_all_partitions(slot_suffix);
+        for (const auto& name : all_partitions) {
+            std::string block_dev = find_partition_block_device(name, slot_suffix);
+            if (!block_dev.empty() && fs::exists(block_dev)) {
+                available.push_back(name);
+            }
+        }
+    } else {
+        // Only check common partitions
+        for (const char* name : COMMON_PARTITIONS) {
+            std::string block_dev = find_partition_block_device(name, slot_suffix);
+            if (!block_dev.empty() && fs::exists(block_dev)) {
+                available.push_back(name);
+            }
         }
     }
 

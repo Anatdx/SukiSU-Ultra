@@ -26,10 +26,17 @@ object PartitionManagerHelper {
             val result = mutableListOf<String>()
             
             // 执行 ksud flash slots 命令
-            shell.newJob()
-                .add("${getKsud()} flash slots")
+            val cmd = "${getKsud()} flash slots"
+            Log.d(TAG, "Executing command: $cmd")
+            val execResult = shell.newJob()
+                .add(cmd)
                 .to(result)
                 .exec()
+            
+            Log.d(TAG, "Slots command result: success=${execResult.isSuccess}, output lines=${result.size}")
+            result.forEach { line ->
+                Log.d(TAG, "Slots output: $line")
+            }
             
             if (result.isEmpty()) {
                 // 不是 A/B 设备
@@ -72,61 +79,94 @@ object PartitionManagerHelper {
     /**
      * 获取分区列表
      */
-    suspend fun getPartitionList(context: Context, slot: String?): List<PartitionInfo> = withContext(Dispatchers.IO) {
+    suspend fun getPartitionList(context: Context, slot: String?, scanAll: Boolean = false): List<PartitionInfo> = withContext(Dispatchers.IO) {
         try {
             val shell = getRootShell()
             val result = mutableListOf<String>()
             
             // 执行 ksud flash list 命令
-            val cmd = if (slot != null) {
-                "${getKsud()} flash list --slot $slot"
-            } else {
-                "${getKsud()} flash list"
+            val cmdParts = mutableListOf("${getKsud()} flash list")
+            if (slot != null) {
+                cmdParts.add("--slot $slot")
             }
+            if (scanAll) {
+                cmdParts.add("--all")
+            }
+            val cmd = cmdParts.joinToString(" ")
             
-            shell.newJob()
+            Log.d(TAG, "Executing command: $cmd")
+            val execResult = shell.newJob()
                 .add(cmd)
                 .to(result)
                 .exec()
             
+            Log.d(TAG, "Command result: success=${execResult.isSuccess}, output lines=${result.size}")
+            result.forEach { line ->
+                Log.d(TAG, "Output line: $line")
+            }
+            
             val partitions = mutableListOf<PartitionInfo>()
             
             result.forEach { line ->
-                // 解析输出格式：  boot                 [logical, 67108864 bytes]
-                if (line.trim().startsWith("[") || line.contains("Available partitions")) {
+                // 解析输出格式：  boot                 [logical, 67108864 bytes] [DANGEROUS]
+                Log.d(TAG, "Parsing line: '$line'")
+                if (line.trim().startsWith("[") || line.contains("partitions")) {
+                    Log.d(TAG, "Skipping header line")
                     return@forEach
                 }
                 
                 val trimmed = line.trim()
-                if (trimmed.isEmpty()) return@forEach
+                if (trimmed.isEmpty()) {
+                    Log.d(TAG, "Skipping empty line")
+                    return@forEach
+                }
                 
                 try {
                     // 提取分区名称
                     val parts = trimmed.split(Regex("\\s+"), limit = 2)
-                    if (parts.size < 2) return@forEach
+                    Log.d(TAG, "Split into ${parts.size} parts: ${parts.joinToString(" | ")}")
+                    if (parts.size < 2) {
+                        Log.d(TAG, "Insufficient parts, skipping")
+                        return@forEach
+                    }
                     
                     val name = parts[0]
                     val info = parts[1]
+                    Log.d(TAG, "Partition name: '$name', info: '$info'")
+                    
+                    // 检查是否为危险分区
+                    val isDangerous = info.contains("[DANGEROUS]")
                     
                     // 提取类型和大小
                     val typeMatch = Regex("\\[(.*?),\\s*(\\d+)\\s*bytes\\]").find(info)
                     if (typeMatch != null) {
                         val type = typeMatch.groupValues[1]
-                        val size = typeMatch.groupValues[2].toLongOrNull() ?: 0L
+                        val sizeStr = typeMatch.groupValues[2]
+                        val size = sizeStr.toLongOrNull() ?: 0L
                         val isLogical = type == "logical"
+                        
+                        // 判断是否应该排除在批量备份之外（逻辑分区或userdata/data）
+                        val excludeFromBatch = isLogical || name == "userdata" || name == "data"
+                        
+                        Log.d(TAG, "Matched type: '$type', size string: '$sizeStr', size: $size, dangerous: $isDangerous")
                         
                         // 获取块设备路径
                         val blockDevice = getPartitionBlockDevice(shell, name, slot)
+                        Log.d(TAG, "Block device: '$blockDevice'")
                         
-                        partitions.add(
-                            PartitionInfo(
-                                name = name,
-                                blockDevice = blockDevice,
-                                type = type,
-                                size = size,
-                                isLogical = isLogical
-                            )
+                        val partitionInfo = PartitionInfo(
+                            name = name,
+                            blockDevice = blockDevice,
+                            type = type,
+                            size = size,
+                            isLogical = isLogical,
+                            isDangerous = isDangerous,
+                            excludeFromBatch = excludeFromBatch
                         )
+                        partitions.add(partitionInfo)
+                        Log.d(TAG, "Added partition: $name, size=$size, type=$type, dangerous=$isDangerous")
+                    } else {
+                        Log.w(TAG, "Failed to match regex pattern for line: '$info'")
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to parse partition line: $line", e)
@@ -186,15 +226,23 @@ object PartitionManagerHelper {
                 "${getKsud()} flash backup $partition $outputPath"
             }
             
+            Log.d(TAG, "Executing backup command: $cmd")
+            
             val stdout = object : CallbackList<String>() {
                 override fun onAddElement(s: String?) {
-                    s?.let { onStdout(it) }
+                    s?.let {
+                        Log.d(TAG, "Backup stdout: $it")
+                        onStdout(it)
+                    }
                 }
             }
             
             val stderr = object : CallbackList<String>() {
                 override fun onAddElement(s: String?) {
-                    s?.let { onStderr(it) }
+                    s?.let {
+                        Log.e(TAG, "Backup stderr: $it")
+                        onStderr(it)
+                    }
                 }
             }
             
@@ -203,6 +251,7 @@ object PartitionManagerHelper {
                 .to(stdout, stderr)
                 .exec()
             
+            Log.d(TAG, "Backup result: success=${result.isSuccess}, code=${result.code}")
             result.isSuccess
         } catch (e: Exception) {
             Log.e(TAG, "Failed to backup partition", e)
@@ -231,15 +280,23 @@ object PartitionManagerHelper {
                 "${getKsud()} flash image $imagePath $partition"
             }
             
+            Log.d(TAG, "Executing flash command: $cmd")
+            
             val stdout = object : CallbackList<String>() {
                 override fun onAddElement(s: String?) {
-                    s?.let { onStdout(it) }
+                    s?.let {
+                        Log.d(TAG, "Flash stdout: $it")
+                        onStdout(it)
+                    }
                 }
             }
             
             val stderr = object : CallbackList<String>() {
                 override fun onAddElement(s: String?) {
-                    s?.let { onStderr(it) }
+                    s?.let {
+                        Log.e(TAG, "Flash stderr: $it")
+                        onStderr(it)
+                    }
                 }
             }
             
@@ -248,6 +305,7 @@ object PartitionManagerHelper {
                 .to(stdout, stderr)
                 .exec()
             
+            Log.d(TAG, "Flash result: success=${result.isSuccess}, code=${result.code}")
             result.isSuccess
         } catch (e: Exception) {
             Log.e(TAG, "Failed to flash partition", e)

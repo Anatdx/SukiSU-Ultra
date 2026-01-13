@@ -474,18 +474,20 @@ static int cmd_flash_new(const std::vector<std::string>& args) {
         printf("SUBCOMMANDS:\n");
         printf("  image <IMAGE> <PARTITION>  Flash image to partition\n");
         printf("  backup <PARTITION> <OUT>   Backup partition to file\n");
-        printf("  list [--slot SLOT]         List available partitions\n");
+        printf("  list [--slot SLOT] [--all] List available partitions\n");
         printf("  info <PARTITION>           Show partition info\n");
         printf("  slots                      Show slot information (A/B devices)\n");
         printf("  ak3 <ZIP>                  Flash AnyKernel3 zip\n");
         printf("\nOPTIONS:\n");
         printf("  --slot <a|b|_a|_b>         Target specific slot (for A/B devices)\n");
         printf("                             Default: current active slot\n");
+        printf("  --all                      List all partitions (not just common ones)\n");
         printf("\nEXAMPLES:\n");
         printf("  ksud flash image boot.img boot\n");
         printf("  ksud flash image boot.img boot --slot _b\n");
         printf("  ksud flash backup boot /sdcard/boot-backup.img --slot _a\n");
         printf("  ksud flash list\n");
+        printf("  ksud flash list --all\n");
         printf("  ksud flash slots\n");
         return 1;
     }
@@ -494,6 +496,7 @@ static int cmd_flash_new(const std::vector<std::string>& args) {
 
     // Parse common options
     std::string target_slot;
+    bool scan_all = false;
     std::vector<std::string> filtered_args;
 
     for (size_t i = 0; i < args.size(); ++i) {
@@ -503,6 +506,8 @@ static int cmd_flash_new(const std::vector<std::string>& args) {
             if (!target_slot.empty() && target_slot[0] != '_') {
                 target_slot = "_" + target_slot;
             }
+        } else if (args[i] == "--all") {
+            scan_all = true;
         } else {
             filtered_args.push_back(args[i]);
         }
@@ -547,9 +552,13 @@ static int cmd_flash_new(const std::vector<std::string>& args) {
     } else if (filtered_args[0] == "list") {
         std::string slot =
             target_slot.empty() ? ksud::flash::get_current_slot_suffix() : target_slot;
-        auto partitions = ksud::flash::get_available_partitions();
+        auto partitions = ksud::flash::get_available_partitions(scan_all);
 
-        printf("Available partitions");
+        if (scan_all) {
+            printf("All partitions");
+        } else {
+            printf("Common partitions");
+        }
         if (ksud::flash::is_ab_device() && !slot.empty()) {
             printf(" (slot: %s)", slot.c_str());
         }
@@ -558,7 +567,12 @@ static int cmd_flash_new(const std::vector<std::string>& args) {
         for (const auto& p : partitions) {
             auto info = ksud::flash::get_partition_info(p, slot);
             const char* type = info.is_logical ? "logical" : "physical";
-            printf("  %-20s [%s, %lu bytes]\n", p.c_str(), type, (unsigned long)info.size);
+            const char* marker = "";
+            if (ksud::flash::is_dangerous_partition(p)) {
+                marker = " [DANGEROUS]";
+            }
+            printf("  %-20s [%s, %lu bytes]%s\n", p.c_str(), type, (unsigned long)info.size,
+                   marker);
         }
         return 0;
 

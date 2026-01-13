@@ -9,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -56,11 +57,15 @@ fun PartitionManagerScreen(navigator: DestinationsNavigator) {
     val snackbarHost = LocalSnackbarHost.current
     
     var partitionList by remember { mutableStateOf<List<PartitionInfo>>(emptyList()) }
+    var allPartitionList by remember { mutableStateOf<List<PartitionInfo>>(emptyList()) }
     var slotInfo by remember { mutableStateOf<SlotInfo?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var selectedPartition by remember { mutableStateOf<PartitionInfo?>(null) }
     var showPartitionDialog by remember { mutableStateOf(false) }
     var pendingFlashPartition by remember { mutableStateOf<PartitionInfo?>(null) }
+    var showAllPartitions by remember { mutableStateOf(false) }
+    var multiSelectMode by remember { mutableStateOf(false) }
+    var selectedPartitions by remember { mutableStateOf<Set<String>>(emptySet()) }
     
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     
@@ -86,29 +91,41 @@ fun PartitionManagerScreen(navigator: DestinationsNavigator) {
                     }
                     
                     if (cacheFile != null) {
-                        snackbarHost.showSnackbar("正在刷写 ${partition.name}...")
+                        snackbarHost.showSnackbar(context.getString(R.string.partition_flashing, partition.name))
                         
                         withContext(Dispatchers.IO) {
+                            val logs = mutableListOf<String>()
                             val success = PartitionManagerHelper.flashPartition(
                                 context = context,
                                 imagePath = cacheFile.absolutePath,
                                 partition = partition.name,
                                 slot = slotInfo?.currentSlot,
-                                onStdout = { line -> println("刷写: $line") },
-                                onStderr = { line -> System.err.println("刷写错误: $line") }
+                                onStdout = { line -> 
+                                    android.util.Log.d("PartitionFlash", "stdout: $line")
+                                    logs.add(line)
+                                },
+                                onStderr = { line -> 
+                                    android.util.Log.e("PartitionFlash", "stderr: $line")
+                                    logs.add("ERROR: $line")
+                                }
                             )
                             
                             withContext(Dispatchers.Main) {
                                 cacheFile.delete()
                                 if (success) {
-                                    snackbarHost.showSnackbar("刷写成功！建议立即重启。")
+                                    snackbarHost.showSnackbar(context.getString(R.string.partition_flash_success))
                                 } else {
-                                    snackbarHost.showSnackbar("刷写失败，请查看日志")
+                                    val errorMsg = if (logs.isNotEmpty()) {
+                                        context.getString(R.string.partition_flash_failed, logs.lastOrNull() ?: context.getString(R.string.partition_unknown))
+                                    } else {
+                                        context.getString(R.string.partition_flash_failed_check_log)
+                                    }
+                                    snackbarHost.showSnackbar(errorMsg)
                                 }
                             }
                         }
                     } else {
-                        snackbarHost.showSnackbar("无法读取文件")
+                        snackbarHost.showSnackbar(context.getString(R.string.partition_cannot_read_file))
                     }
                 }
             }
@@ -122,10 +139,27 @@ fun PartitionManagerScreen(navigator: DestinationsNavigator) {
             withContext(Dispatchers.IO) {
                 isLoading = true
                 try {
+                    android.util.Log.d("PartitionManager", "Starting to load partition info...")
                     slotInfo = PartitionManagerHelper.getSlotInfo(context)
-                    partitionList = PartitionManagerHelper.getPartitionList(context, slotInfo?.currentSlot)
+                    android.util.Log.d("PartitionManager", "Slot info loaded: isAB=${slotInfo?.isAbDevice}, current=${slotInfo?.currentSlot}")
+                    
+                    // 加载常用分区
+                    partitionList = PartitionManagerHelper.getPartitionList(context, slotInfo?.currentSlot, scanAll = false)
+                    android.util.Log.d("PartitionManager", "Loaded ${partitionList.size} common partitions")
+                    
+                    // 加载所有分区
+                    allPartitionList = PartitionManagerHelper.getPartitionList(context, slotInfo?.currentSlot, scanAll = true)
+                    android.util.Log.d("PartitionManager", "Loaded ${allPartitionList.size} total partitions")
+                    
+                    partitionList.forEach { p ->
+                        android.util.Log.d("PartitionManager", "  ${p.name}: ${p.size} bytes, ${p.type}, ${p.blockDevice}, dangerous=${p.isDangerous}")
+                    }
                 } catch (e: Exception) {
+                    android.util.Log.e("PartitionManager", "Failed to load partition info", e)
                     e.printStackTrace()
+                    withContext(Dispatchers.Main) {
+                        snackbarHost.showSnackbar(context.getString(R.string.partition_load_failed, e.message ?: ""))
+                    }
                 } finally {
                     isLoading = false
                 }
@@ -139,7 +173,7 @@ fun PartitionManagerScreen(navigator: DestinationsNavigator) {
                 title = { Text(stringResource(R.string.partition_manager)) },
                 navigationIcon = {
                     IconButton(onClick = { navigator.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.partition_back))
                     }
                 },
                 scrollBehavior = scrollBehavior,
@@ -177,22 +211,132 @@ fun PartitionManagerScreen(navigator: DestinationsNavigator) {
                         }
                     }
                     
-                    // 分区列表
+                    // 操作按钮行
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // 多选模式按钮
+                            Button(
+                                onClick = {
+                                    multiSelectMode = !multiSelectMode
+                                    if (!multiSelectMode) {
+                                        selectedPartitions = emptySet()
+                                    }
+                                },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(
+                                    if (multiSelectMode) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(stringResource(
+                                    if (multiSelectMode) R.string.partition_cancel_select 
+                                    else R.string.partition_multi_select
+                                ))
+                            }
+                            
+                            // 展开/收起按钮
+                            OutlinedButton(
+                                onClick = { showAllPartitions = !showAllPartitions },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(
+                                    if (showAllPartitions) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(stringResource(
+                                    if (showAllPartitions) R.string.partition_collapse 
+                                    else R.string.partition_show_all
+                                ))
+                            }
+                        }
+                    }
+                    
+                    // 多选模式下的批量操作按钮
+                    if (multiSelectMode && selectedPartitions.isNotEmpty()) {
+                        item {
+                            Card(
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                                )
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        stringResource(R.string.partition_selected_count, selectedPartitions.size),
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        TextButton(onClick = {
+                                            val displayList = if (showAllPartitions) allPartitionList else partitionList
+                                            val selectablePartitions = displayList.filterNot { it.excludeFromBatch }
+                                            selectedPartitions = selectablePartitions.map { it.name }.toSet()
+                                        }) {
+                                            Text(stringResource(R.string.partition_select_all))
+                                        }
+                                        Button(onClick = {
+                                            scope.launch {
+                                                handleBatchBackup(
+                                                    context,
+                                                    selectedPartitions,
+                                                    if (showAllPartitions) allPartitionList else partitionList,
+                                                    snackbarHost
+                                                )
+                                            }
+                                        }) {
+                                            Icon(Icons.Default.Download, null, Modifier.size(18.dp))
+                                            Spacer(Modifier.width(4.dp))
+                                            Text(stringResource(R.string.partition_batch_backup))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // 分区列表标题
                     item {
                         Text(
-                            text = stringResource(R.string.partition_list),
+                            text = stringResource(
+                                if (showAllPartitions) R.string.partition_all 
+                                else R.string.partition_common
+                            ),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                         )
                     }
                     
-                    items(partitionList) { partition ->
+                    // 分区列表
+                    val displayList = if (showAllPartitions) allPartitionList else partitionList
+                    items(displayList) { partition ->
                         PartitionCard(
                             partition = partition,
+                            isSelected = selectedPartitions.contains(partition.name),
+                            multiSelectMode = multiSelectMode,
                             onClick = {
-                                selectedPartition = partition
-                                showPartitionDialog = true
+                                if (multiSelectMode) {
+                                    selectedPartitions = if (selectedPartitions.contains(partition.name)) {
+                                        selectedPartitions - partition.name
+                                    } else {
+                                        selectedPartitions + partition.name
+                                    }
+                                } else {
+                                    selectedPartition = partition
+                                    showPartitionDialog = true
+                                }
                             }
                         )
                     }
@@ -257,20 +401,20 @@ fun SlotInfoCard(slotInfo: SlotInfo) {
             if (slotInfo.isAbDevice) {
                 InfoRow(
                     label = stringResource(R.string.partition_device_type),
-                    value = "A/B 设备"
+                    value = stringResource(R.string.partition_ab_device)
                 )
                 InfoRow(
                     label = stringResource(R.string.partition_current_slot),
-                    value = slotInfo.currentSlot ?: "未知"
+                    value = slotInfo.currentSlot ?: stringResource(R.string.partition_unknown)
                 )
                 InfoRow(
                     label = stringResource(R.string.partition_other_slot),
-                    value = slotInfo.otherSlot ?: "未知"
+                    value = slotInfo.otherSlot ?: stringResource(R.string.partition_unknown)
                 )
             } else {
                 InfoRow(
                     label = stringResource(R.string.partition_device_type),
-                    value = "A-only 设备"
+                    value = stringResource(R.string.partition_a_only_device)
                 )
             }
         }
@@ -280,14 +424,23 @@ fun SlotInfoCard(slotInfo: SlotInfo) {
 @Composable
 fun PartitionCard(
     partition: PartitionInfo,
+    isSelected: Boolean = false,
+    multiSelectMode: Boolean = false,
     onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
-        elevation = CardDefaults.cardElevation(defaultElevation = CardConfig.cardElevation)
+        colors = if (isSelected) {
+            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        } else {
+            getCardColors(MaterialTheme.colorScheme.surfaceContainerLow)
+        },
+        elevation = CardDefaults.cardElevation(defaultElevation = CardConfig.cardElevation),
+        border = if (partition.isDangerous) {
+            BorderStroke(2.dp, MaterialTheme.colorScheme.error)
+        } else null
     ) {
         Row(
             modifier = Modifier
@@ -296,15 +449,45 @@ fun PartitionCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // 多选模式下的复选框
+            if (multiSelectMode) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = { onClick() },
+                    enabled = !partition.excludeFromBatch,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+            }
+            
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = partition.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = partition.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    if (partition.isDangerous) {
+                        Spacer(Modifier.width(4.dp))
+                        Icon(
+                            Icons.Default.Warning,
+                            contentDescription = stringResource(R.string.partition_dangerous_warning),
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    if (partition.excludeFromBatch) {
+                        Spacer(Modifier.width(4.dp))
+                        Icon(
+                            Icons.Default.Block,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
                 Text(
                     text = "${partition.type} • ${formatSize(partition.size)}",
                     style = MaterialTheme.typography.bodyMedium,
@@ -323,7 +506,7 @@ fun PartitionCard(
             Icon(
                 imageVector = if (partition.isLogical) Icons.Filled.Layers else Icons.Filled.Storage,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -356,6 +539,7 @@ fun PartitionActionDialog(
     onBackup: () -> Unit,
     onFlash: () -> Unit
 ) {
+    val context = LocalContext.current
     val confirmDialog = rememberConfirmDialog(
         onConfirm = onFlash
     )
@@ -374,23 +558,50 @@ fun PartitionActionDialog(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "分区信息",
+                    text = stringResource(R.string.partition_info_title),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )
-                InfoRow(label = "类型", value = partition.type)
-                InfoRow(label = "大小", value = formatSize(partition.size))
+                InfoRow(label = stringResource(R.string.partition_info_type), value = partition.type)
+                InfoRow(label = stringResource(R.string.partition_info_size), value = formatSize(partition.size))
                 if (partition.blockDevice.isNotEmpty()) {
-                    InfoRow(label = "设备", value = partition.blockDevice)
+                    InfoRow(label = stringResource(R.string.partition_info_device), value = partition.blockDevice)
                 }
                 if (currentSlot != null) {
-                    InfoRow(label = "槽位", value = currentSlot)
+                    InfoRow(label = stringResource(R.string.partition_info_slot), value = currentSlot)
                 }
                 
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                // 危险分区警告
+                if (partition.isDangerous) {
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        ),
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(R.string.partition_dangerous_warning),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                    }
+                } else {
+                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                }
                 
                 Text(
-                    text = "可用操作",
+                    text = stringResource(R.string.partition_available_operations),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -402,16 +613,25 @@ fun PartitionActionDialog(
                 ) {
                     Icon(Icons.Filled.Download, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("备份到文件")
+                    Text(stringResource(R.string.partition_backup_to_file))
                 }
                 
                 // 刷写操作（警告色）
                 TextButton(
                     onClick = {
+                        val warningMessage = if (partition.isDangerous) {
+                            context.getString(R.string.partition_dangerous_flash_warning, partition.name, partition.name)
+                        } else {
+                            context.getString(R.string.partition_flash_warning, partition.name)
+                        }
+                        
                         confirmDialog.showConfirm(
-                            title = "危险操作",
-                            content = "刷写分区可能导致设备无法启动！\n\n确定要刷写 ${partition.name} 分区吗？",
-                            confirm = "确定刷写"
+                            title = context.getString(
+                                if (partition.isDangerous) R.string.partition_dangerous_operation_warning 
+                                else R.string.partition_dangerous_operation
+                            ),
+                            content = warningMessage,
+                            confirm = context.getString(R.string.partition_confirm_flash)
                         )
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -421,7 +641,7 @@ fun PartitionActionDialog(
                 ) {
                     Icon(Icons.Filled.Upload, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("刷写镜像")
+                    Text(stringResource(R.string.partition_flash_image))
                 }
             }
         },
@@ -445,7 +665,9 @@ data class PartitionInfo(
     val blockDevice: String,
     val type: String,
     val size: Long,
-    val isLogical: Boolean
+    val isLogical: Boolean,
+    val isDangerous: Boolean = false,
+    val excludeFromBatch: Boolean = false
 )
 
 // 辅助函数
@@ -474,25 +696,114 @@ suspend fun handlePartitionBackup(
     val outputFile = File(downloadsDir, fileName)
     
     withContext(Dispatchers.Main) {
-        snackbarHost.showSnackbar("正在备份分区 ${partition.name}...")
+        snackbarHost.showSnackbar(context.getString(R.string.partition_backing_up, partition.name))
     }
     
     withContext(Dispatchers.IO) {
+        val logs = mutableListOf<String>()
         val success = PartitionManagerHelper.backupPartition(
             context = context,
             partition = partition.name,
             outputPath = outputFile.absolutePath,
             slot = slot,
-            onStdout = { line -> println("备份: $line") },
-            onStderr = { line -> System.err.println("备份错误: $line") }
+            onStdout = { line -> 
+                android.util.Log.d("PartitionBackup", "stdout: $line")
+                logs.add(line)
+            },
+            onStderr = { line -> 
+                android.util.Log.e("PartitionBackup", "stderr: $line")
+                logs.add("ERROR: $line")
+            }
         )
         
         withContext(Dispatchers.Main) {
             if (success) {
-                snackbarHost.showSnackbar("备份成功: $fileName")
+                snackbarHost.showSnackbar(context.getString(R.string.partition_backup_success, fileName))
             } else {
-                snackbarHost.showSnackbar("备份失败，请查看日志")
+                val errorMsg = if (logs.isNotEmpty()) {
+                    context.getString(R.string.partition_backup_failed, logs.lastOrNull() ?: context.getString(R.string.partition_unknown))
+                } else {
+                    context.getString(R.string.partition_backup_failed_check_log)
+                }
+                snackbarHost.showSnackbar(errorMsg)
             }
+        }
+    }
+}
+
+/**
+ * 批量备份分区
+ */
+suspend fun handleBatchBackup(
+    context: Context,
+    selectedPartitionNames: Set<String>,
+    allPartitions: List<PartitionInfo>,
+    snackbarHost: SnackbarHostState
+) {
+    val partitionsToBackup = allPartitions.filter { it.name in selectedPartitionNames }
+    
+    if (partitionsToBackup.isEmpty()) {
+        withContext(Dispatchers.Main) {
+            snackbarHost.showSnackbar(context.getString(R.string.partition_no_selection))
+        }
+        return
+    }
+    
+    // 生成备份目录
+    val format = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
+    val timestamp = format.format(Date())
+    val backupDirName = "partition_backup_$timestamp"
+    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    val backupDir = File(downloadsDir, backupDirName)
+    
+    if (!backupDir.exists()) {
+        backupDir.mkdirs()
+    }
+    
+    withContext(Dispatchers.Main) {
+        snackbarHost.showSnackbar(context.getString(R.string.partition_batch_backup_start, partitionsToBackup.size))
+    }
+    
+    var successCount = 0
+    var failedPartitions = mutableListOf<String>()
+    
+    for ((index, partition) in partitionsToBackup.withIndex()) {
+        withContext(Dispatchers.Main) {
+            snackbarHost.showSnackbar(context.getString(R.string.partition_batch_backup_progress, index + 1, partitionsToBackup.size, partition.name))
+        }
+        
+        val outputFile = File(backupDir, "${partition.name}.img")
+        
+        withContext(Dispatchers.IO) {
+            val logs = mutableListOf<String>()
+            val success = PartitionManagerHelper.backupPartition(
+                context = context,
+                partition = partition.name,
+                outputPath = outputFile.absolutePath,
+                slot = null,
+                onStdout = { line -> 
+                    android.util.Log.d("BatchBackup", "[${partition.name}] stdout: $line")
+                    logs.add(line)
+                },
+                onStderr = { line -> 
+                    android.util.Log.e("BatchBackup", "[${partition.name}] stderr: $line")
+                    logs.add("ERROR: $line")
+                }
+            )
+            
+            if (success) {
+                successCount++
+            } else {
+                failedPartitions.add(partition.name)
+            }
+        }
+    }
+    
+    withContext(Dispatchers.Main) {
+        if (failedPartitions.isEmpty()) {
+            snackbarHost.showSnackbar(context.getString(R.string.partition_batch_backup_complete, successCount, backupDirName))
+        } else {
+            snackbarHost.showSnackbar(context.getString(R.string.partition_batch_backup_partial, successCount, failedPartitions.size, failedPartitions.joinToString()))
         }
     }
 }
