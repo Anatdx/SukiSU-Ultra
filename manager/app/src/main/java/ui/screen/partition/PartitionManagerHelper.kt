@@ -2,9 +2,8 @@ package ui.screen.partition
 
 import android.content.Context
 import android.util.Log
-import com.anatdx.yukisu.ui.util.KsuCli
+import com.anatdx.yukisu.ui.util.getKsud
 import com.anatdx.yukisu.ui.util.getRootShell
-import com.anatdx.yukisu.ui.util.hasMagiskBoot
 import com.topjohnwu.superuser.CallbackList
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +27,7 @@ object PartitionManagerHelper {
             
             // 执行 ksud flash slots 命令
             shell.newJob()
-                .add("${KsuCli.getKsuDaemonPath()} flash slots")
+                .add("${getKsud()} flash slots")
                 .to(result)
                 .exec()
             
@@ -80,9 +79,9 @@ object PartitionManagerHelper {
             
             // 执行 ksud flash list 命令
             val cmd = if (slot != null) {
-                "${KsuCli.getKsuDaemonPath()} flash list --slot $slot"
+                "${getKsud()} flash list --slot $slot"
             } else {
-                "${KsuCli.getKsuDaemonPath()} flash list"
+                "${getKsud()} flash list"
             }
             
             shell.newJob()
@@ -148,9 +147,9 @@ object PartitionManagerHelper {
         val result = mutableListOf<String>()
         
         val cmd = if (slot != null) {
-            "${KsuCli.getKsuDaemonPath()} flash info $partition --slot $slot"
+            "${getKsud()} flash info $partition --slot $slot"
         } else {
-            "${KsuCli.getKsuDaemonPath()} flash info $partition"
+            "${getKsud()} flash info $partition"
         }
         
         shell.newJob()
@@ -182,9 +181,9 @@ object PartitionManagerHelper {
             val shell = getRootShell()
             
             val cmd = if (slot != null) {
-                "${KsuCli.getKsuDaemonPath()} flash backup $partition $outputPath --slot $slot"
+                "${getKsud()} flash backup $partition $outputPath --slot $slot"
             } else {
-                "${KsuCli.getKsuDaemonPath()} flash backup $partition $outputPath"
+                "${getKsud()} flash backup $partition $outputPath"
             }
             
             val stdout = object : CallbackList<String>() {
@@ -227,9 +226,9 @@ object PartitionManagerHelper {
             val shell = getRootShell()
             
             val cmd = if (slot != null) {
-                "${KsuCli.getKsuDaemonPath()} flash image $imagePath $partition --slot $slot"
+                "${getKsud()} flash image $imagePath $partition --slot $slot"
             } else {
-                "${KsuCli.getKsuDaemonPath()} flash image $imagePath $partition"
+                "${getKsud()} flash image $imagePath $partition"
             }
             
             val stdout = object : CallbackList<String>() {

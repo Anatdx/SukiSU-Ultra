@@ -226,7 +226,7 @@ fun PartitionManagerScreen(navigator: DestinationsNavigator) {
 fun SlotInfoCard(slotInfo: SlotInfo) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = getCardColors(),
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
         elevation = CardDefaults.cardElevation(defaultElevation = CardConfig.cardElevation)
     ) {
         Column(
@@ -286,7 +286,7 @@ fun PartitionCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        colors = getCardColors(),
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
         elevation = CardDefaults.cardElevation(defaultElevation = CardConfig.cardElevation)
     ) {
         Row(
