@@ -241,7 +241,7 @@ fun SlotInfoCard(slotInfo: SlotInfo) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = stringResource(R.string.slot_information),
+                    text = stringResource(R.string.partition_slot_info),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -256,20 +256,20 @@ fun SlotInfoCard(slotInfo: SlotInfo) {
             
             if (slotInfo.isAbDevice) {
                 InfoRow(
-                    label = stringResource(R.string.device_type),
+                    label = stringResource(R.string.partition_device_type),
                     value = "A/B 设备"
                 )
                 InfoRow(
-                    label = stringResource(R.string.current_slot),
+                    label = stringResource(R.string.partition_current_slot),
                     value = slotInfo.currentSlot ?: "未知"
                 )
                 InfoRow(
-                    label = stringResource(R.string.other_slot),
+                    label = stringResource(R.string.partition_other_slot),
                     value = slotInfo.otherSlot ?: "未知"
                 )
             } else {
                 InfoRow(
-                    label = stringResource(R.string.device_type),
+                    label = stringResource(R.string.partition_device_type),
                     value = "A-only 设备"
                 )
             }

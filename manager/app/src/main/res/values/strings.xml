@@ -581,8 +581,8 @@
     <!-- Partition Manager -->
     <string name="partition_manager">Partition Manager</string>
     <string name="partition_list">Partition List</string>
-    <string name="slot_information">Slot Information</string>
-    <string name="device_type">Device Type</string>
-    <string name="current_slot">Current Slot</string>
-    <string name="other_slot">Other Slot</string>
+    <string name="partition_slot_info">Slot Information</string>
+    <string name="partition_device_type">Device Type</string>
+    <string name="partition_current_slot">Current Slot</string>
+    <string name="partition_other_slot">Other Slot</string>
 </resources>

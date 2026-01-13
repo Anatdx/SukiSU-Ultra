@@ -584,8 +584,8 @@
     <!-- Partition Manager -->
     <string name="partition_manager">分区管理器</string>
     <string name="partition_list">分区列表</string>
-    <string name="slot_information">槽位信息</string>
-    <string name="device_type">设备类型</string>
-    <string name="current_slot">当前槽位</string>
-    <string name="other_slot">其他槽位</string>
+    <string name="partition_slot_info">槽位信息</string>
+    <string name="partition_device_type">设备类型</string>
+    <string name="partition_current_slot">当前槽位</string>
+    <string name="partition_other_slot">其他槽位</string>
 </resources>
