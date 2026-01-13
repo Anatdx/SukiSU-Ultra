@@ -145,8 +145,8 @@ object PartitionManagerHelper {
                         val size = sizeStr.toLongOrNull() ?: 0L
                         val isLogical = type == "logical"
                         
-                        // 判断是否应该排除在批量备份之外（逻辑分区或userdata/data）
-                        val excludeFromBatch = isLogical || name == "userdata" || name == "data"
+                        // 只有 userdata 和 data 排除在批量备份之外（逻辑分区在 UI 中单独过滤）
+                        val excludeFromBatch = name == "userdata" || name == "data"
                         
                         Log.d(TAG, "Matched type: '$type', size string: '$sizeStr', size: $size, dangerous: $isDangerous")
                         

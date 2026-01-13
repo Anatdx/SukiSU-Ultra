@@ -87,7 +87,11 @@ bool is_ab_device() {
 
 std::string find_partition_block_device(const std::string& partition_name,
                                         const std::string& slot_suffix) {
-    std::string suffix = slot_suffix.empty() ? get_current_slot_suffix() : slot_suffix;
+    // 如果传入了明确的槽位后缀，使用它；否则使用当前槽位
+    std::string suffix = slot_suffix;
+    if (suffix.empty()) {
+        suffix = get_current_slot_suffix();
+    }
 
     // Check if this partition should not have slot suffix
     bool is_slotless = false;
@@ -98,12 +102,15 @@ std::string find_partition_block_device(const std::string& partition_name,
         }
     }
 
-    // Build candidate names: try with suffix first, then without
+    // Build candidate names
     std::vector<std::string> names_to_try;
     if (!is_slotless && !suffix.empty()) {
+        // 对于有槽位的分区，只尝试带槽位后缀的名字
         names_to_try.push_back(partition_name + suffix);
+    } else {
+        // 对于无槽位分区，只尝试不带后缀的名字
+        names_to_try.push_back(partition_name);
     }
-    names_to_try.push_back(partition_name);
 
     // Try multiple common locations
     std::vector<std::string> base_paths = {
@@ -161,27 +168,52 @@ std::vector<std::string> get_all_partitions(const std::string& slot_suffix) {
     std::vector<std::string> partitions;
     std::string suffix = slot_suffix.empty() ? get_current_slot_suffix() : slot_suffix;
 
-    // Scan /dev/block/by-name directory
+    // Scan /dev/block/by-name directory for physical partitions
     std::string by_name_dir = "/dev/block/by-name";
-    if (!fs::exists(by_name_dir)) {
-        LOGW("Directory %s does not exist", by_name_dir.c_str());
-        return partitions;
-    }
+    if (fs::exists(by_name_dir)) {
+        for (const auto& entry : fs::directory_iterator(by_name_dir)) {
+            std::string name = entry.path().filename().string();
 
-    for (const auto& entry : fs::directory_iterator(by_name_dir)) {
-        std::string name = entry.path().filename().string();
+            // Remove slot suffix if present
+            if (!suffix.empty() && name.length() > suffix.length()) {
+                size_t pos = name.find(suffix);
+                if (pos != std::string::npos && pos == name.length() - suffix.length()) {
+                    name = name.substr(0, pos);
+                }
+            }
 
-        // Remove slot suffix if present
-        if (!suffix.empty() && name.length() > suffix.length()) {
-            size_t pos = name.find(suffix);
-            if (pos != std::string::npos && pos == name.length() - suffix.length()) {
-                name = name.substr(0, pos);
+            // Avoid duplicates
+            if (std::find(partitions.begin(), partitions.end(), name) == partitions.end()) {
+                partitions.push_back(name);
             }
         }
+    } else {
+        LOGW("Directory %s does not exist", by_name_dir.c_str());
+    }
 
-        // Avoid duplicates
-        if (std::find(partitions.begin(), partitions.end(), name) == partitions.end()) {
-            partitions.push_back(name);
+    // Scan /dev/block/mapper directory for logical partitions
+    std::string mapper_dir = "/dev/block/mapper";
+    if (fs::exists(mapper_dir)) {
+        for (const auto& entry : fs::directory_iterator(mapper_dir)) {
+            std::string name = entry.path().filename().string();
+
+            // Skip control devices
+            if (name == "control" || name.find("loop") == 0) {
+                continue;
+            }
+
+            // Remove slot suffix if present
+            if (!suffix.empty() && name.length() > suffix.length()) {
+                size_t pos = name.find(suffix);
+                if (pos != std::string::npos && pos == name.length() - suffix.length()) {
+                    name = name.substr(0, pos);
+                }
+            }
+
+            // Avoid duplicates
+            if (std::find(partitions.begin(), partitions.end(), name) == partitions.end()) {
+                partitions.push_back(name);
+            }
         }
     }
 

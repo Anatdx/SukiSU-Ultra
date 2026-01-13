@@ -598,6 +598,8 @@
     <string name="partition_dangerous_warning">DANGEROUS partition! Improper operation may brick device</string>
     <string name="partition_info_title">Partition Information</string>
     <string name="partition_info_type">Type</string>
+    <string name="partition_type_physical">Physical</string>
+    <string name="partition_type_logical">Logical</string>
     <string name="partition_info_size">Size</string>
     <string name="partition_info_device">Device</string>
     <string name="partition_info_slot">Slot</string>

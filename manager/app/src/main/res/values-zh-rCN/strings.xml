@@ -601,6 +601,8 @@
     <string name="partition_dangerous_warning">危险分区！操作不当可能导致设备变砖</string>
     <string name="partition_info_title">分区信息</string>
     <string name="partition_info_type">类型</string>
+    <string name="partition_type_physical">物理分区</string>
+    <string name="partition_type_logical">逻辑分区</string>
     <string name="partition_info_size">大小</string>
     <string name="partition_info_device">设备</string>
     <string name="partition_info_slot">槽位</string>

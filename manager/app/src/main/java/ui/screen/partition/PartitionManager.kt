@@ -286,26 +286,28 @@ fun PartitionManagerScreen(navigator: DestinationsNavigator) {
                                         style = MaterialTheme.typography.bodyMedium
                                     )
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        // 全选按钮（排除逻辑分区和不可备份分区）
-                                        IconButton(onClick = {
-                                            val displayList = if (showAllPartitions) allPartitionList else partitionList
-                                            val selectablePartitions = displayList.filterNot { 
-                                                it.excludeFromBatch || it.isLogical 
-                                            }
-                                            selectedPartitions = selectablePartitions.map { it.name }.toSet()
-                                        }) {
-                                            Icon(
-                                                Icons.Default.CheckCircle,
-                                                contentDescription = stringResource(R.string.partition_select_all)
-                                            )
+                                        // 切换式全选/全不选按钮
+                                        val displayList = if (showAllPartitions) allPartitionList else partitionList
+                                        val selectablePartitions = displayList.filterNot { 
+                                            it.excludeFromBatch || it.isLogical 
                                         }
-                                        // 全不选按钮
+                                        val allSelected = selectablePartitions.all { it.name in selectedPartitions }
+                                        
                                         IconButton(onClick = {
-                                            selectedPartitions = emptySet()
+                                            if (allSelected) {
+                                                // 已全选，切换为全不选
+                                                selectedPartitions = emptySet()
+                                            } else {
+                                                // 未全选，切换为全选
+                                                selectedPartitions = selectablePartitions.map { it.name }.toSet()
+                                            }
                                         }) {
                                             Icon(
-                                                Icons.Default.Cancel,
-                                                contentDescription = stringResource(R.string.partition_deselect_all)
+                                                if (allSelected) Icons.Default.Cancel else Icons.Default.CheckCircle,
+                                                contentDescription = stringResource(
+                                                    if (allSelected) R.string.partition_deselect_all 
+                                                    else R.string.partition_select_all
+                                                )
                                             )
                                         }
                                         Button(onClick = {
@@ -554,7 +556,7 @@ fun PartitionCard(
                     }
                 }
                 Text(
-                    text = "${partition.type} • ${formatSize(partition.size)}",
+                    text = "${stringResource(if (partition.isLogical) R.string.partition_type_logical else R.string.partition_type_physical)} • ${formatSize(partition.size)}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -627,7 +629,10 @@ fun PartitionActionDialog(
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )
-                InfoRow(label = stringResource(R.string.partition_info_type), value = partition.type)
+                InfoRow(
+                    label = stringResource(R.string.partition_info_type), 
+                    value = stringResource(if (partition.isLogical) R.string.partition_type_logical else R.string.partition_type_physical)
+                )
                 InfoRow(label = stringResource(R.string.partition_info_size), value = formatSize(partition.size))
                 if (partition.blockDevice.isNotEmpty()) {
                     InfoRow(label = stringResource(R.string.partition_info_device), value = partition.blockDevice)
