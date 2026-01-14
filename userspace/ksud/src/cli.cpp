@@ -478,6 +478,10 @@ static int cmd_flash_new(const std::vector<std::string>& args) {
         printf("  info <PARTITION>           Show partition info\n");
         printf("  slots                      Show slot information (A/B devices)\n");
         printf("  map <SLOT>                 Map logical partitions for inactive slot\n");
+        printf("  avb                        Show AVB/dm-verity status\\n");
+        printf("  avb disable                Disable AVB/dm-verity\\n");
+        printf("  kernel [--slot SLOT]       Show kernel version\\n");
+        printf("  boot-info                  Show boot slot information\\n");
         printf("  ak3 <ZIP>                  Flash AnyKernel3 zip\n");
         printf("\nOPTIONS:\n");
         printf("  --slot <a|b|_a|_b>         Target specific slot (for A/B devices)\n");
@@ -638,6 +642,41 @@ static int cmd_flash_new(const std::vector<std::string>& args) {
             printf("Mapping failed or no partitions to map\n");
             return 1;
         }
+
+    } else if (filtered_args[0] == "avb") {
+        if (filtered_args.size() >= 2 && filtered_args[1] == "disable") {
+            printf("Disabling AVB/dm-verity...\n");
+            if (ksud::flash::patch_vbmeta_disable_verification()) {
+                printf("AVB/dm-verity disabled successfully!\n");
+                printf("Reboot required for changes to take effect.\n");
+                return 0;
+            } else {
+                printf("Failed to disable AVB/dm-verity\n");
+                return 1;
+            }
+        } else {
+            std::string status = ksud::flash::get_avb_status();
+            if (status.empty()) {
+                printf("Failed to get AVB status\n");
+                return 1;
+            }
+            printf("AVB/dm-verity status: %s\n", status.c_str());
+            return 0;
+        }
+
+    } else if (filtered_args[0] == "kernel") {
+        std::string version = ksud::flash::get_kernel_version(target_slot);
+        if (version.empty()) {
+            printf("Failed to get kernel version\n");
+            return 1;
+        }
+        printf("Kernel version: %s\n", version.c_str());
+        return 0;
+
+    } else if (filtered_args[0] == "boot-info") {
+        std::string info = ksud::flash::get_boot_slot_info();
+        printf("%s\n", info.c_str());
+        return 0;
 
     } else if (filtered_args[0] == "ak3") {
         // Delegate to existing AK3 flash - pass remaining args

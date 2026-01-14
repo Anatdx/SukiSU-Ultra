@@ -140,5 +140,30 @@ bool is_ab_device();
  */
 bool map_logical_partitions(const std::string& slot_suffix);
 
+/**
+ * Get AVB (dm-verity) status
+ * @return "enabled" if AVB is enabled, "disabled" if disabled, empty on error
+ */
+std::string get_avb_status();
+
+/**
+ * Patch vbmeta to disable AVB/dm-verity
+ * @return true on success, false on failure
+ */
+bool patch_vbmeta_disable_verification();
+
+/**
+ * Get kernel version from boot partition
+ * @param slot_suffix Slot suffix (optional)
+ * @return kernel version string, empty on error
+ */
+std::string get_kernel_version(const std::string& slot_suffix = "");
+
+/**
+ * Get boot slot information
+ * @return JSON string with slot info (unbootable, successful, etc.)
+ */
+std::string get_boot_slot_info();
+
 }  // namespace flash
 }  // namespace ksud

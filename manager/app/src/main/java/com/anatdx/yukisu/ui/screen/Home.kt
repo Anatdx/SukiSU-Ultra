@@ -39,6 +39,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.InstallScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.HymoFSConfigScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.KernelManagerScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.PartitionManagerScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.anatdx.yukisu.KernelVersion
@@ -395,6 +396,16 @@ private fun TopBar(
         ),
         actions = {
             if (isDataLoaded) {
+                // 内核管理器按钮
+                IconButton(onClick = {
+                    navigator.navigate(KernelManagerScreenDestination)
+                }) {
+                    Icon(
+                        imageVector = Icons.Filled.DeveloperMode,
+                        contentDescription = stringResource(R.string.kernel_manager)
+                    )
+                }
+                
                 // 分区管理器按钮
                 IconButton(onClick = {
                     navigator.navigate(PartitionManagerScreenDestination)

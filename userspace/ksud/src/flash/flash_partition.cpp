@@ -209,8 +209,10 @@ std::vector<std::string> get_all_partitions(const std::string& slot_suffix) {
         for (const auto& entry : fs::directory_iterator(mapper_dir)) {
             std::string name = entry.path().filename().string();
 
-            // Skip control devices
-            if (name == "control" || name.find("loop") == 0) {
+            // Skip control devices and virtual partitions
+            if (name == "control" || name.find("loop") == 0 ||
+                name.find("-verity") != std::string::npos ||
+                name.find("-cow") != std::string::npos) {
                 continue;
             }
 
@@ -559,6 +561,116 @@ bool map_logical_partitions(const std::string& slot_suffix) {
     LOGI("Mapped %d/%d logical partitions for slot %s", success_count, total_count,
          slot_suffix.c_str());
     return success_count > 0;
+}
+
+std::string get_avb_status() {
+    // Check AVB flags in vbmeta
+    std::string vbmeta_device = find_partition_block_device("vbmeta", "");
+    if (vbmeta_device.empty()) {
+        LOGW("vbmeta partition not found");
+        return "";
+    }
+
+    // Read vbmeta header flags (offset 123-126)
+    int fd = open(vbmeta_device.c_str(), O_RDONLY);
+    if (fd < 0) {
+        LOGE("Failed to open vbmeta: %s", strerror(errno));
+        return "";
+    }
+
+    unsigned char flags[4];
+    if (lseek(fd, 123, SEEK_SET) != 123 || read(fd, flags, 4) != 4) {
+        LOGE("Failed to read vbmeta flags");
+        close(fd);
+        return "";
+    }
+    close(fd);
+
+    // Check if verification is disabled (flags = 2 or 3)
+    if (flags[0] == 0 && flags[1] == 0 && flags[2] == 0 && (flags[3] == 2 || flags[3] == 3)) {
+        return "disabled";
+    }
+
+    return "enabled";
+}
+
+bool patch_vbmeta_disable_verification() {
+    std::string vbmeta_device = find_partition_block_device("vbmeta", "");
+    if (vbmeta_device.empty()) {
+        LOGE("vbmeta partition not found");
+        return false;
+    }
+
+    LOGI("Patching vbmeta to disable verification: %s", vbmeta_device.c_str());
+
+    int fd = open(vbmeta_device.c_str(), O_RDWR);
+    if (fd < 0) {
+        LOGE("Failed to open vbmeta: %s", strerror(errno));
+        return false;
+    }
+
+    // Set flags at offset 123 to disable verification (value = 3)
+    unsigned char flags[4] = {0, 0, 0, 3};
+
+    if (lseek(fd, 123, SEEK_SET) != 123 || write(fd, flags, 4) != 4) {
+        LOGE("Failed to write vbmeta flags");
+        close(fd);
+        return false;
+    }
+
+    fsync(fd);
+    close(fd);
+    sync();
+
+    LOGI("vbmeta patched successfully");
+    return true;
+}
+
+std::string get_kernel_version(const std::string& slot_suffix) {
+    std::string suffix = slot_suffix.empty() ? get_current_slot_suffix() : slot_suffix;
+
+    // Try boot partition first, then init_boot
+    std::vector<std::string> boot_partitions = {"boot", "init_boot"};
+
+    for (const auto& part : boot_partitions) {
+        std::string boot_device = find_partition_block_device(part, suffix);
+        if (boot_device.empty() || !fs::exists(boot_device)) {
+            continue;
+        }
+
+        // Try to extract kernel version with strings
+        auto cmd = "dd if=" + boot_device +
+                   " bs=1M count=10 2>/dev/null | strings | grep -m1 'Linux version'";
+        auto ver = exec_cmd(cmd);
+        if (!ver.empty()) {
+            return trim(ver);
+        }
+    }
+
+    LOGW("Failed to get kernel version");
+    return "";
+}
+
+std::string get_boot_slot_info() {
+    if (!is_ab_device()) {
+        return "{\"is_ab\":false}";
+    }
+
+    std::string current_slot = get_current_slot_suffix();
+    std::string other_slot = (current_slot == "_a") ? "_b" : "_a";
+
+    // Get slot info from properties
+    auto result_a = exec_command({"getprop", "ro.boot.slot_suffix"});
+    auto unbootable = exec_command({"getprop", "ro.boot.slot.unbootable"});
+    auto successful = exec_command({"getprop", "ro.boot.slot.successful"});
+
+    std::string json = "{";
+    json += "\"is_ab\":true,";
+    json += "\"current_slot\":\"" + current_slot + "\",";
+    json += "\"other_slot\":\"" + other_slot + "\"";
+    json += "}";
+
+    return json;
 }
 
 }  // namespace flash
