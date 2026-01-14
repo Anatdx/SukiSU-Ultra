@@ -87,29 +87,35 @@ bool is_ab_device() {
 
 std::string find_partition_block_device(const std::string& partition_name,
                                         const std::string& slot_suffix) {
-    // 如果传入了明确的槽位后缀，使用它；否则使用当前槽位
-    std::string suffix = slot_suffix;
-    if (suffix.empty()) {
-        suffix = get_current_slot_suffix();
+    // 检查分区名是否以 _a 或 _b 结尾（slotful分区）
+    bool is_slotful = false;
+    if (partition_name.length() >= 2) {
+        std::string last_two = partition_name.substr(partition_name.length() - 2);
+        if (last_two == "_a" || last_two == "_b") {
+            is_slotful = true;
+        }
     }
 
-    // Check if this partition should not have slot suffix
-    bool is_slotless = false;
-    for (const char* slotless : SLOTLESS_PARTITIONS) {
-        if (partition_name == slotless) {
-            is_slotless = true;
-            break;
-        }
+    // 确定要使用的槽位后缀
+    std::string suffix;
+    if (is_slotful) {
+        // 如果分区名本身已经带了槽位后缀，不再添加
+        suffix = "";
+    } else if (!slot_suffix.empty()) {
+        // 使用传入的槽位后缀
+        suffix = slot_suffix;
+    } else {
+        // 使用当前槽位
+        suffix = get_current_slot_suffix();
     }
 
     // Build candidate names
     std::vector<std::string> names_to_try;
-    if (!is_slotless && !suffix.empty()) {
-        // 对于有槽位的分区，只尝试带槽位后缀的名字
+    // 总是先尝试不带后缀的名字（slotless分区、或者已经带后缀的分区名）
+    names_to_try.push_back(partition_name);
+    // 如果分区名本身不带_a/_b后缀，且在AB设备上，再尝试带槽位后缀的版本
+    if (!suffix.empty() && !is_slotful) {
         names_to_try.push_back(partition_name + suffix);
-    } else {
-        // 对于无槽位分区，只尝试不带后缀的名字
-        names_to_try.push_back(partition_name);
     }
 
     // Try multiple common locations
@@ -174,11 +180,17 @@ std::vector<std::string> get_all_partitions(const std::string& slot_suffix) {
         for (const auto& entry : fs::directory_iterator(by_name_dir)) {
             std::string name = entry.path().filename().string();
 
-            // Remove slot suffix if present
-            if (!suffix.empty() && name.length() > suffix.length()) {
-                size_t pos = name.find(suffix);
-                if (pos != std::string::npos && pos == name.length() - suffix.length()) {
-                    name = name.substr(0, pos);
+            // 只有当名字确实以 _a 或 _b 结尾时才去掉槽位后缀
+            if (!suffix.empty() && name.length() > 2) {
+                std::string last_two = name.substr(name.length() - 2);
+                if (last_two == "_a" || last_two == "_b") {
+                    // 确认这确实是槽位后缀
+                    if (last_two == suffix) {
+                        name = name.substr(0, name.length() - 2);
+                    } else {
+                        // 不是当前槽位的分区，跳过
+                        continue;
+                    }
                 }
             }
 
@@ -202,11 +214,17 @@ std::vector<std::string> get_all_partitions(const std::string& slot_suffix) {
                 continue;
             }
 
-            // Remove slot suffix if present
-            if (!suffix.empty() && name.length() > suffix.length()) {
-                size_t pos = name.find(suffix);
-                if (pos != std::string::npos && pos == name.length() - suffix.length()) {
-                    name = name.substr(0, pos);
+            // 只有当名字确实以 _a 或 _b 结尾时才去掉槽位后缀
+            if (!suffix.empty() && name.length() > 2) {
+                std::string last_two = name.substr(name.length() - 2);
+                if (last_two == "_a" || last_two == "_b") {
+                    // 确认这确实是槽位后缀
+                    if (last_two == suffix) {
+                        name = name.substr(0, name.length() - 2);
+                    } else {
+                        // 不是当前槽位的分区，跳过
+                        continue;
+                    }
                 }
             }
 
@@ -256,12 +274,13 @@ std::vector<std::string> get_available_partitions(bool scan_all) {
             }
         }
     } else {
-        // Only check common partitions
+        // Only check common partitions (silently skip if not found)
         for (const char* name : COMMON_PARTITIONS) {
             std::string block_dev = find_partition_block_device(name, slot_suffix);
             if (!block_dev.empty() && fs::exists(block_dev)) {
                 available.push_back(name);
             }
+            // 找不到也不报错，有些设备可能没有某些常用分区（如recovery）
         }
     }
 
