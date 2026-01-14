@@ -52,152 +52,119 @@ class KernelManagerViewModel : ViewModel() {
                 try {
                     val shell = getRootShell()
                     val ksud = getKsud()
-                    
+
+                    // Helper to run a command and check for errors
+                    val runCmd = { cmd: String ->
+                        val stdout = mutableListOf<String>()
+                        val stderr = mutableListOf<String>()
+                        val result = shell.newJob().add(cmd).to(stdout, stderr).exec()
+                        Log.d("KernelManager", "CMD: '$cmd' | CODE: ${result.code}")
+                        Log.d("KernelManager", "STDOUT: ${stdout.joinToString("\n")}")
+                        Log.d("KernelManager", "STDERR: ${stderr.joinToString("\n")}")
+                        if (!result.isSuccess) {
+                            throw Exception(stderr.joinToString("\n").ifEmpty { "Command failed with exit code ${result.code}" })
+                        }
+                        stdout
+                    }
+
                     // Get boot slot info
-                    val bootInfoResult = mutableListOf<String>()
-                    shell.newJob()
-                        .add("$ksud flash boot-info")
-                        .to(bootInfoResult)
-                        .exec()
-                    
-                    val bootInfoJson = bootInfoResult.joinToString("")
-                    Log.d("KernelManager", "boot-info: $bootInfoJson")
-                    
+                    val bootInfoStdout = runCmd("$ksud flash boot-info")
+                    val bootInfoJson = bootInfoStdout.joinToString("")
                     if (bootInfoJson.isNotEmpty()) {
                         val bootInfo = JSONObject(bootInfoJson)
-                        val isAb = bootInfo.optBoolean("is_ab", false)
-                        hasOtherSlot = isAb
-                        
-                        if (isAb) {
+                        hasOtherSlot = bootInfo.optBoolean("is_ab", false)
+                        if (hasOtherSlot) {
                             currentSlot = bootInfo.optString("current_slot", "")
                             otherSlot = bootInfo.optString("other_slot", "")
                         }
                     }
-                    
+
                     // Get current kernel version
-                    val kernelResult = mutableListOf<String>()
-                    shell.newJob()
-                        .add("$ksud flash kernel")
-                        .to(kernelResult)
-                        .exec()
-                    
-                    val kernelOutput = kernelResult.joinToString("\n").trim()
-                    Log.d("KernelManager", "kernel version: $kernelOutput")
-                    // Parse "Kernel version: Linux version ..." -> "Linux version ..."
-                    currentKernelVersion = if (kernelOutput.contains(":")) {
-                        kernelOutput.substringAfter(":").trim()
-                    } else {
-                        kernelOutput
-                    }
-                    
-                    // Get other slot kernel version if exists
+                    val kernelOutput = runCmd("$ksud flash kernel").joinToString("\n").trim()
+                    currentKernelVersion = kernelOutput.substringAfter(":", kernelOutput).trim()
+
+                    // Get other slot kernel version
                     if (hasOtherSlot && otherSlot.isNotEmpty()) {
-                        val otherKernelResult = mutableListOf<String>()
-                        shell.newJob()
-                            .add("$ksud flash kernel --slot $otherSlot")
-                            .to(otherKernelResult)
-                            .exec()
-                        
-                        val otherKernelOutput = otherKernelResult.joinToString("\n").trim()
-                        otherKernelVersion = if (otherKernelOutput.contains(":")) {
-                            otherKernelOutput.substringAfter(":").trim()
-                        } else {
-                            otherKernelOutput
-                        }
+                        val otherKernelOutput = runCmd("$ksud flash kernel --slot $otherSlot").joinToString("\n").trim()
+                        otherKernelVersion = otherKernelOutput.substringAfter(":", otherKernelOutput).trim()
                     }
-                    
+
                     // Get AVB status
-                    val avbResult = mutableListOf<String>()
-                    shell.newJob()
-                        .add("$ksud flash avb")
-                        .to(avbResult)
-                        .exec()
-                    
-                    val avbOutput = avbResult.joinToString("\n").trim()
-                    Log.d("KernelManager", "avb status: $avbOutput")
-                    // Parse "AVB/dm-verity status: enabled" -> "enabled"
-                    avbStatus = if (avbOutput.contains(":")) {
-                        avbOutput.substringAfter(":").trim()
-                    } else {
-                        avbOutput
-                    }
-                    
+                    val avbOutput = runCmd("$ksud flash avb").joinToString("\n").trim()
+                    avbStatus = avbOutput.substringAfter(":", avbOutput).trim()
+
                 } catch (e: Exception) {
                     Log.e("KernelManager", "Failed to load kernel info", e)
-                    e.printStackTrace()
+                    // Reset fields on error to avoid showing stale data
+                    currentSlot = ""
+                    otherSlot = ""
+                    hasOtherSlot = false
+                    currentKernelVersion = "Error"
+                    otherKernelVersion = "Error"
+                    avbStatus = "Error"
                 }
             }
             isLoading = false
         }
     }
-    
+
     suspend fun flashAK3(context: Context, uri: Uri): Result<String> = withContext(Dispatchers.IO) {
         try {
-            // Copy AK3 zip to temp location
             val tempFile = File(context.cacheDir, "ak3_temp.zip")
             context.contentResolver.openInputStream(uri)?.use { input ->
-                tempFile.outputStream().use { output ->
-                    input.copyTo(output)
-                }
+                tempFile.outputStream().use { output -> input.copyTo(output) }
             }
-            
+
             val shell = getRootShell()
             val ksud = getKsud()
-            val result = mutableListOf<String>()
-            
+            val stdout = mutableListOf<String>()
+            val stderr = mutableListOf<String>()
+
             val execResult = shell.newJob()
                 .add("$ksud flash ak3 ${tempFile.absolutePath}")
-                .to(result)
+                .to(stdout, stderr)
                 .exec()
-            
             tempFile.delete()
-            val output = result.joinToString("\n")
-            
-            if (execResult.isSuccess || output.contains("success", ignoreCase = true)) {
-                Result.success(context.getString(R.string.kernel_flash_success))
-            } else {
-                Result.failure(Exception(output))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-    
-    suspend fun flashKernelImage(context: Context, uri: Uri): Result<String> = withContext(Dispatchers.IO) {
-        try {
-            // Determine partition name (boot or init_boot)
-            val bootPartition = detectBootPartition()
-            
-            // Flash using ksud flash image
-            val tempFile = File(context.cacheDir, "kernel_temp.img")
-            context.contentResolver.openInputStream(uri)?.use { input ->
-                tempFile.outputStream().use { output ->
-                    input.copyTo(output)
-                }
-            }
-            
-            val shell = getRootShell()
-            val ksud = getKsud()
-            val result = mutableListOf<String>()
-            
-            val execResult = shell.newJob()
-                .add("$ksud flash image ${tempFile.absolutePath} $bootPartition")
-                .to(result)
-                .exec()
-            
-            tempFile.delete()
-            val output = result.joinToString("\n")
-            
+
             if (execResult.isSuccess) {
                 Result.success(context.getString(R.string.kernel_flash_success))
             } else {
-                Result.failure(Exception(output))
+                Result.failure(Exception(stderr.joinToString("\n").ifEmpty { stdout.joinToString("\n") }))
             }
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
-    
+
+    suspend fun flashKernelImage(context: Context, uri: Uri): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val bootPartition = detectBootPartition()
+            val tempFile = File(context.cacheDir, "kernel_temp.img")
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                tempFile.outputStream().use { output -> input.copyTo(output) }
+            }
+
+            val shell = getRootShell()
+            val ksud = getKsud()
+            val stdout = mutableListOf<String>()
+            val stderr = mutableListOf<String>()
+
+            val execResult = shell.newJob()
+                .add("$ksud flash image ${tempFile.absolutePath} $bootPartition")
+                .to(stdout, stderr)
+                .exec()
+            tempFile.delete()
+
+            if (execResult.isSuccess) {
+                Result.success(context.getString(R.string.kernel_flash_success))
+            } else {
+                Result.failure(Exception(stderr.joinToString("\n").ifEmpty { stdout.joinToString("\n") }))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun extractKernel(context: Context): Result<String> = withContext(Dispatchers.IO) {
         try {
             val bootPartition = detectBootPartition()
@@ -206,78 +173,77 @@ class KernelManagerViewModel : ViewModel() {
             val outputDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "KernelSU")
             outputDir.mkdirs()
             val outputFile = File(outputDir, fileName)
-            
+
             val shell = getRootShell()
             val ksud = getKsud()
-            val result = mutableListOf<String>()
-            
+            val stdout = mutableListOf<String>()
+            val stderr = mutableListOf<String>()
+
             val execResult = shell.newJob()
                 .add("$ksud flash backup $bootPartition ${outputFile.absolutePath}")
-                .to(result)
+                .to(stdout, stderr)
                 .exec()
-            
-            if (outputFile.exists() && execResult.isSuccess) {
+
+            if (execResult.isSuccess && outputFile.exists()) {
                 Result.success(outputFile.absolutePath)
             } else {
-                Result.failure(Exception(result.joinToString("\n")))
+                Result.failure(Exception(stderr.joinToString("\n").ifEmpty { stdout.joinToString("\n") }))
             }
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
-    
+
     suspend fun flashModule(context: Context, uri: Uri): Result<String> = withContext(Dispatchers.IO) {
         try {
             val tempFile = File(context.cacheDir, "module_temp.ko")
             context.contentResolver.openInputStream(uri)?.use { input ->
-                tempFile.outputStream().use { output ->
-                    input.copyTo(output)
-                }
+                tempFile.outputStream().use { output -> input.copyTo(output) }
             }
-            
+
             val shell = getRootShell()
             val ksud = getKsud()
-            val result = mutableListOf<String>()
-            
+            val stdout = mutableListOf<String>()
+            val stderr = mutableListOf<String>()
+
             val execResult = shell.newJob()
                 .add("$ksud module install ${tempFile.absolutePath}")
-                .to(result)
+                .to(stdout, stderr)
                 .exec()
-            
             tempFile.delete()
-            val output = result.joinToString("\n")
-            
-            if (execResult.isSuccess || output.contains("success", ignoreCase = true)) {
+
+            if (execResult.isSuccess) {
                 Result.success(context.getString(R.string.kernel_flash_success))
             } else {
-                Result.failure(Exception(output))
+                Result.failure(Exception(stderr.joinToString("\n").ifEmpty { stdout.joinToString("\n") }))
             }
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
-    
+
     suspend fun disableAvb(): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val shell = getRootShell()
             val ksud = getKsud()
-            val result = mutableListOf<String>()
-            
+            val stdout = mutableListOf<String>()
+            val stderr = mutableListOf<String>()
+
             val execResult = shell.newJob()
                 .add("$ksud flash avb disable")
-                .to(result)
+                .to(stdout, stderr)
                 .exec()
-            
+
             if (execResult.isSuccess) {
                 Result.success(Unit)
             } else {
-                Result.failure(Exception(result.joinToString("\n")))
+                Result.failure(Exception(stderr.joinToString("\n").ifEmpty { stdout.joinToString("\n") }))
             }
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
-    
+
     private fun detectBootPartition(): String {
         // Try to detect init_boot first (GKI 2.0), then fall back to boot
         val initBootExists = File("/dev/block/by-name/init_boot$currentSlot").exists() ||
