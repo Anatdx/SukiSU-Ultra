@@ -11,10 +11,12 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.anatdx.yukisu.Natives
-import com.anatdx.yukisu.ksuApp
 import com.anatdx.yukisu.R
+import com.anatdx.yukisu.ui.util.getKsud
+import com.anatdx.yukisu.ui.util.getRootShell
+import com.topjohnwu.superuser.Shell
 import org.json.JSONObject
+import android.util.Log
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -48,8 +50,19 @@ class KernelManagerViewModel : ViewModel() {
             isLoading = true
             withContext(Dispatchers.IO) {
                 try {
+                    val shell = getRootShell()
+                    val ksud = getKsud()
+                    
                     // Get boot slot info
-                    val bootInfoJson = execKsudCommand("flash boot-info")
+                    val bootInfoResult = mutableListOf<String>()
+                    shell.newJob()
+                        .add("$ksud flash boot-info")
+                        .to(bootInfoResult)
+                        .exec()
+                    
+                    val bootInfoJson = bootInfoResult.joinToString("")
+                    Log.d("KernelManager", "boot-info: $bootInfoJson")
+                    
                     if (bootInfoJson.isNotEmpty()) {
                         val bootInfo = JSONObject(bootInfoJson)
                         val isAb = bootInfo.optBoolean("is_ab", false)
@@ -62,7 +75,14 @@ class KernelManagerViewModel : ViewModel() {
                     }
                     
                     // Get current kernel version
-                    val kernelOutput = execKsudCommand("flash kernel").trim()
+                    val kernelResult = mutableListOf<String>()
+                    shell.newJob()
+                        .add("$ksud flash kernel")
+                        .to(kernelResult)
+                        .exec()
+                    
+                    val kernelOutput = kernelResult.joinToString("\n").trim()
+                    Log.d("KernelManager", "kernel version: $kernelOutput")
                     // Parse "Kernel version: Linux version ..." -> "Linux version ..."
                     currentKernelVersion = if (kernelOutput.contains(":")) {
                         kernelOutput.substringAfter(":").trim()
@@ -72,7 +92,13 @@ class KernelManagerViewModel : ViewModel() {
                     
                     // Get other slot kernel version if exists
                     if (hasOtherSlot && otherSlot.isNotEmpty()) {
-                        val otherKernelOutput = execKsudCommand("flash kernel --slot $otherSlot").trim()
+                        val otherKernelResult = mutableListOf<String>()
+                        shell.newJob()
+                            .add("$ksud flash kernel --slot $otherSlot")
+                            .to(otherKernelResult)
+                            .exec()
+                        
+                        val otherKernelOutput = otherKernelResult.joinToString("\n").trim()
                         otherKernelVersion = if (otherKernelOutput.contains(":")) {
                             otherKernelOutput.substringAfter(":").trim()
                         } else {
@@ -81,7 +107,14 @@ class KernelManagerViewModel : ViewModel() {
                     }
                     
                     // Get AVB status
-                    val avbOutput = execKsudCommand("flash avb").trim()
+                    val avbResult = mutableListOf<String>()
+                    shell.newJob()
+                        .add("$ksud flash avb")
+                        .to(avbResult)
+                        .exec()
+                    
+                    val avbOutput = avbResult.joinToString("\n").trim()
+                    Log.d("KernelManager", "avb status: $avbOutput")
                     // Parse "AVB/dm-verity status: enabled" -> "enabled"
                     avbStatus = if (avbOutput.contains(":")) {
                         avbOutput.substringAfter(":").trim()
@@ -90,6 +123,7 @@ class KernelManagerViewModel : ViewModel() {
                     }
                     
                 } catch (e: Exception) {
+                    Log.e("KernelManager", "Failed to load kernel info", e)
                     e.printStackTrace()
                 }
             }
@@ -107,11 +141,19 @@ class KernelManagerViewModel : ViewModel() {
                 }
             }
             
-            // Flash using ksud
-            val output = execKsudCommand("flash ak3 ${tempFile.absolutePath}")
-            tempFile.delete()
+            val shell = getRootShell()
+            val ksud = getKsud()
+            val result = mutableListOf<String>()
             
-            if (output.contains("success", ignoreCase = true) || output.contains("complete", ignoreCase = true)) {
+            val execResult = shell.newJob()
+                .add("$ksud flash ak3 ${tempFile.absolutePath}")
+                .to(result)
+                .exec()
+            
+            tempFile.delete()
+            val output = result.joinToString("\n")
+            
+            if (execResult.isSuccess || output.contains("success", ignoreCase = true)) {
                 Result.success(context.getString(R.string.kernel_flash_success))
             } else {
                 Result.failure(Exception(output))
@@ -134,10 +176,19 @@ class KernelManagerViewModel : ViewModel() {
                 }
             }
             
-            val output = execKsudCommand("flash image $bootPartition ${tempFile.absolutePath}")
-            tempFile.delete()
+            val shell = getRootShell()
+            val ksud = getKsud()
+            val result = mutableListOf<String>()
             
-            if (output.contains("success", ignoreCase = true) || output.isEmpty()) {
+            val execResult = shell.newJob()
+                .add("$ksud flash image ${tempFile.absolutePath} $bootPartition")
+                .to(result)
+                .exec()
+            
+            tempFile.delete()
+            val output = result.joinToString("\n")
+            
+            if (execResult.isSuccess) {
                 Result.success(context.getString(R.string.kernel_flash_success))
             } else {
                 Result.failure(Exception(output))
@@ -156,13 +207,19 @@ class KernelManagerViewModel : ViewModel() {
             outputDir.mkdirs()
             val outputFile = File(outputDir, fileName)
             
-            // Use ksud flash backup
-            val output = execKsudCommand("flash backup $bootPartition ${outputFile.absolutePath}")
+            val shell = getRootShell()
+            val ksud = getKsud()
+            val result = mutableListOf<String>()
             
-            if (outputFile.exists()) {
+            val execResult = shell.newJob()
+                .add("$ksud flash backup $bootPartition ${outputFile.absolutePath}")
+                .to(result)
+                .exec()
+            
+            if (outputFile.exists() && execResult.isSuccess) {
                 Result.success(outputFile.absolutePath)
             } else {
-                Result.failure(Exception(output))
+                Result.failure(Exception(result.joinToString("\n")))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -178,11 +235,19 @@ class KernelManagerViewModel : ViewModel() {
                 }
             }
             
-            // Flash using ksud module install
-            val output = execKsudCommand("module install ${tempFile.absolutePath}")
-            tempFile.delete()
+            val shell = getRootShell()
+            val ksud = getKsud()
+            val result = mutableListOf<String>()
             
-            if (output.contains("success", ignoreCase = true) || output.contains("installed", ignoreCase = true)) {
+            val execResult = shell.newJob()
+                .add("$ksud module install ${tempFile.absolutePath}")
+                .to(result)
+                .exec()
+            
+            tempFile.delete()
+            val output = result.joinToString("\n")
+            
+            if (execResult.isSuccess || output.contains("success", ignoreCase = true)) {
                 Result.success(context.getString(R.string.kernel_flash_success))
             } else {
                 Result.failure(Exception(output))
@@ -194,12 +259,19 @@ class KernelManagerViewModel : ViewModel() {
     
     suspend fun disableAvb(): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val output = execKsudCommand("flash avb disable")
+            val shell = getRootShell()
+            val ksud = getKsud()
+            val result = mutableListOf<String>()
             
-            if (output.contains("success", ignoreCase = true) || output.isEmpty()) {
+            val execResult = shell.newJob()
+                .add("$ksud flash avb disable")
+                .to(result)
+                .exec()
+            
+            if (execResult.isSuccess) {
                 Result.success(Unit)
             } else {
-                Result.failure(Exception(output))
+                Result.failure(Exception(result.joinToString("\n")))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -211,23 +283,5 @@ class KernelManagerViewModel : ViewModel() {
         val initBootExists = File("/dev/block/by-name/init_boot$currentSlot").exists() ||
                             File("/dev/block/by-name/init_boot").exists()
         return if (initBootExists) "init_boot" else "boot"
-    }
-    
-    private fun execKsudCommand(command: String): String {
-        return try {
-            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "ksud $command"))
-            val output = process.inputStream.bufferedReader().readText()
-            val error = process.errorStream.bufferedReader().readText()
-            process.waitFor()
-            
-            if (error.isNotEmpty() && !error.contains("warning", ignoreCase = true)) {
-                error
-            } else {
-                output
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            ""
-        }
     }
 }
