@@ -640,66 +640,62 @@ std::string get_kernel_version(const std::string& slot_suffix) {
 
     std::string device = find_partition_block_device(boot_partition_name, slot_suffix);
     if (device.empty()) {
-        fprintf(stderr, "Could not find boot partition device for slot '%s'\n",
-                slot_suffix.c_str());
+        LOGE("Could not find boot partition device for slot '%s'", slot_suffix.c_str());
         return "";
     }
 
-    // Use magiskboot to unpack the boot image
-    std::string magiskboot = find_magiskboot();
-    if (magiskboot.empty()) {
-        return "";
-    }
+    LOGI("Reading kernel version from partition: %s (%s)", device.c_str(),
+         boot_partition_name.c_str());
 
     // Create a temporary directory for unpacking
     char tmp_dir_template[] = "/data/local/tmp/ksu_unpack_XXXXXX";
     if (mkdtemp(tmp_dir_template) == nullptr) {
-        fprintf(stderr, "Failed to create temp directory: %s\n", strerror(errno));
+        LOGE("Failed to create temp directory: %s", strerror(errno));
         return "";
     }
-    std::string tmp_dir = tmp_dir_template;
+    std::string workdir = tmp_dir_template;
 
-    // We need to change working directory because magiskboot unpacks to current dir
-    char cwd[PATH_MAX];
-    if (getcwd(cwd, sizeof(cwd)) == nullptr) {
-        fprintf(stderr, "Failed to get current working directory\n");
-        rmdir(tmp_dir.c_str());
-        return "";
-    }
-
-    if (chdir(tmp_dir.c_str()) != 0) {
-        fprintf(stderr, "Failed to change directory to %s\n", tmp_dir.c_str());
-        rmdir(tmp_dir.c_str());
+    // Find magiskboot with workdir to ensure it's available there
+    std::string magiskboot = find_magiskboot("", workdir);
+    if (magiskboot.empty()) {
+        LOGE("magiskboot not found");
+        exec_command_sync({"rm", "-rf", workdir});
         return "";
     }
 
-    auto unpack_result = exec_command_sync({magiskboot, "unpack", device});
+    LOGI("Using magiskboot: %s", magiskboot.c_str());
+
+    // Unpack boot image in the workdir
+    std::string kernel_path = workdir + "/kernel";
+    auto unpack_result = exec_command({magiskboot, "unpack", "-h", device}, workdir);
 
     std::string result;
     if (unpack_result.exit_code == 0) {
-        // Try to read the 'kernel' file
-        // Since we are in the temp dir, we can just read "kernel"
-        // But we can also use strings command directly on it if available
-        auto strings_result = exec_command_sync({"strings", "kernel"});
+        LOGI("Boot image unpacked successfully");
+
+        // Try using strings command first (most efficient)
+        auto strings_result = exec_command_sync({"strings", kernel_path});
         if (strings_result.exit_code == 0) {
             std::istringstream iss(strings_result.stdout_str);
             std::string line;
             while (std::getline(iss, line)) {
                 if (line.find("Linux version ") != std::string::npos) {
                     result = line;
+                    LOGI("Found kernel version: %s", result.c_str());
                     break;
                 }
             }
-        } else {
-            // Fallback: read file manually if strings command failed
-            std::ifstream kernel_file("kernel", std::ios::binary);
+        }
+
+        // Fallback: read kernel file directly if strings failed
+        if (result.empty()) {
+            LOGW("strings command failed, reading kernel file directly");
+            std::ifstream kernel_file(kernel_path, std::ios::binary);
             if (kernel_file) {
-                // Read chunks and search
                 const std::string search_str = "Linux version ";
                 char buffer[4096];
                 std::string content_buffer;
-                // Limit search
-                size_t max_bytes = 64 * 1024 * 1024;
+                size_t max_bytes = 64 * 1024 * 1024;  // Limit to first 64MB
                 size_t total_read = 0;
 
                 while (total_read < max_bytes && kernel_file.read(buffer, sizeof(buffer))) {
@@ -709,29 +705,38 @@ std::string get_kernel_version(const std::string& slot_suffix) {
 
                     size_t pos = content_buffer.find(search_str);
                     if (pos != std::string::npos) {
-                        size_t end_pos = content_buffer.find('\n', pos);
+                        size_t end_pos = content_buffer.find('\0', pos);
+                        if (end_pos == std::string::npos) {
+                            end_pos = content_buffer.find('\n', pos);
+                        }
                         if (end_pos != std::string::npos) {
                             result = content_buffer.substr(pos, end_pos - pos);
+                            LOGI("Found kernel version: %s", result.c_str());
                             break;
                         }
                     }
-                    if (content_buffer.length() > search_str.length()) {
-                        content_buffer =
-                            content_buffer.substr(content_buffer.length() - search_str.length());
+                    // Keep last part of buffer to handle version string across chunks
+                    if (content_buffer.length() > search_str.length() + 256) {
+                        content_buffer = content_buffer.substr(content_buffer.length() - 256);
                     }
                 }
+                kernel_file.close();
             } else {
-                fprintf(stderr, "Failed to open kernel file after unpack\n");
+                LOGE("Failed to open kernel file: %s", kernel_path.c_str());
             }
         }
     } else {
-        fprintf(stderr, "magiskboot unpack failed with code %d:\n%s\n", unpack_result.exit_code,
-                unpack_result.stderr_str.c_str());
+        LOGE("magiskboot unpack failed with code %d: %s", unpack_result.exit_code,
+             unpack_result.stderr_str.c_str());
+        LOGE("stdout: %s", unpack_result.stdout_str.c_str());
     }
 
     // Cleanup
-    chdir(cwd);
-    exec_command_sync({"rm", "-rf", tmp_dir});
+    exec_command_sync({"rm", "-rf", workdir});
+
+    if (result.empty()) {
+        LOGE("Failed to get kernel version");
+    }
 
     return result;
 }
