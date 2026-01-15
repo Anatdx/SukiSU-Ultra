@@ -627,11 +627,9 @@ bool patch_vbmeta_disable_verification() {
 }
 
 std::string get_kernel_version(const std::string& slot_suffix) {
+    // The kernel version string is ALWAYS in the 'boot' partition, even on GKI devices.
+    // 'init_boot' only contains the ramdisk.
     std::string boot_partition_name = "boot";
-    // Check for init_boot first, as it's the standard for GKI 2.0+
-    if (!find_partition_block_device("init_boot", slot_suffix).empty()) {
-        boot_partition_name = "init_boot";
-    }
 
     std::string device = find_partition_block_device(boot_partition_name, slot_suffix);
     if (device.empty()) {
@@ -664,7 +662,7 @@ std::string get_kernel_version(const std::string& slot_suffix) {
         size_t pos = content_buffer.find(search_str);
         if (pos != std::string::npos) {
             // Found the string, find the end of the line (newline character)
-            size_t end_pos = content_buffer.find('\\n', pos);
+            size_t end_pos = content_buffer.find('\n', pos);
             if (end_pos != std::string::npos) {
                 result = content_buffer.substr(pos, end_pos - pos);
                 break;  // Exit the loop once found
