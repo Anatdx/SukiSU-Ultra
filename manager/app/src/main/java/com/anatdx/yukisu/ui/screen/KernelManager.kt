@@ -41,14 +41,6 @@ fun KernelManagerScreen(navigator: DestinationsNavigator) {
     var showLoadingDialog by remember { mutableStateOf(false) }
     var loadingMessage by remember { mutableStateOf("") }
 
-    val fileLauncherForInstall = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            navigator.navigate(InstallScreenDestination(preselectedKernelUri = it.toString()))
-        }
-    }
-
     val kernelImageLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -137,16 +129,6 @@ fun KernelManagerScreen(navigator: DestinationsNavigator) {
             )
 
             Spacer(Modifier.height(12.dp))
-
-            // Flash AnyKernel3 -> Generic Flash File (redirects)
-            ActionCard(
-                title = stringResource(R.string.kernel_flash_file),
-                description = stringResource(R.string.kernel_flash_file_desc),
-                icon = Icons.Default.FileUpload,
-                onClick = { fileLauncherForInstall.launch("*/*") }
-            )
-
-            Spacer(Modifier.height(8.dp))
 
             // Flash Kernel Image (Kept for direct flashing without going to Install screen)
             ActionCard(

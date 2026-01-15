@@ -627,28 +627,63 @@ bool patch_vbmeta_disable_verification() {
 }
 
 std::string get_kernel_version(const std::string& slot_suffix) {
-    std::string suffix = slot_suffix.empty() ? get_current_slot_suffix() : slot_suffix;
+    std::string boot_partition_name = "boot";
+    // Check for init_boot first, as it's the standard for GKI 2.0+
+    if (!find_partition_block_device("init_boot", slot_suffix).empty()) {
+        boot_partition_name = "init_boot";
+    }
 
-    // Try boot partition first, then init_boot
-    std::vector<std::string> boot_partitions = {"boot", "init_boot"};
+    std::string device = find_partition_block_device(boot_partition_name, slot_suffix);
+    if (device.empty()) {
+        fprintf(stderr, "Could not find boot partition device for slot '%s'\\n",
+                slot_suffix.c_str());
+        return "";
+    }
 
-    for (const auto& part : boot_partitions) {
-        std::string boot_device = find_partition_block_device(part, suffix);
-        if (boot_device.empty() || !fs::exists(boot_device)) {
-            continue;
+    int fd = open(device.c_str(), O_RDONLY | O_CLOEXEC);
+    if (fd < 0) {
+        perror("Failed to open boot partition device");
+        return "";
+    }
+
+    // Read the device in chunks and search for the version string
+    char buffer[4096];
+    ssize_t bytes_read;
+    const std::string search_str = "Linux version ";
+    std::string content_buffer;
+    std::string result;
+
+    // Limit the search to the first 64MB to avoid scanning huge partitions
+    constexpr size_t MAX_SEARCH_BYTES = 64 * 1024 * 1024;
+    size_t total_bytes_read = 0;
+
+    while (total_bytes_read < MAX_SEARCH_BYTES &&
+           (bytes_read = read(fd, buffer, sizeof(buffer))) > 0) {
+        total_bytes_read += bytes_read;
+        content_buffer.append(buffer, bytes_read);
+        size_t pos = content_buffer.find(search_str);
+        if (pos != std::string::npos) {
+            // Found the string, find the end of the line (newline character)
+            size_t end_pos = content_buffer.find('\\n', pos);
+            if (end_pos != std::string::npos) {
+                result = content_buffer.substr(pos, end_pos - pos);
+                break;  // Exit the loop once found
+            }
         }
-
-        // Try to extract kernel version with strings
-        auto cmd = "dd if=" + boot_device +
-                   " bs=1M count=10 2>/dev/null | strings | grep -m1 'Linux version'";
-        auto ver = exec_cmd(cmd);
-        if (!ver.empty()) {
-            return trim(ver);
+        // To handle cases where the string might span across two chunks,
+        // we keep the tail end of the buffer for the next iteration.
+        if (content_buffer.length() > search_str.length()) {
+            content_buffer = content_buffer.substr(content_buffer.length() - search_str.length());
         }
     }
 
-    LOGW("Failed to get kernel version");
-    return "";
+    close(fd);
+
+    if (result.empty()) {
+        fprintf(stderr, "Kernel version string not found in %s\\n", device.c_str());
+    }
+
+    return result;
 }
 
 std::string get_boot_slot_info() {
