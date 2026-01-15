@@ -68,7 +68,7 @@
     <string name="failed_to_update_app_profile">Failed to update App Profile for %s</string>
     <string name="require_kernel_version" formatted="false">The current KernelSU version %s is too low for the manager to work properly. Please upgrade to version %s or higher!</string>
     <string name="settings_umount_modules_default">Umount modules by default</string>
-    <string name="settings_umount_modules_default_summary">The global default value for \"Umount modules\" in App Profile. If enabled, it will remove all module modifications to the system for apps that don\'t have a profile set</string>
+    <string name="settings_umount_modules_default_summary">The global default value for "Umount modules" in App Profile. If enabled, it will remove all module modifications to the system for apps that don\'t have a profile set</string>
     <string name="profile_umount_modules_summary">Enabling this option will allow KernelSU to restore any modified files by the modules for this app</string>
     <string name="profile_selinux_domain">Domain</string>
     <string name="profile_selinux_rules">Rules</string>
@@ -126,7 +126,7 @@
     <string name="settings_restore_stock_image">Restore stock image</string>
     <string name="settings_uninstall_temporary_message">Temporarily uninstall KernelSU, restore to original state after next reboot</string>
     <string name="settings_uninstall_permanent_message">Uninstalling KernelSU (root and all modules) completely and permanently</string>
-    <string name="settings_restore_stock_image_message">Restore the stock factory image (if a backup exists), usually used before OTA; if you need to uninstall KernelSU, please use \"Uninstall permanently\"</string>
+    <string name="settings_restore_stock_image_message">Restore the stock factory image (if a backup exists), usually used before OTA; if you need to uninstall KernelSU, please use "Uninstall permanently"</string>
     <string name="flashing">Flashing</string>
     <string name="flash_success">Flash success</string>
     <string name="flash_failed">Flash failed</string>
@@ -668,6 +668,8 @@
     <string name="kernel_flash_failed">Kernel flash failed: %s</string>
     <string name="kernel_loading">Loading kernel information…</string>
     <string name="kernel_refresh">Refresh</string>
+    <string name="kernel_flash_file">Flash File via Install Screen</string>
+    <string name="kernel_flash_file_desc">Select a ZIP or IMG to flash using the main installation flow</string>
     <string name="install_advanced_tools">Advanced Tools</string>
     <string name="kernel_manager_desc">View kernel info, flash images, manage AVB</string>
     <string name="partition_manager_desc">Backup/restore partitions, manage slots</string>

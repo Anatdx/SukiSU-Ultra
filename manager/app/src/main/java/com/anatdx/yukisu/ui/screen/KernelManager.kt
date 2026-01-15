@@ -21,10 +21,9 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
+import com.ramcosta.composedestinations.generated.destinations.InstallScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import com.anatdx.yukisu.R
 import com.anatdx.yukisu.ui.util.LocalSnackbarHost
 import com.anatdx.yukisu.ui.viewmodel.KernelManagerViewModel
@@ -37,32 +36,19 @@ fun KernelManagerScreen(navigator: DestinationsNavigator) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHost = LocalSnackbarHost.current
-    
+
     var showAvbDialog by remember { mutableStateOf(false) }
     var showLoadingDialog by remember { mutableStateOf(false) }
     var loadingMessage by remember { mutableStateOf("") }
-    
-    val ak3Launcher = rememberLauncherForActivityResult(
+
+    val fileLauncherForInstall = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            scope.launch {
-                showLoadingDialog = true
-                loadingMessage = context.getString(R.string.kernel_flashing_progress)
-                val result = viewModel.flashAK3(context, it)
-                showLoadingDialog = false
-                
-                result.onSuccess { msg ->
-                    snackbarHost.showSnackbar(msg)
-                }.onFailure { error ->
-                    snackbarHost.showSnackbar(
-                        context.getString(R.string.kernel_flash_failed, error.message)
-                    )
-                }
-            }
+            navigator.navigate(InstallScreenDestination(preselectedKernelUri = it.toString()))
         }
     }
-    
+
     val kernelImageLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -72,7 +58,7 @@ fun KernelManagerScreen(navigator: DestinationsNavigator) {
                 loadingMessage = context.getString(R.string.kernel_flashing_progress)
                 val result = viewModel.flashKernelImage(context, it)
                 showLoadingDialog = false
-                
+
                 result.onSuccess { msg ->
                     snackbarHost.showSnackbar(msg)
                 }.onFailure { error ->
@@ -83,32 +69,11 @@ fun KernelManagerScreen(navigator: DestinationsNavigator) {
             }
         }
     }
-    
-    val moduleLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            scope.launch {
-                showLoadingDialog = true
-                loadingMessage = context.getString(R.string.kernel_flashing_progress)
-                val result = viewModel.flashModule(context, it)
-                showLoadingDialog = false
-                
-                result.onSuccess { msg ->
-                    snackbarHost.showSnackbar(msg)
-                }.onFailure { error ->
-                    snackbarHost.showSnackbar(
-                        context.getString(R.string.kernel_flash_failed, error.message)
-                    )
-                }
-            }
-        }
-    }
-    
+
     LaunchedEffect(Unit) {
         viewModel.loadKernelInfo()
     }
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -142,7 +107,7 @@ fun KernelManagerScreen(navigator: DestinationsNavigator) {
                 .padding(horizontal = 16.dp)
         ) {
             Spacer(Modifier.height(16.dp))
-            
+
             // Current Slot Info
             SlotInfoCard(
                 title = "${stringResource(R.string.kernel_slot_info)} (${viewModel.currentSlot})",
@@ -150,7 +115,7 @@ fun KernelManagerScreen(navigator: DestinationsNavigator) {
                 avbStatus = viewModel.avbStatus,
                 isLoading = viewModel.isLoading
             )
-            
+
             // Other Slot Info (if A/B device)
             if (viewModel.hasOtherSlot) {
                 Spacer(Modifier.height(16.dp))
@@ -161,38 +126,38 @@ fun KernelManagerScreen(navigator: DestinationsNavigator) {
                     isLoading = viewModel.isLoading
                 )
             }
-            
+
             Spacer(Modifier.height(24.dp))
-            
+
             // Actions Section
             Text(
                 text = stringResource(R.string.kernel_actions),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
-            
+
             Spacer(Modifier.height(12.dp))
-            
-            // Flash AK3
+
+            // Flash AnyKernel3 -> Generic Flash File (redirects)
             ActionCard(
-                title = stringResource(R.string.kernel_flash_ak3),
-                description = "Flash AnyKernel3 package to current slot",
-                icon = Icons.Default.InstallMobile,
-                onClick = { ak3Launcher.launch("application/zip") }
+                title = stringResource(R.string.kernel_flash_file),
+                description = stringResource(R.string.kernel_flash_file_desc),
+                icon = Icons.Default.FileUpload,
+                onClick = { fileLauncherForInstall.launch("*/*") }
             )
-            
+
             Spacer(Modifier.height(8.dp))
-            
-            // Flash Kernel Image
+
+            // Flash Kernel Image (Kept for direct flashing without going to Install screen)
             ActionCard(
                 title = stringResource(R.string.kernel_flash_image),
                 description = "Directly flash kernel image (boot.img/Image/Image.gz)",
                 icon = Icons.Default.SystemUpdate,
                 onClick = { kernelImageLauncher.launch("*/*") }
             )
-            
+
             Spacer(Modifier.height(8.dp))
-            
+
             // Extract Kernel
             ActionCard(
                 title = stringResource(R.string.kernel_extract),
@@ -207,7 +172,7 @@ fun KernelManagerScreen(navigator: DestinationsNavigator) {
                         )
                         val result = viewModel.extractKernel(context)
                         showLoadingDialog = false
-                        
+
                         result.onSuccess { path ->
                             snackbarHost.showSnackbar(
                                 context.getString(R.string.kernel_extract_success, path)
@@ -220,19 +185,9 @@ fun KernelManagerScreen(navigator: DestinationsNavigator) {
                     }
                 }
             )
-            
+
             Spacer(Modifier.height(8.dp))
-            
-            // Flash Module
-            ActionCard(
-                title = stringResource(R.string.kernel_flash_module),
-                description = "Flash KernelSU LKM driver module",
-                icon = Icons.Default.Extension,
-                onClick = { moduleLauncher.launch("application/octet-stream") }
-            )
-            
-            Spacer(Modifier.height(8.dp))
-            
+
             // Disable AVB
             if (viewModel.avbStatus == "enabled") {
                 ActionCard(
@@ -245,11 +200,11 @@ fun KernelManagerScreen(navigator: DestinationsNavigator) {
                     )
                 )
             }
-            
+
             Spacer(Modifier.height(16.dp))
         }
     }
-    
+
     // AVB Disable Confirmation Dialog
     if (showAvbDialog) {
         AlertDialog(
@@ -265,7 +220,7 @@ fun KernelManagerScreen(navigator: DestinationsNavigator) {
                             loadingMessage = context.getString(R.string.kernel_avb_disabling)
                             val result = viewModel.disableAvb()
                             showLoadingDialog = false
-                            
+
                             result.onSuccess {
                                 snackbarHost.showSnackbar(
                                     context.getString(R.string.kernel_avb_disable_success)
@@ -289,7 +244,7 @@ fun KernelManagerScreen(navigator: DestinationsNavigator) {
             }
         )
     }
-    
+
     // Loading Dialog
     if (showLoadingDialog) {
         AlertDialog(
@@ -332,9 +287,9 @@ private fun SlotInfoCard(
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
-            
+
             Spacer(Modifier.height(12.dp))
-            
+
             if (isLoading) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -354,7 +309,7 @@ private fun SlotInfoCard(
                     label = stringResource(R.string.kernel_version),
                     value = kernelVersion.ifEmpty { stringResource(R.string.partition_unknown) }
                 )
-                
+
                 // AVB Status (only for current slot)
                 if (avbStatus != null) {
                     Spacer(Modifier.height(8.dp))

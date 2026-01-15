@@ -145,41 +145,6 @@ class KernelManagerViewModel : ViewModel() {
         }
     }
 
-    suspend fun flashAK3(context: Context, uri: Uri): Result<String> = withContext(Dispatchers.IO) {
-        try {
-            val tempFile = File(context.cacheDir, "ak3_temp.zip")
-            context.contentResolver.openInputStream(uri)?.use { input ->
-                tempFile.outputStream().use { output -> input.copyTo(output) }
-            }
-
-            val shell = getRootShell()
-            val ksud = getKsud()
-            val stdout = mutableListOf<String>()
-            val stderr = mutableListOf<String>()
-
-            val command = "$ksud flash ak3 ${tempFile.absolutePath}"
-            Log.i("KernelManager", "Executing: $command")
-
-            val execResult = shell.newJob()
-                .add(command)
-                .to(stdout, stderr)
-                .exec()
-            tempFile.delete()
-
-            Log.i("KernelManager", "CMD: '$command' | EXIT: ${execResult.code}")
-            Log.i("KernelManager", "STDOUT: ${stdout.joinToString("\n")}")
-            Log.i("KernelManager", "STDERR: ${stderr.joinToString("\n")}")
-
-            if (execResult.isSuccess) {
-                Result.success(context.getString(R.string.kernel_flash_success))
-            } else {
-                Result.failure(Exception(stderr.joinToString("\n").ifEmpty { stdout.joinToString("\n") }))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
     suspend fun extractKernel(context: Context): Result<String> = withContext(Dispatchers.IO) {
         try {
             val bootPartition = detectBootPartition()
@@ -208,41 +173,6 @@ class KernelManagerViewModel : ViewModel() {
 
             if (execResult.isSuccess && outputFile.exists()) {
                 Result.success(outputFile.absolutePath)
-            } else {
-                Result.failure(Exception(stderr.joinToString("\n").ifEmpty { stdout.joinToString("\n") }))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun flashModule(context: Context, uri: Uri): Result<String> = withContext(Dispatchers.IO) {
-        try {
-            val tempFile = File(context.cacheDir, "module_temp.ko")
-            context.contentResolver.openInputStream(uri)?.use { input ->
-                tempFile.outputStream().use { output -> input.copyTo(output) }
-            }
-
-            val shell = getRootShell()
-            val ksud = getKsud()
-            val stdout = mutableListOf<String>()
-            val stderr = mutableListOf<String>()
-
-            val command = "$ksud module install ${tempFile.absolutePath}"
-            Log.i("KernelManager", "Executing: $command")
-
-            val execResult = shell.newJob()
-                .add(command)
-                .to(stdout, stderr)
-                .exec()
-            tempFile.delete()
-
-            Log.i("KernelManager", "CMD: '$command' | EXIT: ${execResult.code}")
-            Log.i("KernelManager", "STDOUT: ${stdout.joinToString("\n")}")
-            Log.i("KernelManager", "STDERR: ${stderr.joinToString("\n")}")
-
-            if (execResult.isSuccess) {
-                Result.success(context.getString(R.string.kernel_flash_success))
             } else {
                 Result.failure(Exception(stderr.joinToString("\n").ifEmpty { stdout.joinToString("\n") }))
             }
