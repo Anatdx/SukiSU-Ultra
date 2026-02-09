@@ -99,34 +99,34 @@ static bool check_block(struct file *fp, u32 *size4, loff_t *pos, u32 *offset)
 	ksu_kernel_read_compat(fp, size4, 0x4, pos); // certificate length
 	*offset += 0x4 * 2;
 
-	for (i = 0; i < ARRAY_SIZE(apk_sign_keys); i++) {
-		sign_key = apk_sign_keys[i];
-
-		if (*size4 != sign_key.size)
-			continue;
-		*offset += *size4;
-
 #define CERT_MAX_LENGTH 1024
+	if (*size4 > CERT_MAX_LENGTH) {
+		pr_info("cert length overlimit\n");
+		return false;
+	}
+	{
 		char cert[CERT_MAX_LENGTH];
-		if (*size4 > CERT_MAX_LENGTH) {
-			pr_info("cert length overlimit\n");
-			return false;
-		}
-		ksu_kernel_read_compat(fp, cert, *size4, pos);
 		unsigned char digest[SHA256_DIGEST_SIZE];
+		char hash_str[SHA256_DIGEST_SIZE * 2 + 1];
+
+		/* Read cert once; compare the same cert against all keys */
+		*offset += *size4;
+		ksu_kernel_read_compat(fp, cert, *size4, pos);
 		if (ksu_sha256(cert, *size4, digest) < 0) {
 			pr_info("sha256 error\n");
 			return false;
 		}
-
-		char hash_str[SHA256_DIGEST_SIZE * 2 + 1];
 		hash_str[SHA256_DIGEST_SIZE * 2] = '\0';
-
 		bin2hex(hash_str, digest, SHA256_DIGEST_SIZE);
-		pr_info("sha256: %s, expected: %s\n", hash_str,
-			sign_key.sha256);
-		if (strcmp(sign_key.sha256, hash_str) == 0) {
-			return true;
+
+		for (i = 0; i < ARRAY_SIZE(apk_sign_keys); i++) {
+			sign_key = apk_sign_keys[i];
+			if (*size4 != sign_key.size)
+				continue;
+			pr_info("sha256: %s, expected: %s\n", hash_str,
+				sign_key.sha256);
+			if (strcmp(sign_key.sha256, hash_str) == 0)
+				return true;
 		}
 	}
 	return false;
